@@ -1,0 +1,31 @@
+name: healthy_food workflow
+
+on:
+  push:
+    branches: [main, feature/ci-cd]
+  pull_request:
+
+jobs:
+
+  flake8_and_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.6.1
+          virtualenvs-create: false
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-root
+      - name: Test with flake8
+        run: |
+          python -m flake8
+      # - name: Test with pytest
+      #   run: |
+      #     pytest
