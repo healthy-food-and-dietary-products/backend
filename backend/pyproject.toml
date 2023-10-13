@@ -1,15 +1,28 @@
 [tool.poetry]
-name = "backend"
+name = "healthy-food"
 version = "0.1.0"
-description = ""
-authors = ["Артём Говорливых <govorlivyh@bk.ru>"]
+description = "Healthy food online store"
+authors = ["Healthy Food <healthyfoodapi@yandex.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
 django = "^4.2.6"
 djangorestframework = "^3.14.0"
+python-dotenv = "^1.0.0"
+gunicorn = "^21.2.0"
+psycopg2-binary = "^2.9.9"
 
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.1.0"
+pep8-naming = "^0.13.3"
+flake8-broken-line = "^1.0.0"
+flake8-return = "^1.2.0"
+flake8-isort = "^6.1.0"
+black = "^23.9.1"
+isort = "^5.12.0"
+pytest = "^7.4.2"
 
 [build-system]
 requires = ["poetry-core"]
