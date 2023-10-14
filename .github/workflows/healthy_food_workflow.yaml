@@ -2,7 +2,6 @@ name: healthy_food workflow
 
 on:
   push:
-    branches: [main, develop, feature/ci-cd]
   pull_request:
 
 jobs:
