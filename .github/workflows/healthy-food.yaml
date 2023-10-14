@@ -63,7 +63,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             ${{ github.workflow }} completed successfully!
+
             Repository: ${{ github.repository }}.
+            Branch name: ${{ github.ref_name }}.
             Commit author: ${{ github.actor }}.
             Commit message: ${{ github.event.commits[0].message }}.
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
