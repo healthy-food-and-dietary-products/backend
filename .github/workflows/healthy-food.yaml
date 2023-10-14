@@ -61,4 +61,9 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: ${{ github.workflow }} completed successfully!
+          message: |
+            ${{ github.workflow }} completed successfully!
+            Repository: ${{ github.repository }}.
+            Commit author: ${{ github.actor }}.
+            Commit message: ${{ github.event.commits[0].message }}.
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
