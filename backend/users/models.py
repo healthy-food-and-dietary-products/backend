@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class User(AbstractUser):
@@ -16,6 +16,10 @@ class User(AbstractUser):
         (ADMIN, 'Администратор'),
     ]
 
+    def user_directory_path(self, filename):
+        '''Строит путь, по которому будет осуществлено сохранение фото пользователя.'''
+        return f'images/{self.username}'
+
     username: str = models.CharField(
         'Username',
         unique=True,
@@ -30,36 +34,31 @@ class User(AbstractUser):
     role: str = models.CharField(
         max_length=9,
         choices=CHOISES,
-        default='user'
-    )
-    first_name: str = models.CharField(
-        'first name',
-        max_length=150,
-        blank=True
-    )
-    last_name: str = models.CharField(
-        'last name',
-        max_length=150,
-        blank=True
-    )
-    date_joined = models.DateTimeField(
-        "date joined",
-        default=timezone.now
-    )
-    last_login = models.DateTimeField(
-        'last_login',
-        blank=True,
-        null=True
+        default='user',
     )
     location: str = models.CharField(
-        'your city',
+        'City',
         max_length=30,
-        blank=True
+        blank=True,
     )
     birth_date = models.DateField(
         'birth_date',
         null=True,
-        blank=True
+        blank=True,
+    )
+    address = models.TextField(
+        'Address',
+        blank=True,
+    )
+    phone_number = PhoneNumberField(
+        'Phone_number',
+        blank=True,
+    )
+    photo = models.ImageField(
+        'Photo',
+        upload_to=user_directory_path,
+        blank=True,
+        default='default.jpg',
     )
 
     class Meta:
