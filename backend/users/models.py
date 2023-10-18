@@ -6,6 +6,58 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
+class Address(models.Model):
+    country = models.CharField(
+        "Country",
+        null=False,
+        blank=False,
+        max_length=100,
+    )
+    city = models.CharField(
+        "City",
+        null=False,
+        blank=False,
+        max_length=100,
+    )
+    street = models.CharField(
+        "Street",
+        null=False,
+        blank=False,
+        max_length=100,
+    )
+    house = models.IntegerField(
+        "House_number",
+        null=False,
+        blank=False,
+    )
+    building = models.IntegerField(
+        "Buiding_number",
+        null=True,
+        blank=True,
+    )
+    apartment = models.IntegerField(
+        "Apartment_number",
+        null=False,
+        blank=False,
+    )
+
+    def __str__(self):
+        return (
+            f"{self.country}, {self.city}, {self.street}, "
+            f"{self.house}{self.building}, {self.apartment}"
+        )
+
+    class Meta:
+        verbose_name = "Address"
+        verbose_name_plural = "Addresses"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["city", "street", "house", "building", "apartment"],
+                name="unique address",
+            )
+        ]
+
+
 class User(AbstractUser):
     """
     Расширение встроенной модели User."""
@@ -48,10 +100,12 @@ class User(AbstractUser):
     birth_date = models.DateField(
         "Birth_date",
         blank=True,
+        null=True,
     )
-    address = models.TextField(
-        "Address",
-        blank=True,
+    address = models.ManyToManyField(
+        Address,
+        related_name="users",
+        verbose_name="Addresses",
     )
     address_quantity = models.IntegerField(
         "number_of_cities",

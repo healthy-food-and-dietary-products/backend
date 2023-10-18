@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import User
+from .models import Address, User
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -13,7 +13,7 @@ class UserAdmin(admin.ModelAdmin):
         "first_name",
         "last_name",
         "email",
-        "location",
+        "city",
         "birth_date",
         "address",
         "phone_number",
@@ -34,11 +34,33 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = [
         "preview",
     ]
-    search_fields = ("role",)
-    ordering = ("id",)
+    search_fields = [
+        "username",
+        "role",
+    ]
+    ordering = [
+        "id",
+    ]
+    list_filter = [
+        "username",
+        "birth_date",
+        "city",
+    ]
 
     def preview(self, obj):
         return mark_safe(f'<img src="{obj.photo.url}" style="max-height: 200px;">')
 
 
+class AddressAdmin(admin.ModelAdmin):
+    list_display = [
+        "country",
+        "city",
+        "street",
+        "house",
+        "building",
+        "apartment",
+    ]
+
+
 admin.site.register(User, UserAdmin)
+admin.site.register(Address, AddressAdmin)
