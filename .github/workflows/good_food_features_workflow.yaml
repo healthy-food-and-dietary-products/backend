@@ -3,7 +3,6 @@ name: good_food_features workflow
 on:
   push:
     branches-ignore: [main, develop]
-  pull_request:
 
 jobs:
 
