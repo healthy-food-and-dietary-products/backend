@@ -4,14 +4,16 @@ services:
 
   db:
     image: postgres:13.0-alpine
+    container_name: good_food_db
     volumes:
-      - /var/lib/postgresql/data/
+      - postgres_value:/var/lib/postgresql/data/
     restart: always
     env_file:
       - ./.env
 
   web:
-    image: healthyfoodapi/healthy_food:v.01
+    image: healthyfoodapi/good_food:v.01
+    container_name: good_food_api
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -23,6 +25,7 @@ services:
 
   nginx:
     image: nginx:1.21.3-alpine
+    container_name: good_food_nginx
     ports:
       - "80:80"
     volumes:
@@ -34,6 +37,6 @@ services:
       - web
 
 volumes:
-  postgres_data:
+  postgres_value:
   static_value:
   media_value:
