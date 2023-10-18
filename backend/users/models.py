@@ -1,32 +1,36 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator
 from django.db import models
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
 class User(AbstractUser):
     """
     Расширение встроенной модели User."""
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
+
+    USER = "user"
+    MODERATOR = "moderator"
+    ADMIN = "admin"
 
     CHOISES = [
-        (USER, 'Аутентифицированный пользователь'),
-        (MODERATOR, 'Модератор'),
-        (ADMIN, 'Администратор'),
+        (USER, "Аутентифицированный пользователь"),
+        (MODERATOR, "Модератор"),
+        (ADMIN, "Администратор"),
     ]
 
     def user_directory_path(self, filename):
-        '''Строит путь, по которому будет осуществлено сохранение фото пользователя.'''
-        return f'images/{self.username}'
+        """Constructs the path which the users photo will be saved."""
+        return f"images/{self.username}"
 
     username: str = models.CharField(
-        'Username',
+        "Username",
         unique=True,
         max_length=150,
     )
     email: str = models.EmailField(
-        'E-mail address',
+        "E-mail address",
         unique=True,
         blank=False,
         max_length=254,
@@ -34,38 +38,49 @@ class User(AbstractUser):
     role: str = models.CharField(
         max_length=9,
         choices=CHOISES,
-        default='user',
+        default="user",
     )
-    location: str = models.CharField(
-        'City',
+    city: str = models.CharField(
+        "City",
         max_length=30,
         blank=True,
     )
     birth_date = models.DateField(
-        'birth_date',
-        null=True,
+        "Birth_date",
         blank=True,
     )
     address = models.TextField(
-        'Address',
+        "Address",
         blank=True,
     )
+    address_quantity = models.IntegerField(
+        "number_of_cities",
+        default=0,
+        validators=[MaxValueValidator(5)],
+    )
     phone_number = PhoneNumberField(
-        'Phone_number',
+        "Phone_number",
         blank=True,
     )
     photo = models.ImageField(
-        'Photo',
+        "Photo",
         upload_to=user_directory_path,
         blank=True,
-        default='default.jpg',
+        default="default.jpg",
     )
 
     class Meta:
-        ordering = ('id',)
+        ordering = ("id",)
 
     def __str__(self):
         return self.username
+
+    def clean_fields(self, exclude=None):
+        super().clean_fields(exclude=exclude)
+
+        now = timezone.now()
+        if self.birth_date > now or (now.year - self.birth_date.year) > 120:
+            raise ValidationError("Введен неверный возраст.")
 
     @property
     def is_moderator(self):
