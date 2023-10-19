@@ -1,0 +1,4 @@
+id,name,measure_unit,amount,description,image,producer,category,price
+1,авокадо,гр,50,Спелое авокадо,avocado.jpg,TLC,2,50
+2,огурцы,гр,200,Огурцы гладкие,cucumbers.jpg,TLC,2,60
+3,Чай зеленый Молочный Улунг,гр,150,Зеленый чай,green_tea.jpg,TLC,4,300
