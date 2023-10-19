@@ -1,12 +1,5 @@
-from django.db import transaction
-from djoser.serializers import UserCreateSerializer
+from orders.models import ShoppingCart
 from rest_framework import serializers
-
-from products.models import Product, Favorite, Category
-from users.models import User
-
-from orders.models import Order, ShoppingCart
-
 
 
 class ShoppingCartListSerializer(serializers.ModelSerializer):
@@ -17,8 +10,7 @@ class ShoppingCartListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ('product_name',
-                  'product_amount', 'product_price')
+        fields = ('product_name', 'product_amount', 'product_price')
 
     def get_product_name(self, obj):
         return obj.product.name
@@ -49,5 +41,3 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Количество  товара в корзине должно быть не меньше 1!')
         return data
-
-

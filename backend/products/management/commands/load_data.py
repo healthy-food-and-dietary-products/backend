@@ -10,8 +10,7 @@ from users.models import User
 
 def read_users():
     with open(os.path.join(settings.BASE_DIR, 'data', 'users.csv'),
-              'r', encoding='utf-8'
-            ) as f:
+              'r', encoding='utf-8') as f:
         reader = csv.reader(f, delimiter=',')
         for row in reader:
             if row[0] == 'id':
@@ -81,6 +80,3 @@ class Command(BaseCommand):
         read_users()
         read_category()
         read_products()
-
-
-

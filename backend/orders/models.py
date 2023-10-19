@@ -1,17 +1,15 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-from users.models import User
 from products.models import Product
+from users.models import User
 
 
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
 
-    SHOPPINGCART = (
-            ('Ordered', 'Передано в заказ'),
-            ('In work', 'В работе')
-    )
+    SHOPPINGCART = (('Ordered', 'Передано в заказ'),
+                    ('In work', 'В работе'))
 
     user = models.ForeignKey(
         User,
@@ -28,8 +26,8 @@ class ShoppingCart(models.Model):
     quantity = models.IntegerField(
         verbose_name='Количество товара',
         validators=[
-                MinValueValidator(1, 'Разрешены значения от 1 до 100'),
-                MaxValueValidator(10000, 'Разрешены значения от 1 до 100')
+            MinValueValidator(1, 'Разрешены значения от 1 до 100'),
+            MaxValueValidator(10000, 'Разрешены значения от 1 до 100')
         ]
     )
     status = models.CharField(
@@ -42,36 +40,30 @@ class ShoppingCart(models.Model):
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
         constraints = [
-                models.UniqueConstraint(
-                    fields=['user', 'product'],
-                    name='unique_shopping_cart'
-                )
+            models.UniqueConstraint(
+                fields=['user', 'product'],
+                name='unique_shopping_cart'
+            )
         ]
 
 
 class Order(models.Model):
     """Model for creating an order."""
 
-    STATUS = (
-            ('Ordered', 'Оформлен'),
-            ('In processing', 'В обработке'),
-            ('Completed', 'Комплектуется'),
-            ('Gathered', 'Собран'),
-            ('In delivering', 'Передан в доставку'),
-            ('Delivered', 'Доставлен'),
-            ('Completed', 'Завершен')
-    )
+    STATUS = (('Ordered', 'Оформлен'),
+              ('In processing', 'В обработке'),
+              ('Completed', 'Комплектуется'),
+              ('Gathered', 'Собран'),
+              ('In delivering', 'Передан в доставку'),
+              ('Delivered', 'Доставлен'),
+              ('Completed', 'Завершен'))
 
-    PAYMENT_METHODS = (
-            ('Cash', 'Наличные'),
-            ('By card on the website', 'Картой на сайте'),
-            ('In getting', 'При получении')
-    )
+    PAYMENT_METHODS = (('Cash', 'Наличные'),
+                       ('By card on the website', 'Картой на сайте'),
+                       ('In getting', 'При получении'))
 
-    DELIVERY_METHOD = (
-            ('Point of delivery', 'Пункт выдачи'),
-            ('By courier', 'Курьером')
-    )
+    DELIVERY_METHOD = (('Point of delivery', 'Пункт выдачи'),
+                       ('By courier', 'Курьером'))
 
     user = models.ForeignKey(
         User,
