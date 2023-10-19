@@ -9,11 +9,12 @@ from users.models import User
 
 
 def read_users():
-    with open(os.path.join(settings.BASE_DIR, 'data', 'users.csv'),
-              'r', encoding='utf-8') as f:
-        reader = csv.reader(f, delimiter=',')
+    with open(
+        os.path.join(settings.BASE_DIR, "data", "users.csv"), "r", encoding="utf-8"
+    ) as f:
+        reader = csv.reader(f, delimiter=",")
         for row in reader:
-            if row[0] == 'id':
+            if row[0] == "id":
                 continue
             User.objects.get_or_create(
                 id=row[0],
@@ -23,42 +24,45 @@ def read_users():
                 first_name=row[4],
                 last_name=row[5],
                 # role=row[6]
-
             )
-    print('Данные из файла users.csv загружены')
+    print("Данные из файла users.csv загружены")
 
 
 def read_category():
     with open(
-            os.path.join(
-                settings.BASE_DIR,
-                'data', 'category.csv',
-            ),
-            'r', encoding='utf-8'
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "category.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
-        reader = csv.reader(f, delimiter=',')
+        reader = csv.reader(f, delimiter=",")
         for row in reader:
-            if row[0] == 'id':
+            if row[0] == "id":
                 continue
             Category.objects.get_or_create(
                 id=row[0],
                 name=row[1],
                 slug=row[2],
             )
-    print('Данные из файла category.csv загружены')
+    print("Данные из файла category.csv загружены")
 
 
 def read_products():
     with open(
-            os.path.join(
-                settings.BASE_DIR,
-                'data', 'products.csv',
-            ),
-            'r', encoding='utf-8'
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "products.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
-        reader = csv.reader(f, delimiter=',')
+        reader = csv.reader(f, delimiter=",")
         for row in reader:
-            if row[0] == 'id':
+            if row[0] == "id":
                 continue
             Product.objects.get_or_create(
                 id=row[0],
@@ -69,13 +73,12 @@ def read_products():
                 image=row[5],
                 producer=row[6],
                 category=row[7],
-                price=row[8]
+                price=row[8],
             )
-    print('Данные из файла products.csv загружены')
+    print("Данные из файла products.csv загружены")
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         read_users()
         read_category()

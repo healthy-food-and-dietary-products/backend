@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
     "api.apps.ApiConfig",
+    "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
     "phonenumber_field",
 ]
@@ -145,8 +146,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # User model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
 # Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
