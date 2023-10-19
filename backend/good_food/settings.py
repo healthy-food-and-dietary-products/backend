@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
     "api.apps.ApiConfig",
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -89,14 +90,14 @@ WSGI_APPLICATION = "good_food.wsgi.application"
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        # "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        # "NAME": os.getenv("DB_NAME", default="postgres"),
-        # "USER": os.getenv("POSTGRES_USER", default="postgres"),
-        # "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
-        # "HOST": os.getenv("DB_HOST", default="db"),
-        # "PORT": os.getenv("DB_PORT", default="5432"),
+        # "ENGINE": "django.db.backends.sqlite3",
+        # "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", default="postgres"),
+        "USER": os.getenv("POSTGRES_USER", default="postgres"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
+        "HOST": os.getenv("DB_HOST", default="db"),
+        "PORT": os.getenv("DB_PORT", default="5432"),
     }
 }
 
@@ -125,7 +126,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
@@ -141,3 +142,10 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# User model
+AUTH_USER_MODEL = 'users.User'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
