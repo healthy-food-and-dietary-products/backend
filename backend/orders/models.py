@@ -73,7 +73,7 @@ class Order(models.Model):
             ('By courier', 'Курьером')
     )
 
-    customer = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='orders',
