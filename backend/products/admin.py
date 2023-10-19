@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import Category, Component, Producer, Product, Promotion, Subcategory, Tag
+from .models import (
+    Category,
+    Component,
+    FavoriteProduct,
+    Producer,
+    Product,
+    Promotion,
+    Subcategory,
+    Tag,
+)
 
 
 @admin.register(Category)
@@ -122,3 +131,13 @@ class ProductAdmin(admin.ModelAdmin):
         "promotion_quantity",
     ]
     empty_value_display = "-empty-"  # not shown
+
+
+@admin.register(FavoriteProduct)
+class FavoriteProductAdmin(admin.ModelAdmin):
+    """Class to display favorite products of users in admin panel."""
+
+    list_display = ["pk", "user", "product"]
+    fields = ["user", "product"]
+    search_fields = ["user", "product"]
+    list_filter = ["product"]

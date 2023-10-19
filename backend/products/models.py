@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from core.models import CategoryModel
+from users.models import User
 
 
 class Category(CategoryModel):
@@ -257,3 +258,29 @@ class Product(models.Model):
 
     # TODO: add expiration_date field (if necessary)
     # TODO: add method of determining price taking into account discounts (promotions)
+
+
+class FavoriteProduct(models.Model):
+    """Describes favorite products."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="favorites", verbose_name="User"
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name="Product",
+    )
+
+    class Meta:
+        verbose_name = "Favorite Product"
+        verbose_name_plural = "Favorite Products"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "product"], name="unique_favorite_user"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} added {self.product} to favorites"
