@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 from core.models import CategoryModel
 
@@ -26,3 +27,42 @@ class Subcategory(CategoryModel):
         verbose_name = "Subcategory"
         verbose_name_plural = "Subcategories"
         ordering = ["name"]
+
+
+class Component(models.Model):
+    """Describes what the product consists of."""
+
+    name = models.CharField(
+        "Name", max_length=100, unique=True, help_text="Component name"
+    )
+
+    class Meta:
+        verbose_name = "Component"
+        verbose_name_plural = "Components"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Tag(models.Model):
+    """Describes product tags."""
+
+    name = models.CharField("Name", max_length=100, unique=True, help_text="Tag name")
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Tag slug"
+    )
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a tag name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)[:50]
+        super().save(*args, **kwargs)
