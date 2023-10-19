@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "healthy_food.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "good_food.settings")
 
 application = get_wsgi_application()

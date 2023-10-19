@@ -1,3 +1,5 @@
-# healthy-food
+# good-food
 
-![healthy_food workflow](https://github.com/healthy-food-and-dietary-products/backend/actions/workflows/healthy_food_workflow.yaml/badge.svg)
+![good_food_develop workflow](https://github.com/healthy-food-and-dietary-products/backend/actions/workflows/good_food_develop_workflow.yaml/badge.svg)
+
+# TODO: добавить пример заполнения файла .env и указать, в каких папках он должен лежать

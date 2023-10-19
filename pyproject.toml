@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "healthy-food"
+name = "good-food"
 version = "0.1.0"
 description = "Healthy food online store"
 authors = ["Healthy Food <healthyfoodapi@yandex.ru>"]
