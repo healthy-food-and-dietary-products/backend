@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Component, Producer, Subcategory, Tag
+from .models import Category, Component, Producer, Promotion, Subcategory, Tag
 
 
 @admin.register(Category)
@@ -53,4 +53,34 @@ class ProducerAdmin(admin.ModelAdmin):
     search_fields = ["name", "address", "description"]
     ordering = ["name"]
     list_filter = ["producer_type"]
+    empty_value_display = "-empty-"  # not shown
+
+
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    """Class to display promotions in admin panel."""
+
+    list_display = [
+        "pk",
+        "name",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+    ]
+    fields = [
+        "name",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+        "conditions",
+    ]
+    search_fields = ["name", "discount", "conditions", "start_time", "end_time"]
+    ordering = ["name"]
+    list_filter = ["promotion_type", "is_active", "is_constant"]
     empty_value_display = "-empty-"  # not shown
