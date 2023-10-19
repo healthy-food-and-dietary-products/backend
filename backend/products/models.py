@@ -158,3 +158,102 @@ class Promotion(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Product(models.Model):
+    """Describes products."""
+
+    MAX_PROMOTIONS_NUMBER = 1
+
+    GRAMS = "grams"
+    MILLILITRES = "milliliters"
+    ITEMS = "items"
+
+    CHOISES = [
+        (GRAMS, "г."),
+        (MILLILITRES, "мл."),
+        (ITEMS, "шт."),
+    ]
+
+    def product_directory_path(self, filename):
+        """Constructs the path which the product photo will be saved."""
+        return f"images/products/{self.pk}"
+
+    name = models.CharField(
+        "Name", max_length=100, unique=True, help_text="Product name"
+    )
+    description = models.TextField(
+        "Description", blank=True, help_text="Product description"
+    )
+    categorу = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Category",
+    )
+    subcategory = models.ForeignKey(
+        Subcategory,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Subcategory",
+    )
+    tags = models.ManyToManyField(
+        Tag, related_name="products", blank=True, verbose_name="Tags"
+    )
+    discontinued = models.BooleanField(
+        "Discontinued",
+        default=False,
+        help_text="Is this product discontinued from sale",
+    )
+    producer = models.ForeignKey(
+        Producer,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Producer",
+    )
+    measure_unit = models.CharField(
+        "Measure unit", max_length=11, choices=CHOISES, default=ITEMS
+    )
+    amount = models.PositiveSmallIntegerField(
+        "Amount", default=1, help_text="Number of grams, milliliters or items"
+    )
+    price = models.FloatField("Price", help_text="Price per one product unit")
+    promotions = models.ManyToManyField(
+        Promotion, related_name="products", blank=True, verbose_name="Promotions"
+    )
+    # TODO: add validation error for promotion_quantity
+    promotion_quantity = models.PositiveSmallIntegerField(
+        "Promotion quantity",
+        default=0,
+        validators=[MaxValueValidator(MAX_PROMOTIONS_NUMBER)],
+        help_text="Number of promotions valid for this product",
+    )
+    photo = models.ImageField("Photo", blank=True, upload_to=product_directory_path)
+    components = models.ManyToManyField(
+        Component,
+        related_name="products",
+        verbose_name="Components that the product consists of",
+    )
+    kcal = models.PositiveSmallIntegerField(
+        "Kcal", help_text="Number of kcal per 100 g of product"
+    )
+    proteins = models.PositiveSmallIntegerField(
+        "Proteins", help_text="Number of proteins per 100 g of product"
+    )
+    fats = models.PositiveSmallIntegerField(
+        "Fats", help_text="Number of fats per 100 g of product"
+    )
+    carbohydrates = models.PositiveSmallIntegerField(
+        "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
+    )
+
+    class Meta:
+        verbose_name = "Product"
+        verbose_name_plural = "Products"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    # TODO: add expiration_date field (if necessary)
+    # TODO: add method of determining price taking into account discounts (promotions)
