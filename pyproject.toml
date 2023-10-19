@@ -12,6 +12,8 @@ djangorestframework = "^3.14.0"
 python-dotenv = "^1.0.0"
 gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.9"
+django-phonenumber-field = {extras = ["phonenumberslite"], version = "^7.2.0"}
+pillow = "^10.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
