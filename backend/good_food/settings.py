@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
+    "orders.apps.OrdersConfig",
     "phonenumber_field",
 ]
 
