@@ -66,3 +66,29 @@ class Tag(models.Model):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)[:50]
         super().save(*args, **kwargs)
+
+
+class Producer(models.Model):
+    """Describes product producers."""
+
+    COMPANY = "company"
+    ENTREPRENEUR = "entrepreneur"
+
+    CHOISES = [
+        (COMPANY, "Юридическое лицо"),
+        (ENTREPRENEUR, "Индивидуальный предприниматель"),
+    ]
+
+    name = models.CharField(
+        "Name", max_length=100, unique=True, help_text="Producer name"
+    )
+    producer_type = models.CharField(
+        "Producer type", max_length=12, choices=CHOISES, default=COMPANY
+    )
+    description = models.TextField(
+        "Description",
+        blank=True,
+        help_text="Brief information about the company or entrepreneur",
+    )
+    # TODO: think, do we need to connect the address field to the Address model (users)
+    address = models.TextField("Address", help_text="Legal address of the producers")

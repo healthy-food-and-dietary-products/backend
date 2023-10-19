@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Component, Subcategory, Tag
+from .models import Category, Component, Producer, Subcategory, Tag
 
 
 @admin.register(Category)
@@ -42,3 +42,15 @@ class TagAdmin(admin.ModelAdmin):
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
     ordering = ["name"]
+
+
+@admin.register(Producer)
+class ProducerAdmin(admin.ModelAdmin):
+    """Class to display product producers in admin panel."""
+
+    list_display = ["pk", "producer_type", "name", "address", "description"]
+    fields = ["producer_type", "name", "address", "description"]
+    search_fields = ["name", "address", "description"]
+    ordering = ["name"]
+    list_filter = ["producer_type"]
+    empty_value_display = "-empty-"  # not shown

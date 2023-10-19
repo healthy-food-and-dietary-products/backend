@@ -166,3 +166,6 @@ backend/static/
 
 # VSCode
 .vscode
+
+# Dump files
+dump*
