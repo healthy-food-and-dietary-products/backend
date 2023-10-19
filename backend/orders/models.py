@@ -104,7 +104,6 @@ class Order(models.Model):
     total_price = models.IntegerField(
         default=0
     )
-    permission_personal_data = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-date']
