@@ -4,23 +4,15 @@ from django.db import models
 from users.models import User
 from products.models import Product
 
-SHOPPINGCART = (('Ordered', 'Передано в заказ'), ('In work','В работе'))
-
-STATUS = (('Ordered', 'Оформлен'), ('In processing', 'В обработке'),
-          ('Completed', 'Комплектуется'),
-          ('Gathered', 'Собран'),('In delivering', 'Передан в доставку'),
-          ('Delivered', 'Доставлен'), ('Completed', 'Завершен'))
-
-PAYMENT_METHODS = (('Cash', 'Наличные'),
-                   ('By card on the website', 'Картой на сайте'),
-                   ('In getting','При получении'))
-
-DELIVERY_METHOD = (('Point of delivery', 'Пункт выдачи'),
-                   ('By courier', 'Курьером'))
-
 
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
+
+    SHOPPINGCART = (
+            ('Ordered', 'Передано в заказ'),
+            ('In work', 'В работе')
+    )
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -50,15 +42,43 @@ class ShoppingCart(models.Model):
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
         constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'product'],
-                name='unique_shopping_cart'
-            )
+                models.UniqueConstraint(
+                    fields=['user', 'product'],
+                    name='unique_shopping_cart'
+                )
         ]
 
 
 class Order(models.Model):
     """Model for creating an order."""
+
+    STATUS = (
+            ('Ordered', 'Оформлен'),
+            ('In processing', 'В обработке'),
+            ('Completed', 'Комплектуется'),
+            ('Gathered', 'Собран'),
+            ('In delivering', 'Передан в доставку'),
+            ('Delivered', 'Доставлен'),
+            ('Completed', 'Завершен')
+    )
+
+    PAYMENT_METHODS = (
+            ('Cash', 'Наличные'),
+            ('By card on the website', 'Картой на сайте'),
+            ('In getting', 'При получении')
+    )
+
+    DELIVERY_METHOD = (
+            ('Point of delivery', 'Пункт выдачи'),
+            ('By courier', 'Курьером')
+    )
+
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='orders',
+        verbose_name='Покупатель'
+    )
     goods = models.ForeignKey(
         ShoppingCart,
         on_delete=models.CASCADE,
@@ -73,7 +93,7 @@ class Order(models.Model):
         max_length=50,
         choices=STATUS,
         default='Оформлен'
-        )
+    )
     payment_method = models.CharField(
         max_length=50,
         choices=PAYMENT_METHODS,
