@@ -57,7 +57,6 @@ class AddressAdmin(admin.ModelAdmin):
         "city",
         "street",
         "house",
-        "building",
         "apartment",
     ]
 

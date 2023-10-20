@@ -1,50 +1,68 @@
 from django.contrib.auth.models import AbstractUser
+from django.core import validators
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Address(models.Model):
+    """Describes address of user."""
+
     country = models.CharField(
         "Country",
-        null=False,
-        blank=False,
+        max_length=100,
+    )
+    region = models.CharField(
+        "Region",
+        max_length=200,
+    )
+    city_type = models.CharField(
+        "City_type",
         max_length=100,
     )
     city = models.CharField(
         "City",
-        null=False,
-        blank=False,
         max_length=100,
     )
-    street = models.CharField(
-        "Street",
-        null=False,
-        blank=False,
+    microdistrict = models.CharField(
+        "Microdistrict",
+        null=True,
+        blank=True,
+        max_length=150,
+    )
+    street_type = models.CharField(
+        "Street_type",
         max_length=100,
-    )
-    house = models.IntegerField(
-        "House_number",
-        null=False,
-        blank=False,
-    )
-    building = models.IntegerField(
-        "Buiding_number",
         null=True,
         blank=True,
     )
+    street = models.CharField(
+        "Street",
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+    house = models.CharField(
+        "House_number",
+        max_length=40,
+    )
     apartment = models.IntegerField(
         "Apartment_number",
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+    )
+    postal_code = models.CharField(
+        "Postal_code",
+        max_length=6,
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
         return (
             f"{self.country}, {self.city}, {self.street}, "
-            f"{self.house}{self.building}, {self.apartment}"
+            f"{self.house}, {self.apartment}"
         )
 
     class Meta:
@@ -52,15 +70,14 @@ class Address(models.Model):
         verbose_name_plural = "Addresses"
         constraints = [
             models.UniqueConstraint(
-                fields=["city", "street", "house", "building", "apartment"],
+                fields=["city", "street", "house", "apartment"],
                 name="unique address",
             )
         ]
 
 
 class User(AbstractUser):
-    """
-    Расширение встроенной модели User."""
+    """Extending the Built-in Model User."""
 
     USER = "user"
     MODERATOR = "moderator"
@@ -76,25 +93,24 @@ class User(AbstractUser):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
-    username: str = models.CharField(
+    username = models.CharField(
         "Username",
         unique=True,
         max_length=150,
     )
-    email: str = models.EmailField(
+    email = models.EmailField(
         "E-mail address",
         unique=True,
-        blank=False,
         max_length=254,
     )
-    role: str = models.CharField(
+    role = models.CharField(
         max_length=9,
         choices=CHOISES,
         default="user",
     )
-    city: str = models.CharField(
+    city = models.CharField(
         "City",
-        max_length=30,
+        max_length=50,
         blank=True,
     )
     birth_date = models.DateField(
@@ -104,13 +120,14 @@ class User(AbstractUser):
     )
     address = models.ManyToManyField(
         Address,
+        blank=True,
         related_name="users",
         verbose_name="Addresses",
     )
     address_quantity = models.IntegerField(
-        "number_of_cities",
+        "number_of_adresses",
         default=0,
-        validators=[MaxValueValidator(5)],
+        validators=[validators.MaxValueValidator(5)],
     )
     phone_number = PhoneNumberField(
         "Phone_number",
@@ -133,8 +150,12 @@ class User(AbstractUser):
         super().clean_fields(exclude=exclude)
 
         now = timezone.now()
-        if self.birth_date > now or (now.year - self.birth_date.year) > 120:
-            raise ValidationError("Введен неверный возраст.")
+        if self.birth_date:
+            if (
+                self.birth_date.year > now.year
+                or (now.year - self.birth_date.year) > 120
+            ):
+                raise ValidationError("Указана неверная дата рождения.")
 
     @property
     def is_moderator(self):
