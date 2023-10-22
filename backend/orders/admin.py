@@ -3,31 +3,31 @@ from django.contrib import admin
 from orders.models import Order, ShoppingCart
 
 
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "product", "quantity", "status")
-    list_editable = ("user", "product", "quantity")
-    search_fields = ("user",)
+class ShoppingCartInline(admin.TabularInline):
+    model = ShoppingCart
+    list_display = ("id", "product", "quantity")
+    list_editable = ("product", "quantity", "packaging")
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    inlines = (ShoppingCartInline,)
     list_display = (
         "id",
+        "order_number",
         "user",
-        "goods",
-        "date",
+        "ordering_date",
         "status",
         "payment_method",
         "is_paid",
         "delivery_method",
         "comment",
-        "total_price",
+        "address"
     )
     list_editable = (
-        "status",
         "payment_method",
-        "is_paid",
         "comment",
         "delivery_method",
+        "address"
     )
+    list_filter = ("user", "ordering_date", "order_number")
