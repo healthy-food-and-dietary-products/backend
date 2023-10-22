@@ -6,7 +6,7 @@ from orders.models import Order, ShoppingCart
 class ShoppingCartInline(admin.TabularInline):
     model = ShoppingCart
     list_display = ("id", "product", "quantity")
-    list_editable = ("product", "quantity", "packaging")
+    list_editable = ("product", "quantity", "package")
 
 
 @admin.register(Order)

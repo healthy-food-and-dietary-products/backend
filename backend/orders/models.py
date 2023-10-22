@@ -108,7 +108,7 @@ class ShoppingCart(models.Model):
         choices=SHOPPINGCART,
         default="В работе"
     )
-    packaging = models.CharField(
+    package = models.CharField(
         max_length=50,
         choices=PACKAGE,
         verbose_name="Упаковка"
@@ -116,7 +116,7 @@ class ShoppingCart(models.Model):
     
     class Meta:
         verbose_name = "Продукты в корзине"
-        verbose_name_plural = "Продукты в заказах"
+        verbose_name_plural = "Продукты в заказе"
         constraints = [
                 models.UniqueConstraint(
                     fields=['order', 'product'],
