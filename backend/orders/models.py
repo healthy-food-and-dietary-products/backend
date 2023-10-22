@@ -1,4 +1,3 @@
-import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -10,24 +9,24 @@ class Order(models.Model):
     """Model for creating an order."""
 
     STATUS = (
-            ("Ordered", "Оформлен"),
-            ("In processing", "В обработке"),
-            ("Completed", "Комплектуется"),
-            ("Gathered", "Собран"),
-            ("In delivering", "Передан в доставку"),
-            ("Delivered", "Доставлен"),
-            ("Completed", "Завершен"),
+        ("Ordered", "Оформлен"),
+        ("In processing", "В обработке"),
+        ("Completed", "Комплектуется"),
+        ("Gathered", "Собран"),
+        ("In delivering", "Передан в доставку"),
+        ("Delivered", "Доставлен"),
+        ("Completed", "Завершен"),
     )
 
     PAYMENT_METHODS = (
-            ("Cash", "Наличные"),
-            ("By card on the website", "Картой на сайте"),
-            ("In getting by card", "Оплата картой курьеру"),
+        ("Cash", "Наличные"),
+        ("By card on the website", "Картой на сайте"),
+        ("In getting by card", "Оплата картой курьеру"),
     )
 
     DELIVERY_METHOD = (
-            ("Point of delivery", "Пункт выдачи"),
-            ("By courier", "Курьером"),
+        ("Point of delivery", "Пункт выдачи"),
+        ("By courier", "Курьером"),
     )
 
     order_number = models.PositiveIntegerField(
@@ -76,10 +75,10 @@ class Order(models.Model):
         return (f"{self.order_number}: "
                 f"{self.user}.")
 
-    
+
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
-    
+
     SHOPPINGCART = (("Ordered", "Передано в заказ"), ("In work", "В работе"))
     PACKAGE = (("Add package", "Добавить упаковку"), ("No package", "Без упаковки"))
 
@@ -93,8 +92,8 @@ class ShoppingCart(models.Model):
         verbose_name='Количество',
         default=1,
         validators=[
-                MinValueValidator(1, 'Разрешены значения от 1 до 10000'),
-                MaxValueValidator(10000, 'Разрешены значения от 1 до 10000')
+            MinValueValidator(1, 'Разрешены значения от 1 до 10000'),
+            MaxValueValidator(10000, 'Разрешены значения от 1 до 10000')
         ]
     )
     order = models.ForeignKey(
@@ -113,15 +112,15 @@ class ShoppingCart(models.Model):
         choices=PACKAGE,
         verbose_name="Упаковка"
     )
-    
+
     class Meta:
         verbose_name = "Продукты в корзине"
         verbose_name_plural = "Продукты в заказе"
         constraints = [
-                models.UniqueConstraint(
-                    fields=['order', 'product'],
-                    name='unique_shopping_cart_products'
-                )
+            models.UniqueConstraint(
+                fields=['order', 'product'],
+                name='unique_shopping_cart_products'
+            )
         ]
 
     def __str__(self):
