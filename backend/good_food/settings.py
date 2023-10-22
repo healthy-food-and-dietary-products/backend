@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
     "phonenumber_field",
+    "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
 MIDDLEWARE = [
