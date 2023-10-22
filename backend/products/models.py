@@ -186,6 +186,11 @@ class Product(models.Model):
     description = models.TextField(
         "Description", blank=True, help_text="Product description"
     )
+    creation_time = models.DateTimeField(
+        "Creation time",
+        auto_now_add=True,
+        help_text="Date of inclusion of the product in the database",
+    )
     categorу = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
@@ -246,6 +251,12 @@ class Product(models.Model):
     )
     carbohydrates = models.PositiveSmallIntegerField(
         "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
+    )
+    views_number = models.PositiveIntegerField(
+        "Views number", default=0, help_text="Number of product page views"
+    )
+    orders_number = models.PositiveIntegerField(
+        "Orders number", default=0, help_text="Number of orders for this product"
     )
 
     class Meta:

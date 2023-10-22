@@ -103,6 +103,7 @@ class ProductAdmin(admin.ModelAdmin):
     fields = [
         "name",
         "description",
+        "creation_time",
         "categorу",
         "subcategory",
         "tags",
@@ -118,9 +119,12 @@ class ProductAdmin(admin.ModelAdmin):
         "proteins",
         "fats",
         "carbohydrates",
+        "views_number",
+        "orders_number",
         # "photo",
     ]
     search_fields = ["name", "description", "producer"]
+    readonly_fields = ["creation_time"]
     ordering = ["name"]
     list_filter = [
         "categorу",
