@@ -131,12 +131,12 @@ class Promotion(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Promotion name"
     )
-    # TODO: add validation error for discount (django.core.exceptions.ValidationError)
     discount = models.PositiveSmallIntegerField(
         "Discount",
         default=0,
         validators=[MaxValueValidator(100)],
         help_text="Percentage of a product price",
+        error_messages={"invalid": "Допустимы числа от 0 до 100"},
     )
     conditions = models.TextField(
         "Conditions", blank=True, help_text="Conditions of the promotion"
@@ -227,11 +227,11 @@ class Product(models.Model):
     promotions = models.ManyToManyField(
         Promotion, related_name="products", blank=True, verbose_name="Promotions"
     )
-    # TODO: add validation error for promotion_quantity
     promotion_quantity = models.PositiveSmallIntegerField(
         "Promotion quantity",
         default=0,
         validators=[MaxValueValidator(MAX_PROMOTIONS_NUMBER)],
+        error_messages={"invalid": f"Допустимы числа от 0 до {MAX_PROMOTIONS_NUMBER}"},
         help_text="Number of promotions valid for this product",
     )
     photo = models.ImageField("Photo", blank=True, upload_to=product_directory_path)
@@ -274,11 +274,15 @@ class Product(models.Model):
         ]
         return self.price * (1 - max_discount / 100) if max_discount else self.price
 
+    def save(self, *args, **kwargs):
+        """Updates the promotion_quantity field before instance saving."""
+        self.promotion_quantity = self.promotions.count()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
     # TODO: add expiration_date field (if necessary)
-    # TODO: add method of determining price taking into account discounts (promotions)
 
 
 class FavoriteProduct(models.Model):
