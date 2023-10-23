@@ -16,7 +16,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
         "id",
         "user",
         "status",
-
     )
     list_editable = ("status",)
     list_filter = ("user", "status")
@@ -35,13 +34,13 @@ class OrderAdmin(admin.ModelAdmin):
         "delivery_method",
         "comment",
         "address",
-        "package"
+        "package",
     )
     list_editable = (
         "payment_method",
         "comment",
         "delivery_method",
         "address",
-        "package"
+        "package",
     )
     list_filter = ("ordering_date", "order_number")
