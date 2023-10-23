@@ -282,7 +282,7 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    # TODO: add expiration_date field (if necessary)
+    # TODO: add expiration_date field and quantity fields (in future if necessary)
 
 
 class FavoriteProduct(models.Model):
