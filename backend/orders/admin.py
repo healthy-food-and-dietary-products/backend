@@ -1,33 +1,46 @@
 from django.contrib import admin
 
-from orders.models import Order, ShoppingCart
+from orders.models import Order, ShoppingCart, ShoppingCartProduct
+
+
+class ShoppingCartProductInline(admin.TabularInline):
+    model = ShoppingCartProduct
+    list_display = ("id", "product", "quantity")
+    list_editable = ("product", "quantity")
 
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "product", "quantity", "status")
-    list_editable = ("user", "product", "quantity")
-    search_fields = ("user",)
+    inlines = (ShoppingCartProductInline,)
+    list_display = (
+        "id",
+        "user",
+        "status",
+    )
+    list_editable = ("status",)
+    list_filter = ("user", "status")
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "user",
-        "goods",
-        "date",
+        "order_number",
+        "shopping_cart",
+        "ordering_date",
         "status",
         "payment_method",
         "is_paid",
         "delivery_method",
         "comment",
-        "total_price",
+        "address",
+        "package",
     )
     list_editable = (
-        "status",
         "payment_method",
-        "is_paid",
         "comment",
         "delivery_method",
+        "address",
+        "package",
     )
+    list_filter = ("ordering_date", "order_number")
