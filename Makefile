@@ -10,6 +10,12 @@ migrate:
 superuser:
 	cd backend; python3 manage.py createsuperuser --email test@test.com --username admin -v 3
 
+shell:
+	cd backend; python3 manage.py shell
+
+load_data:
+	cd backend; python3 manage.py load_data
+
 dumpdb:
 	cd backend; python3 manage.py dumpdata --output dump.json
 
@@ -39,4 +45,3 @@ migrate-compose:
 
 superuser-compose:
 	cd infra; docker compose exec -it web python manage.py createsuperuser --email test@test.com --username admin -v 3
-

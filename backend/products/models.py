@@ -149,8 +149,8 @@ class Promotion(models.Model):
         default=False,
         help_text="Does this promotion have a time limits",
     )
-    start_time = models.DateTimeField("Promotion start time", blank=True)
-    end_time = models.DateTimeField("Promotion end time", blank=True)
+    start_time = models.DateTimeField("Promotion start time", null=True, blank=True)
+    end_time = models.DateTimeField("Promotion end time", null=True, blank=True)
 
     class Meta:
         verbose_name = "Promotion"
@@ -263,6 +263,16 @@ class Product(models.Model):
         verbose_name = "Product"
         verbose_name_plural = "Products"
         ordering = ["name"]
+
+    @property
+    def final_price(self):
+        """
+        Calculates the product price, including the max discount from its promotions.
+        """
+        max_discount = self.promotions.aggregate(models.Max("discount"))[
+            "discount__max"
+        ]
+        return self.price * (1 - max_discount / 100) if max_discount else self.price
 
     def __str__(self):
         return self.name
