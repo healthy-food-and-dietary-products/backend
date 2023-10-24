@@ -105,6 +105,17 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-cleanup"
+version = "8.0.0"
+description = "Deletes old files."
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-cleanup-8.0.0.tar.gz", hash = "sha256:c739a05544e1e48dc848871c870dbf1595f8533d24523bc67360e43562edaf0d"},
+    {file = "django_cleanup-8.0.0-py2.py3-none-any.whl", hash = "sha256:8cd8872d67fe1501b19a843d006cdb5673cfbb74ac3d6d8f2c60e8e7723a7f5b"},
+]
+
+[[package]]
 name = "django-phonenumber-field"
 version = "7.2.0"
 description = "An international phone number field for django models."
@@ -332,13 +343,13 @@ flake8 = ">=5.0.0"
 
 [[package]]
 name = "phonenumberslite"
-version = "8.13.22"
+version = "8.13.23"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 optional = false
 python-versions = "*"
 files = [
-    {file = "phonenumberslite-8.13.22-py2.py3-none-any.whl", hash = "sha256:8d1e5f2adfee2a634ccdb54b251dec32c5308fbca3d7f6ae6058f4adee4594a3"},
-    {file = "phonenumberslite-8.13.22.tar.gz", hash = "sha256:98684f21804c6df2e7d224e72d60defee20eddf9e144d57f24cbd9db0df450e0"},
+    {file = "phonenumberslite-8.13.23-py2.py3-none-any.whl", hash = "sha256:7c719e35ef551a895459382e9faf592f52647312dd90b543b06460aa0e1c49c4"},
+    {file = "phonenumberslite-8.13.23.tar.gz", hash = "sha256:cf6cf56c889c6787ec6b30b5791693f6dd678f633358f4aeea1fddf98d4cadcb"},
 ]
 
 [[package]]
@@ -637,4 +648,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "aff76238bfccc4375d91081de7bb65ddf19650f20c68d419b3cdbf5ca5974734"
+content-hash = "c0f1667caf9699af2111bf82cedceb451778ba14c17ecdd2bc73ee5caa57c5e9"

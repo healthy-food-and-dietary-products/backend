@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "djoser",
     "rest_framework.authtoken",
+    "django_cleanup.apps.CleanupSelectedConfig",
 ]
 
 MIDDLEWARE = [
