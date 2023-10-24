@@ -12,6 +12,13 @@ from .models import (
 )
 
 
+class CategorySubcategoriesInline(admin.TabularInline):
+    """Inline class to display subcategories of a category."""
+
+    model = Subcategory
+    extra = 1
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Class to display categories in admin panel."""
@@ -20,6 +27,7 @@ class CategoryAdmin(admin.ModelAdmin):
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
     ordering = ["name"]
+    inlines = [CategorySubcategoriesInline]
 
 
 @admin.register(Subcategory)

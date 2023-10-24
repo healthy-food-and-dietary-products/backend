@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.text import slugify
@@ -274,10 +275,11 @@ class Product(models.Model):
         ]
         return self.price * (1 - max_discount / 100) if max_discount else self.price
 
-    def save(self, *args, **kwargs):
-        """Updates the promotion_quantity field before instance saving."""
-        self.promotion_quantity = self.promotions.count()
-        super().save(*args, **kwargs)
+    def clean_fields(self, exclude=None):
+        """Checks that the category and subcategory fields match."""
+        super().clean_fields(exclude=exclude)
+        if self.subcategory.parent_category != self.categorу:
+            raise ValidationError("Subcategory does not match category")
 
     def __str__(self):
         return self.name
