@@ -1,4 +1,4 @@
-name: good_food_develop workflow
+name: good_food workflow
 
 on:
   push:
