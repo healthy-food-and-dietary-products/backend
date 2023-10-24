@@ -31,22 +31,27 @@ class ProductPromotionsInline(admin.TabularInline):
 class CategoryAdmin(admin.ModelAdmin):
     """Class to display categories in admin panel."""
 
-    list_display = ["pk", "name", "slug"]
+    list_display = ["pk", "name", "slug", "number_subcategories"]
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
-    ordering = ["name"]
+    readonly_fields = ["number_subcategories"]
+    ordering = ["pk"]
     inlines = [CategorySubcategoriesInline]
+
+    @admin.display(description="Number of subcategories")
+    def number_subcategories(self, obj):
+        return obj.subcategories.count()
 
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
     """Class to display subcategories in admin panel."""
 
-    list_display = ["pk", "parent_category", "name", "slug"]
+    list_display = ["pk", "name", "slug", "parent_category"]
     fields = ["parent_category", "name", "slug"]
     search_fields = ["name", "slug"]
     list_filter = ["parent_category"]
-    ordering = ["name"]
+    ordering = ["pk"]
 
 
 @admin.register(Component)
@@ -56,7 +61,7 @@ class ComponentAdmin(admin.ModelAdmin):
     list_display = ["pk", "name"]
     fields = ["name"]
     search_fields = ["name"]
-    ordering = ["name"]
+    ordering = ["pk"]
 
 
 @admin.register(Tag)
@@ -66,7 +71,7 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ["pk", "name", "slug"]
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
-    ordering = ["name"]
+    ordering = ["pk"]
 
 
 @admin.register(Producer)
@@ -76,7 +81,7 @@ class ProducerAdmin(admin.ModelAdmin):
     list_display = ["pk", "producer_type", "name", "address", "description"]
     fields = ["producer_type", "name", "address", "description"]
     search_fields = ["name", "address", "description"]
-    ordering = ["name"]
+    ordering = ["pk"]
     list_filter = ["producer_type"]
     empty_value_display = "-empty-"  # not shown
 
@@ -106,7 +111,7 @@ class PromotionAdmin(admin.ModelAdmin):
         "conditions",
     ]
     search_fields = ["name", "discount", "conditions", "start_time", "end_time"]
-    ordering = ["name"]
+    ordering = ["pk"]
     list_filter = ["promotion_type", "is_active", "is_constant"]
     empty_value_display = "-empty-"  # not shown
 
@@ -115,7 +120,15 @@ class PromotionAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     """Class to display products in admin panel."""
 
-    list_display = ["pk", "name", "categorу", "discontinued", "producer", "price"]
+    list_display = [
+        "pk",
+        "name",
+        "categorу",
+        "discontinued",
+        "producer",
+        "price",
+        "final_price",
+    ]
     fields = [
         "name",
         "description",
@@ -126,6 +139,7 @@ class ProductAdmin(admin.ModelAdmin):
         "discontinued",
         "producer",
         "price",
+        "final_price",
         "measure_unit",
         "amount",
         "promotion_quantity",
@@ -139,8 +153,8 @@ class ProductAdmin(admin.ModelAdmin):
         # "photo",
     ]
     search_fields = ["name", "description", "producer"]
-    readonly_fields = ["creation_time"]
-    ordering = ["name"]
+    readonly_fields = ["creation_time", "final_price"]
+    ordering = ["pk"]
     list_filter = [
         "categorу",
         "subcategory",
