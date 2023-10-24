@@ -2,7 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from products.models import Product
-from users.models import User
+from users.models import Address, User
 
 
 class ShoppingCart(models.Model):
@@ -11,34 +11,62 @@ class ShoppingCart(models.Model):
     SHOPPINGCART = (("Ordered", "Передано в заказ"), ("In work", "В работе"))
 
     user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="shopping_carts",
-        verbose_name="Добавил в корзину",
+        User, on_delete=models.CASCADE, related_name="orders", verbose_name="Покупатель"
     )
-    product = models.ForeignKey(
+    products = models.ManyToManyField(
         Product,
-        on_delete=models.CASCADE,
-        related_name="shopping_carts",
-        verbose_name="Продукт в корзине",
-    )
-    quantity = models.IntegerField(
-        verbose_name="Количество товара",
-        validators=[
-            MinValueValidator(1, "Разрешены значения от 1 до 100"),
-            MaxValueValidator(10000, "Разрешены значения от 1 до 100"),
-        ],
+        through="ShoppingCartProduct",
+        through_fields=("shopping_cart", "product"),
+        verbose_name="Продукты в корзине",
     )
     status = models.CharField(max_length=50, choices=SHOPPINGCART, default="В работе")
 
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзина"
+
+
+class ShoppingCartProduct(models.Model):
+    """Model for adding products in shopping cart."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Продукт в корзине",
+    )
+    quantity = models.PositiveIntegerField(
+        verbose_name="Количество",
+        default=1,
+        validators=[
+            MinValueValidator(1, "Разрешены значения от 1 до 10000"),
+            MaxValueValidator(10000, "Разрешены значения от 1 до 10000"),
+        ],
+    )
+    shopping_cart = models.ForeignKey(
+        ShoppingCart,
+        on_delete=models.CASCADE,
+        related_name="shopping_carts",
+        verbose_name="Корзина",
+    )
+
+    class Meta:
+        verbose_name = "Продукты в корзине"
+        verbose_name_plural = "Продукты  в корзине"
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "product"], name="unique_shopping_cart"
+                fields=["shopping_cart", "product"],
+                name="unique_shopping_cart_products",
             )
         ]
+
+    def __str__(self):
+        return (
+            f"{self.product.name}: "
+            f"{self.product.measure_unit}"
+            f"{self.product.price} "
+            f"{self.quantity}."
+        )
 
 
 class Order(models.Model):
@@ -57,7 +85,7 @@ class Order(models.Model):
     PAYMENT_METHODS = (
         ("Cash", "Наличные"),
         ("By card on the website", "Картой на сайте"),
-        ("In getting", "При получении"),
+        ("In getting by card", "Оплата картой курьеру"),
     )
 
     DELIVERY_METHOD = (
@@ -65,16 +93,15 @@ class Order(models.Model):
         ("By courier", "Курьером"),
     )
 
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="orders", verbose_name="Покупатель"
+    order_number = models.PositiveIntegerField(
+        auto_created=True, verbose_name="Номер заказа"
     )
-    goods = models.ForeignKey(
-        ShoppingCart,
-        on_delete=models.CASCADE,
-        related_name="orders",
-        verbose_name="Покупки",
+    ordering_date = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата оформления заказа"
     )
-    date = models.DateField(verbose_name="Дата оформления", auto_now_add=True)
+    shopping_cart = models.ForeignKey(
+        ShoppingCart, on_delete=models.CASCADE, related_name="orders"
+    )
     status = models.CharField(max_length=50, choices=STATUS, default="Оформлен")
     payment_method = models.CharField(
         max_length=50, choices=PAYMENT_METHODS, default="Картой на сайте"
@@ -84,9 +111,19 @@ class Order(models.Model):
     delivery_method = models.CharField(
         max_length=50, choices=DELIVERY_METHOD, default="Курьером"
     )
-    total_price = models.IntegerField(default=0)
+    address = models.ForeignKey(
+        Address,
+        on_delete=models.CASCADE,
+        verbose_name="Адрес покупателя",
+        blank=True,
+        null=True,
+    )
+    package = models.BooleanField(default=False, verbose_name="Упаковка")
 
     class Meta:
-        ordering = ["-date"]
+        ordering = ["-ordering_date"]
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
+
+    def __str__(self):
+        return f"{self.order_number}: " f"{self.shopping_cart.user.username}."
