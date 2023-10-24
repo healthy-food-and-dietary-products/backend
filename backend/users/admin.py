@@ -15,7 +15,7 @@ class UserAdmin(admin.ModelAdmin):
         "email",
         "city",
         "birth_date",
-        "address",
+        # "address",
         "phone_number",
         "photo",
         "preview",
