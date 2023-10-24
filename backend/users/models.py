@@ -3,6 +3,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django_cleanup import cleanup
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -76,6 +77,7 @@ class Address(models.Model):
         ]
 
 
+@cleanup.select
 class User(AbstractUser):
     """Extending the Built-in Model User."""
 
@@ -120,6 +122,7 @@ class User(AbstractUser):
     )
     address = models.ManyToManyField(
         Address,
+        through="UserAddress",
         blank=True,
         related_name="users",
         verbose_name="Addresses",
@@ -168,3 +171,15 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.role == User.USER
+
+
+class UserAddress(models.Model):
+    """Decribes User-Address relation."""
+
+    user = models.ForeignKey(
+        User, related_name="user_addresses", on_delete=models.CASCADE
+    )
+    address = models.ForeignKey(
+        Address, related_name="user_addresses", on_delete=models.CASCADE
+    )
+    priority_address = models.BooleanField(default=True)
