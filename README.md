@@ -1,6 +1,6 @@
 # good-food
 
-![good_food_develop workflow](https://github.com/healthy-food-and-dietary-products/backend/actions/workflows/good_food_develop_workflow.yaml/badge.svg)
+![good_food workflow](https://github.com/healthy-food-and-dietary-products/backend/actions/workflows/good_food_workflow.yaml/badge.svg)
 
 ### Локальный запуск приложения в контейнерах
 
