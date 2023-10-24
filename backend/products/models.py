@@ -6,6 +6,8 @@ from django.utils.text import slugify
 from core.models import CategoryModel
 from users.models import User
 
+MAX_PROMOTIONS_NUMBER = 1
+
 
 class Category(CategoryModel):
     """Describes product categories."""
@@ -165,8 +167,6 @@ class Promotion(models.Model):
 class Product(models.Model):
     """Describes products."""
 
-    MAX_PROMOTIONS_NUMBER = 1
-
     GRAMS = "grams"
     MILLILITRES = "milliliters"
     ITEMS = "items"
@@ -198,6 +198,7 @@ class Product(models.Model):
         related_name="products",
         verbose_name="Category",
     )
+    # TODO: put choices so that only valid subcategories are displayed
     subcategory = models.ForeignKey(
         Subcategory,
         on_delete=models.CASCADE,
@@ -226,7 +227,11 @@ class Product(models.Model):
     )
     price = models.FloatField("Price", help_text="Price per one product unit")
     promotions = models.ManyToManyField(
-        Promotion, related_name="products", blank=True, verbose_name="Promotions"
+        Promotion,
+        through="ProductPromotion",
+        related_name="products",
+        blank=True,
+        verbose_name="Promotions",
     )
     promotion_quantity = models.PositiveSmallIntegerField(
         "Promotion quantity",
@@ -311,3 +316,34 @@ class FavoriteProduct(models.Model):
 
     def __str__(self):
         return f"{self.user} added {self.product} to favorites"
+
+
+class ProductPromotion(models.Model):
+    """Describes connections between products and promotions."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "ProductPromotion"
+        verbose_name_plural = "ProductPromotions"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "promotion"],
+                name="unique_product_promotion",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        """Checks the number of promotions that apply to a product."""
+        if self.product.promotion_quantity + 1 > MAX_PROMOTIONS_NUMBER:
+            raise ValidationError(
+                "The number of promotions for one product "
+                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+            )
+        self.product.promotion_quantity += 1
+        self.product.save()
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"Product {self.product} has promotion {self.promotion}"

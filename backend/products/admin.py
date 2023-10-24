@@ -6,6 +6,7 @@ from .models import (
     FavoriteProduct,
     Producer,
     Product,
+    ProductPromotion,
     Promotion,
     Subcategory,
     Tag,
@@ -16,6 +17,13 @@ class CategorySubcategoriesInline(admin.TabularInline):
     """Inline class to display subcategories of a category."""
 
     model = Subcategory
+    extra = 1
+
+
+class ProductPromotionsInline(admin.TabularInline):
+    """Inline class to display promotions of a product."""
+
+    model = ProductPromotion
     extra = 1
 
 
@@ -121,7 +129,6 @@ class ProductAdmin(admin.ModelAdmin):
         "measure_unit",
         "amount",
         "promotion_quantity",
-        "promotions",
         "components",
         "kcal",
         "proteins",
@@ -142,7 +149,16 @@ class ProductAdmin(admin.ModelAdmin):
         "measure_unit",
         "promotion_quantity",
     ]
+    inlines = [ProductPromotionsInline]
     empty_value_display = "-empty-"  # not shown
+
+
+@admin.register(ProductPromotion)
+class ProductPromotionAdmin(admin.ModelAdmin):
+    """Class to display connections between products and promotions."""
+
+    list_display = ["pk", "promotion", "product"]
+    fields = ["promotion", "product"]
 
 
 @admin.register(FavoriteProduct)
