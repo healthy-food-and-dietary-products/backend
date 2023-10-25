@@ -1,0 +1,9 @@
+id,parent_category_id,name,slug
+1,3,Ржаной хлеб,rye_bread
+2,3,Хлебцы зерновые,grain_loaves
+3,4,Чай черный,black_tea
+4,4,Чай зеленый,green_tea
+5,6,Хлебцы безглютеновые,gluten-free_loaves
+6,6,Печенье безглютеновое,gluten-free_cookies
+7,7,Молоко без лактозы,lactose-free_milk
+8,2,Зеленые овощи,fruts

@@ -1,0 +1,7 @@
+id,username,email,password,first_name,last_name,city,address
+2,vasya.pupkin,vasya@yandex.ru,Qwerty123poiu,Вася,Пупкин,Saint-Petersburg,ул.Брянцева д.4 кв18
+3,july.kol,kolkinaa@mail.ru,mnbvcxz12345,Юля,Колкина,Saint-Petersburg,канал Грибоедова д.6 кв 11
+4,nastya.vasina,nastya@yandex.ru,1234Qwerty987,Настя,Васина,Saint-Petersburg,Московский проспект д. 5 кв 98
+5,kisa.mura,kisa@yandex.ru,mnjggffdfdf,Кира,Муравьева,Saint-Petersburg,Василеостровская д.7 кв 3
+6,Kostya.Smirny,smirnov@yandex.ru,smirnuy098876,Константин,Смирнов,Saint-Petersburg
+7,sonya.and,andr@mail.ru,andr0987,Соня,Андреева,Saint-Petersburg

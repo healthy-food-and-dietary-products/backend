@@ -12,7 +12,7 @@ services:
       - ./.env
 
   web:
-    image: healthyfoodapi/good_food:v.01
+    build: ../
     container_name: good_food_api
     volumes:
       - static_value:/app/static/
