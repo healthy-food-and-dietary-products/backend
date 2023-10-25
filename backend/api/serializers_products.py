@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
+from .users_serializers import UserSerializer
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
@@ -128,6 +130,7 @@ class ProductSerializer(serializers.ModelSerializer):
     producer = ProducerLightSerializer()
     promotions = PromotionLightSerializer(many=True)
     components = ComponentLightSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -155,4 +158,38 @@ class ProductSerializer(serializers.ModelSerializer):
             "carbohydrates",
             "views_number",
             "orders_number",
+            "is_favorited",
         )
+
+    def get_is_favorited(self, obj):
+        request = self.context.get("request")
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.is_favorited(request.user)
+
+
+class ProductLightSerializer(serializers.ModelSerializer):
+    """Serializer for products representation in favorite product serializer."""
+
+    producer = ProducerLightSerializer()
+
+    class Meta:
+        model = Product
+        fields = (
+            "name",
+            "producer",
+        )
+
+
+class FavoriteProductSerializer(serializers.ModelSerializer):
+    """Serializer for favorite products representation."""
+
+    product = ProductLightSerializer()
+    user = UserSerializer()
+
+    class Meta:
+        model = FavoriteProduct
+        fields = ("id", "user", "product")
+
+
+# add validators!

@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views_products import (
     CategoryViewSet,
     ComponentViewSet,
+    FavoriteProductViewSet,
     ProducerViewSet,
     ProductViewSet,
     PromotionViewSet,
@@ -19,6 +20,7 @@ router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
+router.register("favorites", FavoriteProductViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

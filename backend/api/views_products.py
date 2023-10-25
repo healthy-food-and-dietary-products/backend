@@ -1,9 +1,11 @@
 from rest_framework import viewsets
 
+# from .permissions import IsAuthorOnly
 from .permissions_products import IsAdminOrReadOnly
 from .serializers_products import (
     CategorySerializer,
     ComponentSerializer,
+    FavoriteProductSerializer,
     ProducerSerializer,
     ProductSerializer,
     PromotionSerializer,
@@ -13,6 +15,7 @@ from .serializers_products import (
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
@@ -102,4 +105,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [
         # permissions.IsAuthenticated,
         IsAdminOrReadOnly
+    ]
+
+
+class FavoriteProductViewSet(viewsets.ModelViewSet):
+    """Viewset for favorite products."""
+
+    http_method_names = ["get", "post", "patch", "delete"]
+    queryset = FavoriteProduct.objects.all()
+    serializer_class = FavoriteProductSerializer
+    permission_classes = [
+        # permissions.IsAuthenticated,
+        # IsAuthorOnly,
+        IsAdminOrReadOnly,
     ]

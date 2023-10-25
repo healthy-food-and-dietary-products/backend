@@ -281,6 +281,11 @@ class Product(models.Model):
         ]
         return self.price * (1 - max_discount / 100) if max_discount else self.price
 
+    @property
+    def is_favorited(self, user):
+        """Checks whether the product is in the user's favorites."""
+        return self.favorites.filter(user=user).exists()
+
     def clean_fields(self, exclude=None):
         """Checks that the category and subcategory fields match."""
         super().clean_fields(exclude=exclude)

@@ -29,6 +29,20 @@ class ProductPromotionsInline(admin.TabularInline):
     extra = 1
 
 
+class ProductFavoritesInline(admin.TabularInline):
+    """Inline class to display favorites of a product."""
+
+    model = FavoriteProduct
+    extra = 1
+
+
+class UserFavoritesInline(admin.TabularInline):
+    """Inline class to display favorites of a user."""
+
+    model = FavoriteProduct
+    extra = 1
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     """Class to display categories in admin panel."""
@@ -162,10 +176,11 @@ class ProductAdmin(admin.ModelAdmin):
         "category",
         "subcategory",
         "discontinued",
+        "promotion_quantity",
         "producer",
         "measure_unit",
     ]
-    inlines = [ProductPromotionsInline]
+    inlines = [ProductPromotionsInline, ProductFavoritesInline]
     empty_value_display = "-empty-"  # not shown
 
 
