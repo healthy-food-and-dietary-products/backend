@@ -2,7 +2,7 @@
 from rest_framework import viewsets
 
 from .permissions import IsAdminOrReadOnly, IsAuthor
-from .serializers_products import (
+from .products_serializers import (
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductSerializer,
