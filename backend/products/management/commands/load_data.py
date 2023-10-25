@@ -64,10 +64,7 @@ def read_subcategory():
             if row[0] == "id":
                 continue
             Subcategory.objects.get_or_create(
-                id=row[0],
-                parent_category_id=row[1],
-                name=row[2],
-                slug=row[3]
+                id=row[0], parent_category_id=row[1], name=row[2], slug=row[3]
             )
     print("Данные из файла subcategory.csv загружены")
 
@@ -170,7 +167,7 @@ def read_products():
                 kcal=row[13],
                 proteins=row[14],
                 fats=row[15],
-                carbohydrates=row[16]
+                carbohydrates=row[16],
             )
     print("Данные из файла products.csv загружены")
 
