@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # from django.shortcuts import get_object_or_404
 # from rest_framework import status
@@ -70,3 +71,5 @@
 # #         return Response(response, status=status.HTTP_200_OK)
 # #     return Response('Проверочный код не совпал',
 # #                     status=status.HTTP_400_BAD_REQUEST)
+=======
+>>>>>>> develop
