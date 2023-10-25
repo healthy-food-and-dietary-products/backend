@@ -125,7 +125,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
         "name",
-        "categorу",
+        "category",
         "discontinued",
         "producer",
         "price",
@@ -136,7 +136,7 @@ class ProductAdmin(admin.ModelAdmin):
         "name",
         "description",
         "creation_time",
-        "categorу",
+        "category",
         "subcategory",
         "tags",
         "discontinued",
@@ -159,7 +159,7 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ["creation_time", "promotion_quantity", "final_price"]
     ordering = ["pk"]
     list_filter = [
-        "categorу",
+        "category",
         "subcategory",
         "discontinued",
         "producer",

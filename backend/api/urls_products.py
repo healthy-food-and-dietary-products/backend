@@ -5,6 +5,7 @@ from .views_products import (
     CategoryViewSet,
     ComponentViewSet,
     ProducerViewSet,
+    ProductViewSet,
     PromotionViewSet,
     SubcategoryViewSet,
     TagViewSet,
@@ -17,6 +18,7 @@ router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
+router.register("products", ProductViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

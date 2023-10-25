@@ -5,11 +5,20 @@ from .serializers_products import (
     CategorySerializer,
     ComponentSerializer,
     ProducerSerializer,
+    ProductSerializer,
     PromotionSerializer,
     SubcategorySerializer,
     TagSerializer,
 )
-from products.models import Category, Component, Producer, Promotion, Subcategory, Tag
+from products.models import (
+    Category,
+    Component,
+    Producer,
+    Product,
+    Promotion,
+    Subcategory,
+    Tag,
+)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -78,6 +87,18 @@ class PromotionViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
+    permission_classes = [
+        # permissions.IsAuthenticated,
+        IsAdminOrReadOnly
+    ]
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """Viewset for products."""
+
+    http_method_names = ["get", "post", "patch", "delete"]
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
     permission_classes = [
         # permissions.IsAuthenticated,
         IsAdminOrReadOnly

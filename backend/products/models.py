@@ -193,7 +193,7 @@ class Product(models.Model):
         auto_now_add=True,
         help_text="Date of inclusion of the product in the database",
     )
-    categorу = models.ForeignKey(
+    category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name="products",
@@ -284,7 +284,7 @@ class Product(models.Model):
     def clean_fields(self, exclude=None):
         """Checks that the category and subcategory fields match."""
         super().clean_fields(exclude=exclude)
-        if self.subcategory.parent_category != self.categorу:
+        if self.subcategory.parent_category != self.category:
             raise ValidationError("Subcategory does not match category")
 
     def __str__(self):

@@ -110,7 +110,7 @@ class User(AbstractUser):
         choices=CHOISES,
         default="user",
     )
-    city = models.CharField(
+    city = models.CharField(  # TODO: make obligatory
         "City",
         max_length=50,
         blank=True,
