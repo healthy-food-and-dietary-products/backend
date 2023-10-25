@@ -192,4 +192,4 @@ class FavoriteProductSerializer(serializers.ModelSerializer):
         fields = ("id", "user", "product")
 
 
-# add validators!
+# TODO: add validators!

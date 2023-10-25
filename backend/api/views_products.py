@@ -1,7 +1,7 @@
+# from rest_framework import permissions, viewsets
 from rest_framework import viewsets
 
-# from .permissions import IsAuthorOnly
-from .permissions_products import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthor
 from .serializers_products import (
     CategorySerializer,
     ComponentSerializer,
@@ -104,7 +104,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [
         # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
+        IsAdminOrReadOnly,
     ]
 
 
@@ -116,6 +116,7 @@ class FavoriteProductViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteProductSerializer
     permission_classes = [
         # permissions.IsAuthenticated,
-        # IsAuthorOnly,
-        IsAdminOrReadOnly,
+        # permissions.IsAdminUser,
+        IsAuthor,
+        # IsAdminOrReadOnly,
     ]
