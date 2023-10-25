@@ -24,6 +24,8 @@ class ProductPromotionsInline(admin.TabularInline):
     """Inline class to display promotions of a product."""
 
     model = ProductPromotion
+    readonly_fields = ["promotion"]
+    can_delete = False
     extra = 1
 
 
@@ -128,6 +130,7 @@ class ProductAdmin(admin.ModelAdmin):
         "producer",
         "price",
         "final_price",
+        "promotion_quantity",
     ]
     fields = [
         "name",
@@ -153,7 +156,7 @@ class ProductAdmin(admin.ModelAdmin):
         # "photo",
     ]
     search_fields = ["name", "description", "producer"]
-    readonly_fields = ["creation_time", "final_price"]
+    readonly_fields = ["creation_time", "promotion_quantity", "final_price"]
     ordering = ["pk"]
     list_filter = [
         "categorу",
@@ -161,7 +164,6 @@ class ProductAdmin(admin.ModelAdmin):
         "discontinued",
         "producer",
         "measure_unit",
-        "promotion_quantity",
     ]
     inlines = [ProductPromotionsInline]
     empty_value_display = "-empty-"  # not shown

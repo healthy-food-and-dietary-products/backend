@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 from core.models import CategoryModel
@@ -334,8 +335,9 @@ class ProductPromotion(models.Model):
             )
         ]
 
-    def save(self, *args, **kwargs):
+    def clean_fields(self, exclude=None):
         """Checks the number of promotions that apply to a product."""
+        super().clean_fields(exclude=exclude)
         if self.product.promotion_quantity + 1 > MAX_PROMOTIONS_NUMBER:
             raise ValidationError(
                 "The number of promotions for one product "
@@ -343,7 +345,13 @@ class ProductPromotion(models.Model):
             )
         self.product.promotion_quantity += 1
         self.product.save()
-        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"Product {self.product} has promotion {self.promotion}"
+
+
+@receiver(models.signals.post_delete, sender=ProductPromotion)
+def decrement_product_promotion_quantity(sender, instance, **kwargs):
+    """Decrements promotion_quantity field of a product after deleting its promotion."""
+    instance.product.promotion_quantity -= 1
+    instance.product.save()
