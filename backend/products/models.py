@@ -1,9 +1,13 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 from core.models import CategoryModel
 from users.models import User
+
+MAX_PROMOTIONS_NUMBER = 1
 
 
 class Category(CategoryModel):
@@ -131,12 +135,12 @@ class Promotion(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Promotion name"
     )
-    # TODO: add validation error for discount (django.core.exceptions.ValidationError)
     discount = models.PositiveSmallIntegerField(
         "Discount",
         default=0,
         validators=[MaxValueValidator(100)],
         help_text="Percentage of a product price",
+        error_messages={"invalid": "Допустимы числа от 0 до 100"},
     )
     conditions = models.TextField(
         "Conditions", blank=True, help_text="Conditions of the promotion"
@@ -149,8 +153,8 @@ class Promotion(models.Model):
         default=False,
         help_text="Does this promotion have a time limits",
     )
-    start_time = models.DateTimeField("Promotion start time", blank=True)
-    end_time = models.DateTimeField("Promotion end time", blank=True)
+    start_time = models.DateTimeField("Promotion start time", null=True, blank=True)
+    end_time = models.DateTimeField("Promotion end time", null=True, blank=True)
 
     class Meta:
         verbose_name = "Promotion"
@@ -163,8 +167,6 @@ class Promotion(models.Model):
 
 class Product(models.Model):
     """Describes products."""
-
-    MAX_PROMOTIONS_NUMBER = 1
 
     GRAMS = "grams"
     MILLILITRES = "milliliters"
@@ -186,12 +188,18 @@ class Product(models.Model):
     description = models.TextField(
         "Description", blank=True, help_text="Product description"
     )
-    categorу = models.ForeignKey(
+    creation_time = models.DateTimeField(
+        "Creation time",
+        auto_now_add=True,
+        help_text="Date of inclusion of the product in the database",
+    )
+    category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name="products",
         verbose_name="Category",
     )
+    # TODO: put choices so that only valid subcategories are displayed
     subcategory = models.ForeignKey(
         Subcategory,
         on_delete=models.CASCADE,
@@ -220,13 +228,17 @@ class Product(models.Model):
     )
     price = models.FloatField("Price", help_text="Price per one product unit")
     promotions = models.ManyToManyField(
-        Promotion, related_name="products", blank=True, verbose_name="Promotions"
+        Promotion,
+        through="ProductPromotion",
+        related_name="products",
+        blank=True,
+        verbose_name="Promotions",
     )
-    # TODO: add validation error for promotion_quantity
     promotion_quantity = models.PositiveSmallIntegerField(
         "Promotion quantity",
         default=0,
         validators=[MaxValueValidator(MAX_PROMOTIONS_NUMBER)],
+        error_messages={"invalid": f"Допустимы числа от 0 до {MAX_PROMOTIONS_NUMBER}"},
         help_text="Number of promotions valid for this product",
     )
     photo = models.ImageField("Photo", blank=True, upload_to=product_directory_path)
@@ -247,17 +259,43 @@ class Product(models.Model):
     carbohydrates = models.PositiveSmallIntegerField(
         "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
     )
+    views_number = models.PositiveIntegerField(
+        "Views number", default=0, help_text="Number of product page views"
+    )  # TODO: make autoincrement after view
+    orders_number = models.PositiveIntegerField(
+        "Orders number", default=0, help_text="Number of orders for this product"
+    )  # TODO: make autoincrement after order
 
     class Meta:
         verbose_name = "Product"
         verbose_name_plural = "Products"
         ordering = ["name"]
 
+    @property
+    def final_price(self):
+        """
+        Calculates the product price, including the max discount from its promotions.
+        """
+        max_discount = self.promotions.aggregate(models.Max("discount"))[
+            "discount__max"
+        ]
+        return self.price * (1 - max_discount / 100) if max_discount else self.price
+
+    @property
+    def is_favorited(self, user):
+        """Checks whether the product is in the user's favorites."""
+        return self.favorites.filter(user=user).exists()
+
+    def clean_fields(self, exclude=None):
+        """Checks that the category and subcategory fields match."""
+        super().clean_fields(exclude=exclude)
+        if self.subcategory.parent_category != self.category:
+            raise ValidationError("Subcategory does not match category")
+
     def __str__(self):
         return self.name
 
-    # TODO: add expiration_date field (if necessary)
-    # TODO: add method of determining price taking into account discounts (promotions)
+    # TODO: add expiration_date field and quantity fields (in future if necessary)
 
 
 class FavoriteProduct(models.Model):
@@ -284,3 +322,41 @@ class FavoriteProduct(models.Model):
 
     def __str__(self):
         return f"{self.user} added {self.product} to favorites"
+
+
+class ProductPromotion(models.Model):
+    """Describes connections between products and promotions."""
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "ProductPromotion"
+        verbose_name_plural = "ProductPromotions"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "promotion"],
+                name="unique_product_promotion",
+            )
+        ]
+
+    def clean_fields(self, exclude=None):
+        """Checks the number of promotions that apply to a product."""
+        super().clean_fields(exclude=exclude)
+        if self.product.promotion_quantity + 1 > MAX_PROMOTIONS_NUMBER:
+            raise ValidationError(
+                "The number of promotions for one product "
+                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+            )
+        self.product.promotion_quantity += 1
+        self.product.save()
+
+    def __str__(self) -> str:
+        return f"Product {self.product} has promotion {self.promotion}"
+
+
+@receiver(models.signals.post_delete, sender=ProductPromotion)
+def decrement_product_promotion_quantity(sender, instance, **kwargs):
+    """Decrements promotion_quantity field of a product after deleting its promotion."""
+    instance.product.promotion_quantity -= 1
+    instance.product.save()

@@ -5,9 +5,13 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", include("api.products_urls")),
     path("api/", include("api.users_urls")),
 ]
 
 
 if settings.DEBUG:
+    import debug_toolbar
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += (path("__debug__/", include(debug_toolbar.urls)),)

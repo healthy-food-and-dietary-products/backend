@@ -26,22 +26,22 @@ collectstatic:
 	cd backend; python3 manage.py collectstatic --no-input
 
 up-compose:
-	cd infra; docker compose up -d
+	cd infra; sudo docker compose up -d
 
 build-compose:
-	cd infra; docker compose up -d --build
+	cd infra; sudo docker compose up -d --build
 
 stop-compose:
-	cd infra; docker compose stop
+	cd infra; sudo docker compose stop
 
 start-compose:
-	cd infra; docker compose start
+	cd infra; sudo docker compose start
 
 makemig-compose:
-	cd infra; docker compose exec -it web python manage.py makemigrations
+	cd infra; sudo docker compose exec -it web python manage.py makemigrations
 
 migrate-compose:
-	cd infra; docker compose exec -it web python manage.py migrate
+	cd infra; sudo docker compose exec -it web python manage.py migrate
 
 superuser-compose:
-	cd infra; docker compose exec -it web python manage.py createsuperuser --email test@test.com --username admin -v 3
+	cd infra; sudo docker compose exec -it web python manage.py createsuperuser --email test@test.com --username admin -v 3

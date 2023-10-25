@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import Address, User
+from products.admin import UserFavoritesInline
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -15,7 +16,7 @@ class UserAdmin(admin.ModelAdmin):
         "email",
         "city",
         "birth_date",
-        "address",
+        # "address",
         "phone_number",
         "photo",
         "preview",
@@ -46,6 +47,7 @@ class UserAdmin(admin.ModelAdmin):
         "birth_date",
         "city",
     ]
+    inlines = [UserFavoritesInline]
 
     def preview(self, obj):
         return mark_safe(f'<img src="{obj.photo.url}" style="max-height: 200px;">')
