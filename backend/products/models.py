@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
-from django.dispatch import receiver
 from django.utils.text import slugify
 
 from core.models import CategoryModel
@@ -234,13 +233,6 @@ class Product(models.Model):
         blank=True,
         verbose_name="Promotions",
     )
-    promotion_quantity = models.PositiveSmallIntegerField(
-        "Promotion quantity",
-        default=0,
-        validators=[MaxValueValidator(MAX_PROMOTIONS_NUMBER)],
-        error_messages={"invalid": f"Допустимы числа от 0 до {MAX_PROMOTIONS_NUMBER}"},
-        help_text="Number of promotions valid for this product",
-    )
     photo = models.ImageField("Photo", blank=True, upload_to=product_directory_path)
     components = models.ManyToManyField(
         Component,
@@ -343,20 +335,11 @@ class ProductPromotion(models.Model):
     def clean_fields(self, exclude=None):
         """Checks the number of promotions that apply to a product."""
         super().clean_fields(exclude=exclude)
-        if self.product.promotion_quantity + 1 > MAX_PROMOTIONS_NUMBER:
+        if self.product.promotions.count() + 1 > MAX_PROMOTIONS_NUMBER:
             raise ValidationError(
                 "The number of promotions for one product "
                 f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
             )
-        self.product.promotion_quantity += 1
-        self.product.save()
 
     def __str__(self) -> str:
         return f"Product {self.product} has promotion {self.promotion}"
-
-
-@receiver(models.signals.post_delete, sender=ProductPromotion)
-def decrement_product_promotion_quantity(sender, instance, **kwargs):
-    """Decrements promotion_quantity field of a product after deleting its promotion."""
-    instance.product.promotion_quantity -= 1
-    instance.product.save()

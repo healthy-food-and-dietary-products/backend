@@ -56,6 +56,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     @admin.display(description="Number of subcategories")
     def number_subcategories(self, obj):
+        """Shows the number of subcategories for this category."""
         return obj.subcategories.count()
 
 
@@ -99,7 +100,7 @@ class ProducerAdmin(admin.ModelAdmin):
     search_fields = ["name", "address", "description"]
     ordering = ["pk"]
     list_filter = ["producer_type"]
-    empty_value_display = "-empty-"  # not shown
+    empty_value_display = "-empty-"
 
 
 @admin.register(Promotion)
@@ -129,7 +130,7 @@ class PromotionAdmin(admin.ModelAdmin):
     search_fields = ["name", "discount", "conditions", "start_time", "end_time"]
     ordering = ["pk"]
     list_filter = ["promotion_type", "is_active", "is_constant"]
-    empty_value_display = "-empty-"  # not shown
+    empty_value_display = "-empty-"
 
 
 @admin.register(Product)
@@ -176,12 +177,16 @@ class ProductAdmin(admin.ModelAdmin):
         "category",
         "subcategory",
         "discontinued",
-        "promotion_quantity",
         "producer",
         "measure_unit",
     ]
     inlines = [ProductPromotionsInline, ProductFavoritesInline]
-    empty_value_display = "-empty-"  # not shown
+    empty_value_display = "-empty-"
+
+    @admin.display(description="Number of promotions")
+    def promotion_quantity(self, obj):
+        """Shows the number of promotions for this product."""
+        return obj.promotions.count()
 
 
 @admin.register(ProductPromotion)

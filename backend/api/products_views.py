@@ -7,7 +7,9 @@ from .products_serializers import (
     ComponentSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
+    ProductCreateSerializer,
     ProductSerializer,
+    ProductUpdateSerializer,
     PromotionSerializer,
     SubcategorySerializer,
     TagSerializer,
@@ -32,7 +34,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [
         # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
+        # IsAdminOrReadOnly
     ]
 
 
@@ -104,8 +106,15 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [
         # permissions.IsAuthenticated,
-        IsAdminOrReadOnly,
+        # IsAdminOrReadOnly,
     ]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ProductCreateSerializer
+        if self.action == "partial_update":
+            return ProductUpdateSerializer
+        return ProductSerializer
 
 
 class FavoriteProductViewSet(viewsets.ModelViewSet):
