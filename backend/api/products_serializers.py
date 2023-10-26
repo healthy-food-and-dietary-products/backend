@@ -14,14 +14,6 @@ from products.models import (
 )
 
 
-class SubcategorySerializer(serializers.ModelSerializer):
-    """Serializer for subcategories representation."""
-
-    class Meta:
-        model = Subcategory
-        fields = ("id", "parent_category", "name", "slug")
-
-
 class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
@@ -30,14 +22,11 @@ class SubcategoryLightSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    """Serializer for categories representation."""
+class SubcategorySerializer(SubcategoryLightSerializer):
+    """Serializer for subcategories representation."""
 
-    subcategories = SubcategorySerializer(many=True)
-
-    class Meta:
-        model = Category
-        fields = ("id", "name", "slug", "subcategories")
+    class Meta(SubcategoryLightSerializer.Meta):
+        fields = ("id", "parent_category", "name", "slug")
 
 
 class CategoryLightSerializer(serializers.ModelSerializer):
@@ -48,12 +37,13 @@ class CategoryLightSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class TagSerializer(serializers.ModelSerializer):
-    """Serializer for tags representation."""
+class CategorySerializer(CategoryLightSerializer):
+    """Serializer for categories representation."""
 
-    class Meta:
-        model = Tag
-        fields = ("id", "name", "slug")
+    subcategories = SubcategorySerializer(many=True)
+
+    class Meta(CategoryLightSerializer.Meta):
+        fields = ("id", "name", "slug", "subcategories")
 
 
 class TagLightSerializer(serializers.ModelSerializer):
@@ -64,12 +54,11 @@ class TagLightSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class ComponentSerializer(serializers.ModelSerializer):
-    """Serializer for components representation."""
+class TagSerializer(TagLightSerializer):
+    """Serializer for tags representation."""
 
-    class Meta:
-        model = Component
-        fields = ("id", "name")
+    class Meta(TagLightSerializer.Meta):
+        fields = ("id", "name", "slug")
 
 
 class ComponentLightSerializer(serializers.ModelSerializer):
@@ -80,12 +69,11 @@ class ComponentLightSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class ProducerSerializer(serializers.ModelSerializer):
-    """Serializer for produsers representation."""
+class ComponentSerializer(ComponentLightSerializer):
+    """Serializer for components representation."""
 
-    class Meta:
-        model = Producer
-        fields = ("id", "name", "producer_type", "description", "address")
+    class Meta(ComponentLightSerializer.Meta):
+        fields = ("id", "name")
 
 
 class ProducerLightSerializer(serializers.ModelSerializer):
@@ -96,11 +84,25 @@ class ProducerLightSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class PromotionSerializer(serializers.ModelSerializer):
-    """Serializer for promotions representation."""
+class ProducerSerializer(ProducerLightSerializer):
+    """Serializer for produsers representation."""
+
+    class Meta(ProducerLightSerializer.Meta):
+        fields = ("id", "name", "producer_type", "description", "address")
+
+
+class PromotionLightSerializer(serializers.ModelSerializer):
+    """Serializer for promotions representation in product serializer."""
 
     class Meta:
         model = Promotion
+        fields = ("name", "discount")
+
+
+class PromotionSerializer(ProducerLightSerializer):
+    """Serializer for promotions representation."""
+
+    class Meta(PromotionLightSerializer.Meta):
         fields = (
             "id",
             "promotion_type",
@@ -112,14 +114,6 @@ class PromotionSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
         )
-
-
-class PromotionLightSerializer(serializers.ModelSerializer):
-    """Serializer for promotions representation in product serializer."""
-
-    class Meta:
-        model = Promotion
-        fields = ("name", "discount")
 
 
 class ProductSerializer(serializers.ModelSerializer):
