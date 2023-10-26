@@ -1,8 +1,5 @@
-region_choices = [
-    ('St. Petersburg', "Санкт-Петербург"),
-    ('Leningrad region', 'Ленинградская область'),
+city_choices = [
     ('Moscow', 'Москва'),
-    ('Moscow region', 'Московская область'),
 ]
 
 city_type_choices = [

@@ -12,75 +12,16 @@ from users import utils
 class Address(models.Model):
     """Describes address of user."""
 
-    country = models.CharField(
-        "Country",
-        default='Россия',
-        max_length=100,
-    )
-    region = models.CharField(
-        "Region",
-        choices=utils.region_choices,
-        max_length=200,
-    )
-    city_type = models.CharField(
-        "City_type",
-        choices=utils.city_type_choices,
-        max_length=100,
-    )
-    city = models.CharField(
-        "City",
-        max_length=100,
-    )
-    microdistrict = models.CharField(
-        "Microdistrict",
-        null=True,
-        blank=True,
-        max_length=150,
-    )
-    street_type = models.CharField(
-        "Street_type",
-        choices=utils.street_type_choices,
-        max_length=100,
-        null=True,
-        blank=True,
-    )
-    street = models.CharField(
-        "Street",
-        max_length=100,
-        null=True,
-        blank=True,
-    )
-    house = models.CharField(
-        "House_number",
-        max_length=40,
-    )
-    apartment = models.IntegerField(
-        "Apartment_number",
-        null=True,
-        blank=True,
-    )
-    postal_code = models.CharField(
-        "Postal_code",
-        max_length=6,
-        null=True,
-        blank=True,
+    address = models.TextField(
+        'Address',
     )
 
     def __str__(self):
-        return (
-            f"{self.country}, {self.city}, {self.street}, "
-            f"{self.house}, {self.apartment}"
-        )
+        return f"{self.address}"
 
     class Meta:
         verbose_name = "Address"
         verbose_name_plural = "Addresses"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["city", "street", "house", "apartment"],
-                name="unique address",
-            )
-        ]
 
 
 @cleanup.select
@@ -118,6 +59,7 @@ class User(AbstractUser):
     )
     city = models.CharField(
         "City",
+        choices=utils.city_choices,
         max_length=50,
     )
     birth_date = models.DateField(
@@ -131,11 +73,6 @@ class User(AbstractUser):
         blank=True,
         related_name="users",
         verbose_name="Addresses",
-    )
-    address_quantity = models.IntegerField(
-        "number_of_adresses",
-        default=0,
-        validators=[validators.MaxValueValidator(5)],
     )
     phone_number = PhoneNumberField(
         "Phone_number",
