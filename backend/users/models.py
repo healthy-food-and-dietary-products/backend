@@ -13,7 +13,7 @@ class Address(models.Model):
     """Describes address of user."""
 
     address = models.TextField(
-        'Address',
+        "Address",
     )
 
     def __str__(self):

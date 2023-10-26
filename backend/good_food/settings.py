@@ -168,9 +168,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
 EMAIL_HOST_USER = "temagovorlivyh@yandex.ru"
 EMAIL_HOST_PASSWORD = "iqusgjngbespklcp"
@@ -183,11 +183,11 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
     "ACTIVATION_URL": "#/activate/{uid}/{token}",
-    'LOGIN_FIELD': 'email',
+    "LOGIN_FIELD": "email",
     "SEND_ACTIVATION_EMAIL": False,
-    'SERIALIZERS': {
-        'user_create': 'api.users_serializers.UserCreateSerializer',
-        'user': 'api.users_serializers.UserSerializer',
-        'current_user': 'api.users_serializers.UserSerializer',
+    "SERIALIZERS": {
+        "user_create": "api.users_serializers.UserCreateSerializer",
+        "user": "api.users_serializers.UserSerializer",
+        "current_user": "api.users_serializers.UserSerializer",
     },
 }

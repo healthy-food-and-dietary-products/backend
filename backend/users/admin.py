@@ -6,7 +6,6 @@ from products.admin import UserFavoritesInline
 
 
 class AddressInline(admin.TabularInline):
-
     model = UserAddress
     extra = 1
 

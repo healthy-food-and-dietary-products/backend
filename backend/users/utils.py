@@ -1,19 +1,19 @@
 city_choices = [
-    ('Moscow', 'Москва'),
+    ("Moscow", "Москва"),
 ]
 
 city_type_choices = [
-    ('City', "Город"),
-    ('Settlement', 'Поселок'),
-    ('Village', 'Деревня'),
+    ("City", "Город"),
+    ("Settlement", "Поселок"),
+    ("Village", "Деревня"),
 ]
 
 
 street_type_choices = [
-    ('Street', "Улица"),
-    ('Avenue', 'Проспект'),
-    ('Passage', 'Проезд'),
-    ('Square', "Площадь"),
-    ('Embankment', 'Набережная'),
-    ('Blind alley', 'Тупик'),
+    ("Street", "Улица"),
+    ("Avenue", "Проспект"),
+    ("Passage", "Проезд"),
+    ("Square", "Площадь"),
+    ("Embankment", "Набережная"),
+    ("Blind alley", "Тупик"),
 ]

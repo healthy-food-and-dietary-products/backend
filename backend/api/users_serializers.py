@@ -8,10 +8,9 @@ User = get_user_model()
 
 
 class AddressSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Address
-        fields = ('id', 'address')
+        fields = ("id", "address")
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -24,11 +23,11 @@ class UserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'password')
+        fields = ("email", "id", "username", "password")
         extra_kwargs = {
-            'email': {'required': True},
-            'username': {'required': True},
-            'password': {'required': True},
+            "email": {"required": True},
+            "username": {"required": True},
+            "password": {"required": True},
         }
 
 
@@ -46,7 +45,7 @@ class UserSerializer(UserSerializer):
             "role",
             "city",
             "birth_date",
-            'address',
+            "address",
             "address_quantity",
             "phone_number",
             "photo",
