@@ -29,7 +29,7 @@ jobs:
       #   run: |
       #     pytest
       - name: send message
-        if: github.ref == 'refs/heads/fea**' || github.ref == 'refs/heads/fix**'
+        if: github.ref == 'refs/heads/feature/**' || github.ref == 'refs/heads/fix/**'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
