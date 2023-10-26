@@ -39,6 +39,7 @@ class CategoryLightSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(CategoryLightSerializer):
     """Serializer for categories representation."""
+    # TODO: make possible to create subcategories during the category creation
 
     subcategories = SubcategorySerializer(many=True)
 
@@ -203,13 +204,10 @@ class ProductUpdateSerializer(ProductCreateSerializer):
         return value
 
 
-class ProductLightSerializer(serializers.ModelSerializer):
+class ProductLightSerializer(ProductSerializer):
     """Serializer for products representation in favorite product serializer."""
 
-    producer = ProducerLightSerializer()
-
-    class Meta:
-        model = Product
+    class Meta(ProductSerializer.Meta):
         fields = (
             "name",
             "producer",
