@@ -17,9 +17,11 @@ from products.models import (
 class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
+    subcategory_name = serializers.CharField(source="name")
+
     class Meta:
         model = Subcategory
-        fields = ("name",)
+        fields = ("subcategory_name",)
 
 
 class SubcategorySerializer(SubcategoryLightSerializer):
@@ -32,16 +34,17 @@ class SubcategorySerializer(SubcategoryLightSerializer):
 class CategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for categories representation in product serializer."""
 
+    category_name = serializers.CharField(source="name")
+
     class Meta:
         model = Category
-        fields = ("name",)
+        fields = ("category_name",)
 
 
 class CategorySerializer(CategoryLightSerializer):
     """Serializer for categories representation."""
-    # TODO: make possible to create subcategories during the category creation
 
-    subcategories = SubcategorySerializer(many=True)
+    subcategories = SubcategoryLightSerializer(many=True)
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "subcategories")
@@ -50,9 +53,11 @@ class CategorySerializer(CategoryLightSerializer):
 class TagLightSerializer(serializers.ModelSerializer):
     """Serializer for tags representation in product serializer."""
 
+    tag_name = serializers.CharField(source="name")
+
     class Meta:
         model = Tag
-        fields = ("name",)
+        fields = ("tag_name",)
 
 
 class TagSerializer(TagLightSerializer):
@@ -65,9 +70,11 @@ class TagSerializer(TagLightSerializer):
 class ComponentLightSerializer(serializers.ModelSerializer):
     """Serializer for components representation in product serializer."""
 
+    component_name = serializers.CharField(source="name")
+
     class Meta:
         model = Component
-        fields = ("name",)
+        fields = ("component_name",)
 
 
 class ComponentSerializer(ComponentLightSerializer):
@@ -80,9 +87,11 @@ class ComponentSerializer(ComponentLightSerializer):
 class ProducerLightSerializer(serializers.ModelSerializer):
     """Serializer for produsers representation in product serializer."""
 
+    producer_name = serializers.CharField(source="name")
+
     class Meta:
         model = Producer
-        fields = ("name",)
+        fields = ("producer_name",)
 
 
 class ProducerSerializer(ProducerLightSerializer):
@@ -95,9 +104,11 @@ class ProducerSerializer(ProducerLightSerializer):
 class PromotionLightSerializer(serializers.ModelSerializer):
     """Serializer for promotions representation in product serializer."""
 
+    promotion_name = serializers.CharField(source="name")
+
     class Meta:
         model = Promotion
-        fields = ("name", "discount")
+        fields = ("promotion_name", "discount")
 
 
 class PromotionSerializer(ProducerLightSerializer):
