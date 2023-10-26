@@ -44,7 +44,9 @@ class CategoryLightSerializer(serializers.ModelSerializer):
 class CategorySerializer(CategoryLightSerializer):
     """Serializer for categories representation."""
 
-    subcategories = SubcategoryLightSerializer(many=True)
+    subcategories = SubcategoryLightSerializer(many=True, required=False)
+    # TODO: make possible create subcategories during category creation
+    # TODO: or make special serializer for category creation (without subcategories)
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "subcategories")
@@ -158,7 +160,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",
+            "photo",  # TODO: !!!
             "components",
             "kcal",
             "proteins",
@@ -225,6 +227,7 @@ class ProductLightSerializer(ProductSerializer):
         )
 
 
+# TODO: make it in other way, use @action (see foodgram)
 class FavoriteProductSerializer(serializers.ModelSerializer):
     """Serializer for favorite products representation."""
 
