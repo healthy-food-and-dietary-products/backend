@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .users_serializers import UserSerializer
 from products.models import (
+    MAX_PROMOTIONS_NUMBER,
     Category,
     Component,
     FavoriteProduct,
@@ -13,93 +14,109 @@ from products.models import (
 )
 
 
-class SubcategorySerializer(serializers.ModelSerializer):
-    """Serializer for subcategories representation."""
-
-    class Meta:
-        model = Subcategory
-        fields = ("id", "parent_category", "name", "slug")
-
-
 class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
+    subcategory_name = serializers.CharField(source="name")
+
     class Meta:
         model = Subcategory
-        fields = ("name",)
+        fields = ("subcategory_name",)
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    """Serializer for categories representation."""
+class SubcategorySerializer(SubcategoryLightSerializer):
+    """Serializer for subcategories representation."""
 
-    subcategories = SubcategorySerializer(many=True)
-
-    class Meta:
-        model = Category
-        fields = ("id", "name", "slug", "subcategories")
+    class Meta(SubcategoryLightSerializer.Meta):
+        fields = ("id", "parent_category", "name", "slug")
 
 
 class CategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for categories representation in product serializer."""
 
+    category_name = serializers.CharField(source="name")
+
     class Meta:
         model = Category
-        fields = ("name",)
+        fields = ("category_name",)
 
 
-class TagSerializer(serializers.ModelSerializer):
-    """Serializer for tags representation."""
+class CategorySerializer(CategoryLightSerializer):
+    """Serializer for categories representation."""
 
-    class Meta:
-        model = Tag
-        fields = ("id", "name", "slug")
+    subcategories = SubcategoryLightSerializer(many=True, required=False)
+    # TODO: make possible create subcategories during category creation
+    # TODO: or make special serializer for category creation (without subcategories)
+
+    class Meta(CategoryLightSerializer.Meta):
+        fields = ("id", "name", "slug", "subcategories")
 
 
 class TagLightSerializer(serializers.ModelSerializer):
     """Serializer for tags representation in product serializer."""
 
+    tag_name = serializers.CharField(source="name")
+
     class Meta:
         model = Tag
-        fields = ("name",)
+        fields = ("tag_name",)
 
 
-class ComponentSerializer(serializers.ModelSerializer):
-    """Serializer for components representation."""
+class TagSerializer(TagLightSerializer):
+    """Serializer for tags representation."""
 
-    class Meta:
-        model = Component
-        fields = ("id", "name")
+    class Meta(TagLightSerializer.Meta):
+        fields = ("id", "name", "slug")
 
 
 class ComponentLightSerializer(serializers.ModelSerializer):
     """Serializer for components representation in product serializer."""
 
+    component_name = serializers.CharField(source="name")
+
     class Meta:
         model = Component
-        fields = ("name",)
+        fields = ("component_name",)
 
 
-class ProducerSerializer(serializers.ModelSerializer):
-    """Serializer for produsers representation."""
+class ComponentSerializer(ComponentLightSerializer):
+    """Serializer for components representation."""
 
-    class Meta:
-        model = Producer
-        fields = ("id", "name", "producer_type", "description", "address")
+    class Meta(ComponentLightSerializer.Meta):
+        fields = ("id", "name")
 
 
 class ProducerLightSerializer(serializers.ModelSerializer):
     """Serializer for produsers representation in product serializer."""
 
+    producer_name = serializers.CharField(source="name")
+
     class Meta:
         model = Producer
-        fields = ("name",)
+        fields = ("producer_name",)
 
 
-class PromotionSerializer(serializers.ModelSerializer):
-    """Serializer for promotions representation."""
+class ProducerSerializer(ProducerLightSerializer):
+    """Serializer for produsers representation."""
+
+    class Meta(ProducerLightSerializer.Meta):
+        fields = ("id", "name", "producer_type", "description", "address")
+
+
+class PromotionLightSerializer(serializers.ModelSerializer):
+    """Serializer for promotions representation in product serializer."""
+
+    promotion_name = serializers.CharField(source="name")
 
     class Meta:
         model = Promotion
+        fields = ("promotion_name", "discount")
+
+
+class PromotionSerializer(ProducerLightSerializer):
+    """Serializer for promotions representation."""
+
+    class Meta(PromotionLightSerializer.Meta):
         fields = (
             "id",
             "promotion_type",
@@ -113,24 +130,17 @@ class PromotionSerializer(serializers.ModelSerializer):
         )
 
 
-class PromotionLightSerializer(serializers.ModelSerializer):
-    """Serializer for promotions representation in product serializer."""
-
-    class Meta:
-        model = Promotion
-        fields = ("name", "discount")
-
-
 class ProductSerializer(serializers.ModelSerializer):
-    """Serializer for products representation."""
+    """Serializer for displaying products."""
 
     category = CategoryLightSerializer()
     subcategory = SubcategoryLightSerializer()
-    tags = TagLightSerializer(many=True)
+    tags = TagLightSerializer(many=True, required=False)
     producer = ProducerLightSerializer()
-    promotions = PromotionLightSerializer(many=True)
+    promotions = PromotionLightSerializer(many=True, required=False)
     components = ComponentLightSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
+    promotion_quantity = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -150,7 +160,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",
+            "photo",  # TODO: !!!
             "components",
             "kcal",
             "proteins",
@@ -167,20 +177,57 @@ class ProductSerializer(serializers.ModelSerializer):
             return False
         return obj.is_favorited(request.user)
 
+    def get_promotion_quantity(self, obj):
+        return obj.promotions.count()
 
-class ProductLightSerializer(serializers.ModelSerializer):
+
+class ProductCreateSerializer(ProductSerializer):
+    """Serializer for creating products."""
+
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
+    producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    components = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Component.objects.all()
+    )
+    promotions = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Promotion.objects.all()
+    )
+
+    def validate_promotions(self, value):
+        """Checks that no promotions are applied to the product during its creation."""
+        if value:
+            raise serializers.ValidationError(
+                "Promotions cannot be applied to a product during its creation."
+            )
+        return value
+
+
+class ProductUpdateSerializer(ProductCreateSerializer):
+    """Serializer for updating products."""
+
+    def validate_promotions(self, value):
+        """Checks the number of promotions that apply to a product."""
+        if len(value) > MAX_PROMOTIONS_NUMBER:
+            raise serializers.ValidationError(
+                "The number of promotions for one product "
+                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+            )
+        return value
+
+
+class ProductLightSerializer(ProductSerializer):
     """Serializer for products representation in favorite product serializer."""
 
-    producer = ProducerLightSerializer()
-
-    class Meta:
-        model = Product
+    class Meta(ProductSerializer.Meta):
         fields = (
             "name",
             "producer",
         )
 
 
+# TODO: make it in other way, use @action (see foodgram)
 class FavoriteProductSerializer(serializers.ModelSerializer):
     """Serializer for favorite products representation."""
 
@@ -192,4 +239,4 @@ class FavoriteProductSerializer(serializers.ModelSerializer):
         fields = ("id", "user", "product")
 
 
-# TODO: add validators!
+# TODO: add more validators!
