@@ -55,10 +55,7 @@ class User(AbstractUser):
     )
     phone_number = PhoneNumberField("Phone_number", blank=True)
     photo = models.ImageField(
-        "Photo",
-        upload_to=user_directory_path,
-        blank=True,
-        default="default.jpg",
+        "Photo", upload_to=user_directory_path, blank=True, default="default.jpg",
     )
 
     class Meta:
