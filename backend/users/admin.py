@@ -63,5 +63,14 @@ class AddressAdmin(admin.ModelAdmin):
     ]
 
 
+@admin.register(UserAddress)
+class UserAddressAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "address", "priority_address"]
+    fields = ["user", "address", "priority_address"]
+    search_fields = ["user", "address"]
+    ordering = ["id"]
+    list_filter = ["priority_address"]
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Address, AddressAdmin)

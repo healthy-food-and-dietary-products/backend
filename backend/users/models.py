@@ -68,8 +68,8 @@ class User(AbstractUser):
         return self.username
 
     def clean_fields(self, exclude=None):
+        """Checks the user's birth date."""
         super().clean_fields(exclude=exclude)
-
         now = timezone.now()
         if self.birth_date:
             if (
@@ -101,3 +101,24 @@ class UserAddress(models.Model):
         Address, related_name="user_addresses", on_delete=models.CASCADE
     )
     priority_address = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = " User Address"
+        verbose_name_plural = "User Addresses"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "address"], name="unique_user_address"
+            )
+        ]
+
+    def clean_fields(self, exclude=None):
+        """Checks that the user has only one priority address."""
+        super().clean_fields(exclude=exclude)
+        priority_count = 1 if self.priority_address else 0
+        for address in self.user.user_addresses.all():
+            if address.priority_address:
+                priority_count += 1
+        if priority_count > 1:
+            raise ValidationError(
+                "У пользователя может быть только один приоритетный адрес."
+            )

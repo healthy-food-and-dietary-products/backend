@@ -34,7 +34,7 @@ class UserCreateSerializer(UserCreateSerializer):
         }
 
     def get_city(self, obj):
-        return [choice[0] for choice in city_choices]
+        return city_choices[0][0]
 
 
 class UserSerializer(UserSerializer):
