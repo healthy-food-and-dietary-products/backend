@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from users.models import Address
+from users.utils import city_choices
 
 User = get_user_model()
 
@@ -21,15 +22,19 @@ class UserCreateSerializer(UserCreateSerializer):
     username = serializers.CharField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    city = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("email", "id", "username", "password")
+        fields = ("email", "id", "username", "password", "city")
         extra_kwargs = {
             "email": {"required": True},
             "username": {"required": True},
             "password": {"required": True},
         }
+
+    def get_city(self, obj):
+        return [choice[0] for choice in city_choices]
 
 
 class UserSerializer(UserSerializer):
@@ -39,6 +44,7 @@ class UserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
+            "id",
             "username",
             "email",
             "first_name",

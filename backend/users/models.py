@@ -11,9 +11,7 @@ from users import utils
 class Address(models.Model):
     """Describes address of user."""
 
-    address = models.TextField(
-        "Address",
-    )
+    address = models.TextField("Address", unique=True)
 
     def __str__(self):
         return f"{self.address}"
@@ -41,31 +39,13 @@ class User(AbstractUser):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
-    username = models.CharField(
-        "Username",
-        unique=True,
-        max_length=150,
-    )
-    email = models.EmailField(
-        "E-mail address",
-        unique=True,
-        max_length=254,
-    )
-    role = models.CharField(
-        max_length=9,
-        choices=CHOISES,
-        default="user",
-    )
+    username = models.CharField("Username", unique=True, max_length=150)
+    email = models.EmailField("E-mail address", unique=True, max_length=254)
+    role = models.CharField(max_length=9, choices=CHOISES, default="user")
     city = models.CharField(
-        "City",
-        choices=utils.city_choices,
-        max_length=50,
+        "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
-    birth_date = models.DateField(
-        "Birth_date",
-        blank=True,
-        null=True,
-    )
+    birth_date = models.DateField("Birth_date", blank=True, null=True)
     address = models.ManyToManyField(
         Address,
         through="UserAddress",
@@ -73,10 +53,7 @@ class User(AbstractUser):
         related_name="users",
         verbose_name="Addresses",
     )
-    phone_number = PhoneNumberField(
-        "Phone_number",
-        blank=True,
-    )
+    phone_number = PhoneNumberField("Phone_number", blank=True)
     photo = models.ImageField(
         "Photo",
         upload_to=user_directory_path,
