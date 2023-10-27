@@ -1,5 +1,4 @@
-# from rest_framework import permissions, viewsets
-from rest_framework import viewsets
+from rest_framework import permissions, viewsets
 
 from .permissions import IsAdminOrReadOnly, IsAuthor
 from .products_serializers import (
@@ -7,7 +6,9 @@ from .products_serializers import (
     ComponentSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
+    ProductCreateSerializer,
     ProductSerializer,
+    ProductUpdateSerializer,
     PromotionSerializer,
     SubcategorySerializer,
     TagSerializer,
@@ -30,10 +31,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class SubcategoryViewSet(viewsets.ModelViewSet):
@@ -42,10 +40,7 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Subcategory.objects.all()
     serializer_class = SubcategorySerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class ComponentViewSet(viewsets.ModelViewSet):
@@ -54,10 +49,7 @@ class ComponentViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -66,10 +58,7 @@ class TagViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class ProducerViewSet(viewsets.ModelViewSet):
@@ -78,10 +67,7 @@ class ProducerViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Producer.objects.all()
     serializer_class = ProducerSerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class PromotionViewSet(viewsets.ModelViewSet):
@@ -90,10 +76,7 @@ class PromotionViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -102,10 +85,14 @@ class ProductViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [
-        # permissions.IsAuthenticated,
-        IsAdminOrReadOnly,
-    ]
+    permission_classes = [IsAdminOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ProductCreateSerializer
+        if self.action == "partial_update":
+            return ProductUpdateSerializer
+        return ProductSerializer
 
 
 class FavoriteProductViewSet(viewsets.ModelViewSet):
@@ -115,8 +102,8 @@ class FavoriteProductViewSet(viewsets.ModelViewSet):
     queryset = FavoriteProduct.objects.all()
     serializer_class = FavoriteProductSerializer
     permission_classes = [
-        # permissions.IsAuthenticated,
-        # permissions.IsAdminUser,
+        permissions.IsAdminUser,
         IsAuthor,
-        # IsAdminOrReadOnly,
     ]
+    # TODO: admin has access, check it with ordinary user (nonadmin)ry
+    # TODO: ordinary user can't create new favorite via Postman - fix it!
