@@ -86,7 +86,7 @@ class ShoppingCartGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ("id", "user", "products", "total_price")
+        fields = ("id", "user", "products", "total_price", "status")
 
     def get_total_price(self, obj):  # TODO: add quantity:
         products = obj.products.all()
@@ -195,15 +195,15 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         model = Order
         fields = "__all__"
 
-    def validate_address(self, obj):
-        if self.delivery_method == "By courier" and not obj.address:
-            raise serializers.ValidationError("Нужно указать адрес доставки!")
-        return obj
-
-    def validate_package(self, obj):
-        if self.delivery_method == "By courier":
-            obj = True
-            return obj
+    # def validate_address(self, obj):
+    #     if self.delivery_method == "By courier" and not obj.address:
+    #         raise serializers.ValidationError("Нужно указать адрес доставки!")
+    #     return obj
+    #
+    # def validate_package(self, obj):
+    #     if self.delivery_method == "By courier":
+    #         obj = True
+    #         return obj
 
     def validate_shopping_cart(self, obj):
         if not obj.status == "In work":
