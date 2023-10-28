@@ -35,6 +35,13 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "[::1]",
     "web",
+    "http://goodfood.acceleratorpracticum.ru",
+    "goodfood.acceleratorpracticum.ru",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost/*",
+    "http://goodfood.acceleratorpracticum.ru/*",
 ]
 
 # For django-debug-toolbar
