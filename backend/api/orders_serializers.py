@@ -1,9 +1,9 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
-from products.models import Product, FavoriteProduct
 from .users_serializers import UserSerializer
+from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from products.models import FavoriteProduct, Product
 
 
 class ShoppingCartProductListSerializer(serializers.ModelSerializer):
@@ -58,10 +58,10 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
         product = validated_data.pop("product")
         quantity = validated_data.pop("quantity")
         shopping_cart = validated_data.pop("shopping_cart")
-        shopping_cart_product = ShoppingCartProduct.objects.create(
+        shopping_cart_products = ShoppingCartProduct.objects.create(
             product=product, quantity=quantity, shopping_cart=shopping_cart
         )
-        return shopping_cart_product
+        return shopping_cart_products
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -195,24 +195,13 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         model = Order
         fields = "__all__"
 
-    # def validate_address(self, obj):
-    #     if self.delivery_method == "By courier" and not obj.address:
-    #         raise serializers.ValidationError("Нужно указать адрес доставки!")
-    #     return obj
-    #
-    # def validate_package(self, obj):
-    #     if self.delivery_method == "By courier":
-    #         obj = True
-    #         return obj
-
     def validate_shopping_cart(self, obj):
         if not obj.status == "In work":
             raise serializers.ValidationError("Ваша корзина уже оформлена!")
         return obj
 
     def get_order_number(self, obj):
-        number = obj.shopping_cart
-        return number
+        return obj.shopping_cart
 
     def get_total_price(self, obj):
         if self.package:
