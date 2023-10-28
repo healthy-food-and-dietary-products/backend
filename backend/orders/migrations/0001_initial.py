@@ -110,7 +110,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"verbose_name": "Корзина", "verbose_name_plural": "Корзина",},
+            options={
+                "verbose_name": "Корзина",
+                "verbose_name_plural": "Корзина",
+            },
         ),
         migrations.CreateModel(
             name="ShoppingCartProduct",

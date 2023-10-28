@@ -29,21 +29,33 @@ def read_users():
 
 def read_category():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "category.csv",), "r", encoding="utf-8",
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "category.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
         reader = csv.reader(f, delimiter=",")
         for row in reader:
             if row[0] == "id":
                 continue
             Category.objects.get_or_create(
-                id=row[0], name=row[1], slug=row[2],
+                id=row[0],
+                name=row[1],
+                slug=row[2],
             )
     print("Данные из файла category.csv загружены")
 
 
 def read_subcategory():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "subcategory.csv",),
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "subcategory.csv",
+        ),
         "r",
         encoding="utf-8",
     ) as f:
@@ -59,21 +71,35 @@ def read_subcategory():
 
 def read_tags():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "tags.csv",), "r", encoding="utf-8",
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "tags.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
         reader = csv.reader(f, delimiter=",")
         for row in reader:
             if row[0] == "id":
                 continue
             Tag.objects.get_or_create(
-                id=row[0], name=row[1], slug=row[2],
+                id=row[0],
+                name=row[1],
+                slug=row[2],
             )
     print("Данные из файла tags.csv загружены")
 
 
 def read_producer():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "producer.csv",), "r", encoding="utf-8",
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "producer.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
         reader = csv.reader(f, delimiter=",")
         for row in reader:
@@ -91,7 +117,11 @@ def read_producer():
 
 def read_components():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "components.csv",),
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "components.csv",
+        ),
         "r",
         encoding="utf-8",
     ) as f:
@@ -100,14 +130,21 @@ def read_components():
             if row[0] == "id":
                 continue
             Component.objects.get_or_create(
-                id=row[0], name=row[1],
+                id=row[0],
+                name=row[1],
             )
     print("Данные из файла components.csv загружены")
 
 
 def read_products():
     with open(
-        os.path.join(settings.BASE_DIR, "data", "products.csv",), "r", encoding="utf-8",
+        os.path.join(
+            settings.BASE_DIR,
+            "data",
+            "products.csv",
+        ),
+        "r",
+        encoding="utf-8",
     ) as f:
         reader = csv.reader(f, delimiter=",")
         for row in reader:

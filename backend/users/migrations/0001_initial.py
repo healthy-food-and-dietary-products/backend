@@ -134,8 +134,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ("id",),},
-            managers=[("objects", django.contrib.auth.models.UserManager()),],
+            options={
+                "ordering": ("id",),
+            },
+            managers=[
+                ("objects", django.contrib.auth.models.UserManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Address",
@@ -151,7 +155,10 @@ class Migration(migrations.Migration):
                 ),
                 ("address", models.TextField(unique=True, verbose_name="Address")),
             ],
-            options={"verbose_name": "Address", "verbose_name_plural": "Addresses",},
+            options={
+                "verbose_name": "Address",
+                "verbose_name_plural": "Addresses",
+            },
         ),
         migrations.CreateModel(
             name="UserAddress",
