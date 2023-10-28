@@ -4,7 +4,6 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .orders_serializers import (
     OrderListSerializer,
-    OrderPostDeleteSerializer,
     ShoppingCartGetSerializer,
     ShoppingCartPostUpdateDeleteSerializer,
 )
@@ -38,6 +37,6 @@ class OrderViewSet(
     http_method_names = ["get", "post", "delete"]
 
     def get_serializer_class(self):
-        if self.action in ("list", "retrieve"):
-            return OrderListSerializer
-        return OrderPostDeleteSerializer
+        # if self.action in ("list", "retrieve"):
+        return OrderListSerializer
+        # return OrderPostDeleteSerializer # TODO for feature

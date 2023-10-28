@@ -58,10 +58,10 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
         product = validated_data.pop("product")
         quantity = validated_data.pop("quantity")
         shopping_cart = validated_data.pop("shopping_cart")
-        shopping_cart_products = ShoppingCartProduct.objects.create(
+
+        return ShoppingCartProduct.objects.create(
             product=product, quantity=quantity, shopping_cart=shopping_cart
         )
-        return shopping_cart_products
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -181,52 +181,3 @@ class OrderListSerializer(serializers.ModelSerializer):
             "delivery_method",
         )
         model = Order
-
-
-class OrderPostDeleteSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/delete order."""
-
-    order_number = serializers.SerializerMethodField()
-    package = serializers.BooleanField(default=True)
-    total_price = serializers.SerializerMethodField()
-    address = serializers.CharField()
-
-    class Meta:
-        model = Order
-        fields = "__all__"
-
-    def validate_shopping_cart(self, obj):
-        if not obj.status == "In work":
-            raise serializers.ValidationError("Ваша корзина уже оформлена!")
-        return obj
-
-    def get_order_number(self, obj):
-        return obj.shopping_cart
-
-    def get_total_price(self, obj):
-        if self.package:
-            obj.total_price += 10
-        return obj.total_price
-
-    @transaction.atomic
-    def create(self, validated_data):
-        order_number = validated_data.pop("order_number")
-        status = validated_data.pop("status")
-        delivery_method = validated_data.pop("delivery_method")
-        package = validated_data.pop("package")
-        shopping_cart = validated_data.pop("shopping_cart")
-
-        order = Order.objects.create(
-            order_number=order_number,
-            status=status,
-            shopping_cart=shopping_cart,
-            delivery_method=delivery_method,
-            package=package,
-            user=self.context["request"].user,
-        )
-        shop_cart = ShoppingCart.objects.get(shopping_cart)
-        shop_cart.status = "Ordered"
-        return order
-
-    def to_representation(self, instance):
-        return OrderListSerializer(instance, context=self.context).data
