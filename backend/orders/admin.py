@@ -25,7 +25,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "order_number",
         "shopping_cart",
         "ordering_date",
         "status",
@@ -43,4 +42,4 @@ class OrderAdmin(admin.ModelAdmin):
         "address",
         "package",
     )
-    list_filter = ("ordering_date", "order_number")
+    list_filter = ("ordering_date",)
