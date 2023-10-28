@@ -6,7 +6,7 @@ services:
     image: postgres:13.0-alpine
     container_name: good_food_db
     volumes:
-      - postgres_value:/var/lib/postgresql/data/
+      - /var/lib/postgresql/data/
     restart: always
     env_file:
       - ./.env
@@ -51,6 +51,6 @@ services:
       - nginx
 
 volumes:
-  postgres_value:
+  postgres_data:
   static_value:
   media_value:
