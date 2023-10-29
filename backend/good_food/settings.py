@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework.authtoken",
     "django_cleanup.apps.CleanupSelectedConfig",
-    'drf_spectacular',
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -167,17 +167,20 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
+
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = "healthyfoodapi@yandex.ru"
+EMAIL_HOST_PASSWORD = "pnamuoqkveehegno"
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = "temagovorlivyh@yandex.ru"
-EMAIL_HOST_PASSWORD = "iqusgjngbespklcp"
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -189,6 +192,9 @@ DJOSER = {
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "SET_PASSWORD_RETYPE": True,
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {
         "user_create": "api.users_serializers.UserCreateSerializer",
         "user": "api.users_serializers.UserSerializer",

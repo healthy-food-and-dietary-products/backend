@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractUser
-from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -12,9 +11,7 @@ from users import utils
 class Address(models.Model):
     """Describes address of user."""
 
-    address = models.TextField(
-        "Address",
-    )
+    address = models.TextField("Address", unique=True)
 
     def __str__(self):
         return f"{self.address}"
@@ -42,31 +39,13 @@ class User(AbstractUser):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
-    username = models.CharField(
-        "Username",
-        unique=True,
-        max_length=150,
-    )
-    email = models.EmailField(
-        "E-mail address",
-        unique=True,
-        max_length=254,
-    )
-    role = models.CharField(
-        max_length=9,
-        choices=CHOISES,
-        default="user",
-    )
+    username = models.CharField("Username", unique=True, max_length=150)
+    email = models.EmailField("E-mail address", unique=True, max_length=254)
+    role = models.CharField(max_length=9, choices=CHOISES, default="user")
     city = models.CharField(
-        "City",
-        choices=utils.city_choices,
-        max_length=50,
+        "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
-    birth_date = models.DateField(
-        "Birth_date",
-        blank=True,
-        null=True,
-    )
+    birth_date = models.DateField("Birth_date", blank=True, null=True)
     address = models.ManyToManyField(
         Address,
         through="UserAddress",
@@ -74,10 +53,7 @@ class User(AbstractUser):
         related_name="users",
         verbose_name="Addresses",
     )
-    phone_number = PhoneNumberField(
-        "Phone_number",
-        blank=True,
-    )
+    phone_number = PhoneNumberField("Phone_number", blank=True)
     photo = models.ImageField(
         "Photo",
         upload_to=user_directory_path,
@@ -92,8 +68,8 @@ class User(AbstractUser):
         return self.username
 
     def clean_fields(self, exclude=None):
+        """Checks the user's birth date."""
         super().clean_fields(exclude=exclude)
-
         now = timezone.now()
         if self.birth_date:
             if (
@@ -124,4 +100,26 @@ class UserAddress(models.Model):
     address = models.ForeignKey(
         Address, related_name="user_addresses", on_delete=models.CASCADE
     )
-    priority_address = models.BooleanField(default=True)
+    priority_address = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "User Address"
+        verbose_name_plural = "User Addresses"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "address"], name="unique_user_address"
+            )
+        ]
+
+    def clean_fields(self, exclude=None):
+        """Checks that the user has only one priority address."""
+        super().clean_fields(exclude=exclude)
+        priority_count = 1 if self.priority_address else 0
+        for address in self.user.user_addresses.all():
+            if address.priority_address:
+                priority_count += 1
+        if priority_count > 1:
+            raise ValidationError(
+                "У пользователя может быть только один приоритетный адрес."
+            )
+        # this func don't work. Fix it.
