@@ -326,7 +326,7 @@ class ProductPromotion(models.Model):
         verbose_name_plural = "ProductPromotions"
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "promotion"], name="unique_product_promotion",
+                fields=["product", "promotion"], name="unique_product_promotion"
             )
         ]
 
