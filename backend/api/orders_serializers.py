@@ -14,7 +14,6 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.ReadOnlyField(source="product.measurement_unit")
     amount = serializers.ReadOnlyField(source="product.amount")
     price = serializers.ReadOnlyField(source="product.price")
-    photo = serializers.ImageField(source="product.photo")
     is_favorited = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,7 +21,6 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "photo",
             "measurement_unit",
             "price",
             "amount",
@@ -31,10 +29,8 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        user = self.context["request"].user
-        product = obj.product
-        if user.is_anonymous:
-            return False
+        user = self.context["user"]
+        product = obj["id"]
         return FavoriteProduct.objects.filter(user=user, product=product).exists()
 
 
@@ -51,6 +47,13 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_quantity(self, data):
         if data < 1:
             raise serializers.ValidationError("Укажите количество товара!")
+        return data
+
+    def validate_id(self, data):
+        if not Product.objects.filter(id=data).exists():
+            raise serializers.ValidationError(
+                "У нас нет таких продуктов! Выберете из представленных!"
+            )
         return data
 
     @transaction.atomic
@@ -77,23 +80,16 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
 
 class ShoppingCartGetSerializer(serializers.ModelSerializer):
     """Serializer for shopping_cart representation."""
-
+    # user = serializers.ReadOnlyField(source="shopping_cart.user.username")
     user = UserSerializer(read_only=True)
     products = ShoppingCartProductListSerializer(
         many=True, read_only=True, source="shopping_carts"
     )
-    total_price = serializers.SerializerMethodField()
+    # total_price = serializers.IntegerField(source="shopping_cart.total_price")
 
     class Meta:
         model = ShoppingCart
         fields = ("id", "user", "products", "total_price", "status")
-
-    def get_total_price(self, obj):  # TODO: add quantity:
-        products = obj.products.all()
-        total = 0
-        for product in products:
-            total += product.price
-        return total
 
 
 class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
@@ -106,63 +102,8 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         fields = "__all__"
         model = ShoppingCart
 
-    def validate_products(self, data):
-        products = []
-        for i, val in enumerate(data):
-            if not Product.objects.filter(id=val["id"]).exists():
-                raise serializers.ValidationError(
-                    "У нас нет таких продуктов! Выберете из представленных!"
-                )
-            products.append(val["id"])
-        if len(products) != len(set(products)):
-            raise serializers.ValidationError("Продукты не должны повторяться!")
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-        products = validated_data.pop("products")
-        shop_cart = ShoppingCart.objects.filter(
-            user=self.context["request"].user,
-            status="In work",
-        )
-        if shop_cart:
-            raise serializers.ValidationError(
-                "Ваша корзина еще не оформлена, можно добавить продукты или изменить!"
-            )
-        shopping_cart = ShoppingCart.objects.create(
-            **validated_data, user=self.context["request"].user
-        )
-        ShoppingCartProduct.objects.bulk_create(
-            [
-                ShoppingCartProduct(
-                    shopping_cart=shopping_cart,
-                    quantity=product["quantity"],
-                    product=Product.objects.get(id=product["id"]),
-                )
-                for product in products
-            ]
-        )
-        return shopping_cart
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        products = validated_data.pop("products", None)
-        if products is not None:
-            instance.products.clear()
-        ShoppingCartProduct.objects.bulk_create(
-            [
-                ShoppingCartProduct(
-                    shopping_cart=instance,
-                    quantity=product["quantity"],
-                    product=Product.objects.get(id=product["id"]),
-                )
-                for product in products
-            ]
-        )
-        return super().update(instance, validated_data)
-
-    def to_representation(self, instance):
-        return ShoppingCartGetSerializer(instance, context=self.context).data
+    # def to_representation(self, instance):
+    #     return ShoppingCartGetSerializer(instance, context=self.context).data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -181,3 +122,55 @@ class OrderListSerializer(serializers.ModelSerializer):
             "delivery_method",
         )
         model = Order
+
+
+class OrderPostDeleteSerializer(serializers.ModelSerializer):
+    """Serializer for create/update/delete order."""
+
+    order_number = serializers.SerializerMethodField()
+    package = serializers.BooleanField(default=True)
+    address = serializers.CharField()
+
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+    # def validate_address(self, obj):
+    #     if self.delivery_method == "By courier" and not obj.address:
+    #         raise serializers.ValidationError("Нужно указать адрес доставки!")
+    #     return obj
+    #
+    # def validate_package(self, obj):
+    #     if self.delivery_method == "By courier":
+    #         obj = True
+    #         return obj
+
+    def validate_shopping_cart(self, obj):
+        if not obj.status == "In work":
+            raise serializers.ValidationError("Ваша корзина уже оформлена!")
+        return obj
+
+    def get_order_number(self, obj):
+        print(obj.shopping_cart)
+        return obj.shopping_cart
+
+
+    @transaction.atomic
+    def create(self, validated_data):
+        delivery_method = validated_data.pop("delivery_method")
+        package = validated_data.pop("package")
+        shopping_cart = validated_data.pop("shopping_cart")
+        order = Order.objects.create(
+            shopping_cart=shopping_cart,
+            delivery_method=delivery_method,
+            package=package,
+            user=self.context["request"].user,
+        )
+        shop_cart = ShoppingCart.objects.get(shopping_cart)
+        shop_cart.status = "Ordered"
+
+        return order
+
+    def to_representation(self, instance):
+        print(instance, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        return OrderListSerializer(instance, context=self.context).data
