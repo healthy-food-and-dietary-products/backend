@@ -11,7 +11,10 @@ class ShoppingCart(models.Model):
     SHOPPINGCART = (("Ordered", "Передано в заказ"), ("In work", "В работе"))
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="orders", verbose_name="Покупатель"
+        User,
+        on_delete=models.CASCADE,
+        related_name="shopping_carts",
+        verbose_name="Покупатель",
     )
     products = models.ManyToManyField(
         Product,
@@ -20,6 +23,8 @@ class ShoppingCart(models.Model):
         verbose_name="Продукты в корзине",
     )
     status = models.CharField(max_length=50, choices=SHOPPINGCART, default="В работе")
+
+    total_price = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = "Корзина"
