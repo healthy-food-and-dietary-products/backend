@@ -28,7 +28,7 @@ router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
-router.register("favorites", FavoriteProductViewSet)
+router.register("favorite-products", FavoriteProductViewSet)
 
 
 urlpatterns = [

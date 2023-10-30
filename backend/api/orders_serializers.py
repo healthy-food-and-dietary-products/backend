@@ -35,6 +35,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
         product = obj.product
         if user.is_anonymous:
             return False
+        # return product.is_favorited(user)
         return FavoriteProduct.objects.filter(user=user, product=product).exists()
 
 

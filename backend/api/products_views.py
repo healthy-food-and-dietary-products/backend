@@ -1,12 +1,14 @@
-from rest_framework import permissions, viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import decorators, permissions, response, status, viewsets
 
-from .permissions import IsAdminOrReadOnly, IsAuthor
+from .permissions import IsAdmin, IsAdminOrReadOnly
 from .products_serializers import (
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
+    ProductLightSerializer,
     ProductSerializer,
     ProductUpdateSerializer,
     PromotionSerializer,
@@ -94,16 +96,42 @@ class ProductViewSet(viewsets.ModelViewSet):
             return ProductUpdateSerializer
         return ProductSerializer
 
+    def create_delete_or_scold(self, model, product, request):
+        instance = model.objects.filter(product=product, user=request.user)
+        name = model.__name__
+        if request.method == "DELETE" and not instance:
+            return response.Response(
+                {"errors": f"This product was not on your {name} list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if request.method == "DELETE":
+            instance.delete()
+            return response.Response(status=status.HTTP_204_NO_CONTENT)
+        if instance:
+            return response.Response(
+                {"errors": f"This product was already on your {name} list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        model.objects.create(user=request.user, product=product)
+        serializer = ProductLightSerializer(
+            product,
+            context={"request": request, "format": self.format_kwarg, "view": self},
+        )
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class FavoriteProductViewSet(viewsets.ModelViewSet):
-    """Viewset for favorite products."""
+    @decorators.action(
+        methods=["post", "delete"],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def favorite(self, request, pk):
+        product = get_object_or_404(Product, id=pk)
+        return self.create_delete_or_scold(FavoriteProduct, product, request)
 
-    http_method_names = ["get", "post", "patch", "delete"]
+
+class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """Viewset for viewing useres' favorite products by admins."""
+
     queryset = FavoriteProduct.objects.all()
     serializer_class = FavoriteProductSerializer
-    permission_classes = [
-        permissions.IsAdminUser,
-        IsAuthor,
-    ]
-    # TODO: admin has access, check it with ordinary user (nonadmin)ry
-    # TODO: ordinary user can't create new favorite via Postman - fix it!
+    permission_classes = [IsAdmin]
