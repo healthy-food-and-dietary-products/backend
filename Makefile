@@ -48,3 +48,9 @@ migrate-compose:
 
 superuser-compose:
 	cd infra; sudo docker compose exec -it web python manage.py createsuperuser --email test@test.com --username admin -v 3
+
+prune-containers:
+	sudo docker container prune
+
+prune-images:
+	sudo docker image prune

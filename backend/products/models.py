@@ -95,7 +95,6 @@ class Producer(models.Model):
         blank=True,
         help_text="Brief information about the company or entrepreneur",
     )
-    # TODO: think, do we need to connect the address field to the Address model (users)
     address = models.TextField("Address", help_text="Legal address of the producers")
 
     class Meta:

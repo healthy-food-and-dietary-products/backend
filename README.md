@@ -17,13 +17,17 @@ cd backend
 
 Пример содержимого файла:
 ```
+SECRET_KEY=key
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 DB_HOST=db
 DB_PORT=5432
-SECRET_KEY=key
+EMAIL_HOST_USER=healthyfoodapi@yandex.ru
+EMAIL_HOST_PASSWORD=healthyfoodapi@123
+MODE=prod
+DOCKER=yes
 ```
 
 Перейти в папку /infra/ и запустить сборку контейнеров с помощью 

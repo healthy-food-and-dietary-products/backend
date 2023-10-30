@@ -129,6 +129,12 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
+    def validate_discount(self, value):
+        """Checks that the discount is between 0 and 100%."""
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Допустимы числа от 0 до 100.")
+        return value
+
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for displaying products."""
@@ -160,7 +166,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",  # TODO: !!!
+            "photo",  # TODO: Decode base64? Ask frontenders
             "components",
             "kcal",
             "proteins",
@@ -203,6 +209,14 @@ class ProductCreateSerializer(ProductSerializer):
             )
         return value
 
+    def validate(self, attrs):
+        """Checks that product subcategory matches its category."""
+        if attrs["subcategory"].parent_category != attrs["category"]:
+            raise serializers.ValidationError(
+                "Product subcategory does not match its category."
+            )
+        return attrs
+
 
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
@@ -215,6 +229,16 @@ class ProductUpdateSerializer(ProductCreateSerializer):
                 f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
             )
         return value
+
+    def validate(self, attrs):
+        """Checks that product subcategory matches its category."""
+        category = attrs.get("category", self._args[0].category)
+        subcategory = attrs.get("subcategory", self._args[0].subcategory)
+        if subcategory.parent_category != category:
+            raise serializers.ValidationError(
+                "Product subcategory does not match its category."
+            )
+        return attrs
 
 
 class ProductLightSerializer(ProductSerializer):
@@ -237,6 +261,3 @@ class FavoriteProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteProduct
         fields = ("id", "user", "product")
-
-
-# TODO: add more validators!
