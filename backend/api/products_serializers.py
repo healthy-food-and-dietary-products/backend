@@ -166,7 +166,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",  # TODO: Decode base64? Ask frontenders
+            "photo",
             "components",
             "kcal",
             "proteins",
@@ -251,7 +251,6 @@ class ProductLightSerializer(ProductSerializer):
         )
 
 
-# TODO: make it in other way, use @action (see foodgram)
 class FavoriteProductSerializer(serializers.ModelSerializer):
     """Serializer for favorite products representation."""
 
