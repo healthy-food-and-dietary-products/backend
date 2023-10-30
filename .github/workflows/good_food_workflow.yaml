@@ -91,6 +91,8 @@ jobs:
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }} >> .env
             echo EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }} >> .env
+            echo MODE=prod >> .env
+            echo DOCKER=yes >> .env
             sudo docker compose up -d
             sudo docker cp .env good_food_api:/app/good_food
             sudo docker compose exec -T web python manage.py collectstatic --no-input
