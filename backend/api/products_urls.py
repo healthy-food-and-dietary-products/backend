@@ -11,7 +11,7 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet, AddressViewSetByID
+from .users_views import AddressViewSet
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet)
@@ -22,11 +22,8 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorites", FavoriteProductViewSet)
-router.register("addresses", AddressViewSet, basename="addresses")
 router.register(
-    r"users/(?P<user_id>\d+)/addressesbyid",
-    AddressViewSetByID,
-    basename="addresses_by_id",
+    r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
 
 

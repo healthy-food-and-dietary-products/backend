@@ -8,19 +8,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from users import utils
 
 
-class Address(models.Model):
-    """Describes address of user."""
-
-    address = models.TextField("Address", unique=True)
-
-    def __str__(self):
-        return f"{self.address}"
-
-    class Meta:
-        verbose_name = "Address"
-        verbose_name_plural = "Addresses"
-
-
 @cleanup.select
 class User(AbstractUser):
     """Extending the Built-in Model User."""
@@ -46,13 +33,14 @@ class User(AbstractUser):
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
     birth_date = models.DateField("Birth_date", blank=True, null=True)
-    address = models.ManyToManyField(
-        Address,
-        through="UserAddress",
-        blank=True,
-        related_name="users",
-        verbose_name="Addresses",
-    )
+    # address = models.ForeignKey(
+    #     Address,
+    #     blank=True,
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    #     related_name="users",
+    #     verbose_name="Addresses",
+    # )
     phone_number = PhoneNumberField("Phone_number", blank=True)
     photo = models.ImageField(
         "Photo",
@@ -91,35 +79,34 @@ class User(AbstractUser):
         return self.role == User.USER
 
 
-class UserAddress(models.Model):
-    """Decribes User-Address relation."""
+class Address(models.Model):
+    """Describes address of user."""
 
+    address = models.TextField("Address", unique=True)
     user = models.ForeignKey(
-        User, related_name="user_addresses", on_delete=models.CASCADE
-    )
-    address = models.ForeignKey(
-        Address, related_name="user_addresses", on_delete=models.CASCADE
+        User,
+        on_delete=models.CASCADE,
+        related_name="addresses",
+        verbose_name="Address",
     )
     priority_address = models.BooleanField(default=False)
 
-    class Meta:
-        verbose_name = "User Address"
-        verbose_name_plural = "User Addresses"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "address"], name="unique_user_address"
-            )
-        ]
+    def __str__(self):
+        return f"{self.address}"
 
-    def clean_fields(self, exclude=None):
-        """Checks that the user has only one priority address."""
-        super().clean_fields(exclude=exclude)
-        priority_count = 1 if self.priority_address else 0
-        for address in self.user.user_addresses.all():
-            if address.priority_address:
-                priority_count += 1
-        if priority_count > 1:
-            raise ValidationError(
-                "У пользователя может быть только один приоритетный адрес."
-            )
-        # this func don't work. Fix it.
+    class Meta:
+        verbose_name = "Address"
+        verbose_name_plural = "Addresses"
+
+    # def clean_fields(self, exclude=None):
+    #     """Checks that the user has only one priority address."""
+    #     super().clean_fields(exclude=exclude)
+    #     priority_count = 1 if self.priority_address else 0
+    #     for address in self.user.user_addresses.all():
+    #         if address.priority_address:
+    #             priority_count += 1
+    #     if priority_count > 1:
+    #         raise ValidationError(
+    #             "У пользователя может быть только один приоритетный адрес."
+    #         )
+    # this func don't work. Fix it.
