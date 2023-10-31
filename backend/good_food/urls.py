@@ -8,7 +8,6 @@ urlpatterns = [
     path("api/", include("api.urls")),
 ]
 
-
 if settings.DEBUG:
     import debug_toolbar
 
