@@ -40,11 +40,20 @@ class Component(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Component name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Component slug"
+    )
 
     class Meta:
         verbose_name = "Component"
         verbose_name_plural = "Components"
         ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a component name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

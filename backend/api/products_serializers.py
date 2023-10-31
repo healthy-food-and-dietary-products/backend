@@ -89,7 +89,7 @@ class ComponentSerializer(ComponentLightSerializer):
     """Serializer for components representation."""
 
     class Meta(ComponentLightSerializer.Meta):
-        fields = ("id", "name")
+        fields = ("id", "name", "slug")
 
 
 class ProducerLightSerializer(serializers.ModelSerializer):
