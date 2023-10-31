@@ -98,10 +98,9 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create_delete_or_scold(self, model, product, request):
         instance = model.objects.filter(product=product, user=request.user)
-        name = model.__name__
         if request.method == "DELETE" and not instance:
             return response.Response(
-                {"errors": f"This product was not on your {name} list."},
+                {"errors": "Этого продукта не было в вашем списке Избранного."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
@@ -109,7 +108,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return response.Response(status=status.HTTP_204_NO_CONTENT)
         if instance:
             return response.Response(
-                {"errors": f"This product was already on your {name} list."},
+                {"errors": "Этот продукт уже есть в вашем списке Избранного."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         model.objects.create(user=request.user, product=product)
