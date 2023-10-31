@@ -16,6 +16,7 @@ django-phonenumber-field = {extras = ["phonenumberslite"], version = "^7.2.0"}
 pillow = "^10.1.0"
 django-cleanup = "^8.0.0"
 djoser = "^2.2.0"
+drf-spectacular = "^0.26.5"
 django-debug-toolbar = "^4.2.0"
 
 

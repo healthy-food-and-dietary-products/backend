@@ -12,7 +12,7 @@ User = get_user_model()
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ("id", "address")
+        fields = ("id", "address", "priority_address")
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -38,7 +38,7 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class UserSerializer(UserSerializer):
-    address = AddressSerializer(many=True)
+    # address = serializers.SerializerMethodField()
     address_quantity = serializers.SerializerMethodField()
 
     class Meta:
@@ -52,11 +52,14 @@ class UserSerializer(UserSerializer):
             "role",
             "city",
             "birth_date",
-            "address",
+            # "address",
             "address_quantity",
             "phone_number",
             "photo",
         )
 
+    def get_address(self, obj):
+        return obj.addresses.all()
+
     def get_address_quantity(self, obj):
-        return obj.user_addresses.count()
+        return obj.addresses.count()

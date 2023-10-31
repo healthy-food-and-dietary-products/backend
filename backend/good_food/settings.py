@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework.authtoken",
     "django_cleanup.apps.CleanupSelectedConfig",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -108,14 +109,14 @@ WSGI_APPLICATION = "good_food.wsgi.application"
 
 DATABASES = {
     "default": {
-        # "ENGINE": "django.db.backends.sqlite3",
-        # "NAME": BASE_DIR / "db.sqlite3",
-        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", default="postgres"),
-        "USER": os.getenv("POSTGRES_USER", default="postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
-        "HOST": os.getenv("DB_HOST", default="db"),
-        "PORT": os.getenv("DB_PORT", default="5432"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+        # "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+        # "NAME": os.getenv("DB_NAME", default="postgres"),
+        # "USER": os.getenv("POSTGRES_USER", default="postgres"),
+        # "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
+        # "HOST": os.getenv("DB_HOST", default="db"),
+        # "PORT": os.getenv("DB_PORT", default="5432"),
     }
 }
 
@@ -168,9 +169,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
@@ -189,6 +192,9 @@ DJOSER = {
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "SET_PASSWORD_RETYPE": True,
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {
         "user_create": "api.users_serializers.UserCreateSerializer",
         "user": "api.users_serializers.UserSerializer",

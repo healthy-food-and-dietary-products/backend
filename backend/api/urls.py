@@ -12,13 +12,11 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet, UserViewSet
+from .users_views import AddressViewSet
 
 app_name = "api"
 
 router = DefaultRouter()
-router.register("addresses", AddressViewSet)
-router.register("users", UserViewSet)
 router.register("shopping_cart", ShoppingCartViewSet),
 router.register("order", OrderViewSet)
 router.register("categories", CategoryViewSet)
@@ -29,10 +27,12 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorites", FavoriteProductViewSet)
-
+router.register(
+    r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
+)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("auth/", include("djoser.urls")),
-    path("auth/", include("djoser.urls.authtoken")),
+    path("", include("djoser.urls")),
+    path("", include("djoser.urls.authtoken")),
 ]
