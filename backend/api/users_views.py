@@ -50,6 +50,7 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, **kwargs):
         """Method for get/add/update/delete the shopping_cart."""
+
         user = request.user
         if str(user.id) != str(self.kwargs["pk"]):
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -68,12 +69,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         if request.method == "GET":
-            products = ShoppingCartProduct.objects.filter(shopping_cart=44)
-            serializer = ShoppingCartPostUpdateDeleteSerializer(
-                shop_cart,
-                products,
-                context={'request': request})
-            serializer.is_valid(raise_exception=True)
+            serializer = ShoppingCartGetSerializer(shop_cart)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == "DELETE":

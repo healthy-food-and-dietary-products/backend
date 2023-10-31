@@ -80,12 +80,10 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
 
 class ShoppingCartGetSerializer(serializers.ModelSerializer):
     """Serializer for shopping_cart representation."""
-    # user = serializers.ReadOnlyField(source="shopping_cart.user.username")
     user = UserSerializer(read_only=True)
     products = ShoppingCartProductListSerializer(
-        many=True, read_only=True, source="shopping_carts"
+        many=True, read_only=True
     )
-    # total_price = serializers.IntegerField(source="shopping_cart.total_price")
 
     class Meta:
         model = ShoppingCart
@@ -99,11 +97,11 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
     products = ShoppingCartProductCreateUpdateSerializer(many=True)
 
     class Meta:
-        fields = "__all__"
+        fields = ("user", "products", "total_price", "status")
         model = ShoppingCart
 
-    # def to_representation(self, instance):
-    #     return ShoppingCartGetSerializer(instance, context=self.context).data
+    def to_representation(self, instance):
+        return ShoppingCartGetSerializer(instance, context=self.context).data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
