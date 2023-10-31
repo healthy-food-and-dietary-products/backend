@@ -25,6 +25,9 @@ class IsAdmin(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_admin
+
+
+# TODO: Possibly this class is not necessary
 class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.method in permissions.SAFE_METHODS or (
