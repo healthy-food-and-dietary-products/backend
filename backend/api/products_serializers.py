@@ -135,6 +135,7 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
+    # TODO: Выводится другое сообщение об ошибке
     def validate_discount(self, value):
         """Checks that the discount is between 0 and 100%."""
         if value < 0 or value > 100:
@@ -213,6 +214,13 @@ class ProductCreateSerializer(ProductSerializer):
             raise serializers.ValidationError(
                 "Promotions cannot be applied to a product during its creation."
             )
+        return value
+
+    # TODO: Выводится другое сообщение об ошибке
+    def validate_price(self, value):
+        """Checks that the price is more or equals to 0."""
+        if value < 0:
+            raise serializers.ValidationError("Отрицательная цена недопустима.")
         return value
 
 

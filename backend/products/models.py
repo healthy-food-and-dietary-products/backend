@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 
@@ -242,7 +242,11 @@ class Product(models.Model):
     amount = models.PositiveSmallIntegerField(
         "Amount", default=1, help_text="Number of grams, milliliters or items"
     )
-    price = models.FloatField("Price", help_text="Price per one product unit")
+    price = models.FloatField(
+        "Price",
+        validators=[MinValueValidator(0)],
+        help_text="Price per one product unit",
+    )
     promotions = models.ManyToManyField(
         Promotion,
         through="ProductPromotion",
