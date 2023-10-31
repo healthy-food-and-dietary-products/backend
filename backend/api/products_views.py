@@ -34,6 +34,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class SubcategoryViewSet(viewsets.ModelViewSet):
@@ -43,6 +44,7 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     queryset = Subcategory.objects.all()
     serializer_class = SubcategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class ComponentViewSet(viewsets.ModelViewSet):
@@ -52,6 +54,7 @@ class ComponentViewSet(viewsets.ModelViewSet):
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -61,6 +64,7 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class ProducerViewSet(viewsets.ModelViewSet):
@@ -70,6 +74,7 @@ class ProducerViewSet(viewsets.ModelViewSet):
     queryset = Producer.objects.all()
     serializer_class = ProducerSerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class PromotionViewSet(viewsets.ModelViewSet):
@@ -79,6 +84,7 @@ class PromotionViewSet(viewsets.ModelViewSet):
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
     permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -154,3 +160,4 @@ class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FavoriteProduct.objects.all()
     serializer_class = FavoriteProductSerializer
     permission_classes = [IsAdmin]
+    pagination_class = None
