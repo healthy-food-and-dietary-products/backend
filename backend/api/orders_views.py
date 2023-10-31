@@ -1,15 +1,13 @@
-from rest_framework import mixins, permissions, status
+from rest_framework import permissions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from .orders_serializers import (
-    OrderListSerializer,
-    OrderPostDeleteSerializer,
     ShoppingCartGetSerializer,
     ShoppingCartPostUpdateDeleteSerializer,
 )
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.models import ShoppingCart, ShoppingCartProduct
 from products.models import Product
 
 
@@ -85,22 +83,3 @@ class ShoppingCartViewSet(ModelViewSet):
             )
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class OrderViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.CreateModelMixin,
-    GenericViewSet,
-):
-    """Viewset for Order."""
-
-    queryset = Order.objects.all()
-    permission_classes = (IsAuthenticated,)
-    http_method_names = ["get", "post", "delete"]
-
-    def get_serializer_class(self):
-        if self.action in ("list", "retrieve"):
-            return OrderListSerializer
-        return OrderPostDeleteSerializer
