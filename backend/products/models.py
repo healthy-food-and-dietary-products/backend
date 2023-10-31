@@ -87,6 +87,9 @@ class Producer(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Producer name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Producer slug"
+    )
     producer_type = models.CharField(
         "Producer type", max_length=12, choices=CHOISES, default=COMPANY
     )
@@ -101,6 +104,12 @@ class Producer(models.Model):
         verbose_name = "Producer"
         verbose_name_plural = "Producers"
         ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a producer name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

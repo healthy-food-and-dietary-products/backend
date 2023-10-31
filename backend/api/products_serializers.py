@@ -45,8 +45,6 @@ class CategorySerializer(CategoryLightSerializer):
     """Serializer for categories representation."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
-    # TODO: make possible create subcategories during category creation
-    # TODO: or make special serializer for category creation (without subcategories)
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "subcategories")

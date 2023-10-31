@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupSelectedConfig",
     "corsheaders",
     "drf_spectacular",
+    "django_filters",
 ]
 
 MIDDLEWARE = [

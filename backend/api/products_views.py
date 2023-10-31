@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
+from django_filters import rest_framework as rf_filters
 from rest_framework import decorators, permissions, response, status, viewsets
 
+from .filters import ProductFilter
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .products_serializers import (
     CategorySerializer,
@@ -94,6 +96,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [rf_filters.DjangoFilterBackend]
+    filterset_class = ProductFilter
 
     def get_serializer_class(self):
         if self.action == "create":
