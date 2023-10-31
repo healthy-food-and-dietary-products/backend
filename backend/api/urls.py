@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from .orders_views import OrderViewSet, ShoppingCartViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
@@ -13,7 +14,11 @@ from .products_views import (
 )
 from .users_views import AddressViewSet
 
+app_name = "api"
+
 router = DefaultRouter()
+router.register("shopping_cart", ShoppingCartViewSet),
+router.register("order", OrderViewSet)
 router.register("categories", CategoryViewSet)
 router.register("subcategories", SubcategoryViewSet)
 router.register("components", ComponentViewSet)
@@ -25,7 +30,6 @@ router.register("favorites", FavoriteProductViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
-
 
 urlpatterns = [
     path("", include(router.urls)),

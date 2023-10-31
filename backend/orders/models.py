@@ -93,9 +93,9 @@ class Order(models.Model):
         ("By courier", "Курьером"),
     )
 
-    order_number = models.PositiveIntegerField(
-        auto_created=True, verbose_name="Номер заказа"
-    )
+    # order_number = models.PositiveIntegerField(
+    #     auto_created=True, verbose_name="Номер заказа"
+    # )
     ordering_date = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата оформления заказа"
     )
@@ -126,4 +126,4 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"{self.order_number}: " f"{self.shopping_cart.user.username}."
+        return f"{self.ordering_date}: " f"{self.shopping_cart.user.username}."
