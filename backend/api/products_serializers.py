@@ -139,7 +139,7 @@ class PromotionSerializer(ProducerLightSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for displaying products."""
 
-    category = CategoryLightSerializer()
+    category = CategoryLightSerializer(read_only=True)
     subcategory = SubcategoryLightSerializer()
     tags = TagLightSerializer(many=True, required=False)
     producer = ProducerLightSerializer()
@@ -190,7 +190,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(ProductSerializer):
     """Serializer for creating products."""
 
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
@@ -209,14 +209,6 @@ class ProductCreateSerializer(ProductSerializer):
             )
         return value
 
-    def validate(self, attrs):
-        """Checks that product subcategory matches its category."""
-        if attrs["subcategory"].parent_category != attrs["category"]:
-            raise serializers.ValidationError(
-                "Product subcategory does not match its category."
-            )
-        return attrs
-
 
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
@@ -229,16 +221,6 @@ class ProductUpdateSerializer(ProductCreateSerializer):
                 f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
             )
         return value
-
-    def validate(self, attrs):
-        """Checks that product subcategory matches its category."""
-        category = attrs.get("category", self._args[0].category)
-        subcategory = attrs.get("subcategory", self._args[0].subcategory)
-        if subcategory.parent_category != category:
-            raise serializers.ValidationError(
-                "Product subcategory does not match its category."
-            )
-        return attrs
 
 
 class ProductLightSerializer(ProductSerializer):

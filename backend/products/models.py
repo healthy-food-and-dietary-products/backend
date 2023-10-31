@@ -15,7 +15,7 @@ class Category(CategoryModel):
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
-        ordering = ["name"]
+        ordering = ["id"]
 
 
 class Subcategory(CategoryModel):
@@ -31,7 +31,7 @@ class Subcategory(CategoryModel):
     class Meta:
         verbose_name = "Subcategory"
         verbose_name_plural = "Subcategories"
-        ordering = ["name"]
+        ordering = ["id"]
 
 
 class Component(models.Model):
@@ -44,7 +44,7 @@ class Component(models.Model):
     class Meta:
         verbose_name = "Component"
         verbose_name_plural = "Components"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -61,7 +61,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -100,7 +100,7 @@ class Producer(models.Model):
     class Meta:
         verbose_name = "Producer"
         verbose_name_plural = "Producers"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -157,7 +157,7 @@ class Promotion(models.Model):
     class Meta:
         verbose_name = "Promotion"
         verbose_name_plural = "Promotions"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -260,7 +260,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = "Product"
         verbose_name_plural = "Products"
-        ordering = ["name"]
+        ordering = ["id"]
 
     @property
     def final_price(self):
@@ -309,6 +309,7 @@ class FavoriteProduct(models.Model):
                 fields=["user", "product"], name="unique_favorite_user"
             )
         ]
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.user} added {self.product} to favorites"
@@ -328,6 +329,7 @@ class ProductPromotion(models.Model):
                 fields=["product", "promotion"], name="unique_product_promotion"
             )
         ]
+        ordering = ["id"]
 
     def clean_fields(self, exclude=None):
         """Checks the number of promotions that apply to a product."""

@@ -119,6 +119,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         )
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def perform_create(self, serializer):
+        subcategory_id = serializer._kwargs["data"]["subcategory"]
+        subcategory = Subcategory.objects.get(id=subcategory_id)
+        serializer.save(category=subcategory.parent_category)
+        return super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        subcategory_id = serializer._kwargs["data"]["subcategory"]
+        subcategory = Subcategory.objects.get(id=subcategory_id)
+        serializer.save(category=subcategory.parent_category)
+        return super().perform_update(serializer)
+
     def retrieve(self, request, *args, **kwargs):
         """Increments the views_number field when someone views this product."""
         obj = self.get_object()
