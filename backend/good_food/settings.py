@@ -28,13 +28,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "[::1]",
     "web",
+    "https://goodfood.acceleratorpracticum.ru",
+    "goodfood.acceleratorpracticum.ru",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost/*",
+    "https://goodfood.acceleratorpracticum.ru/*",
 ]
 
 # For django-debug-toolbar
@@ -62,6 +69,7 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework.authtoken",
     "django_cleanup.apps.CleanupSelectedConfig",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -142,6 +150,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -160,9 +169,11 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
@@ -181,6 +192,9 @@ DJOSER = {
     "SEND_ACTIVATION_EMAIL": True,
     "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "SET_PASSWORD_RETYPE": True,
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {
         "user_create": "api.users_serializers.UserCreateSerializer",
         "user": "api.users_serializers.UserSerializer",
