@@ -11,6 +11,7 @@ class ProductFilter(rf_filters.FilterSet):
     category = rf_filters.CharFilter(field_name="category__slug")
     subcategory = rf_filters.CharFilter(field_name="subcategory__slug")
     producer = rf_filters.CharFilter(field_name="producer__slug")
+    components = rf_filters.AllValuesMultipleFilter(field_name="components__slug")
     tags = rf_filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = rf_filters.NumberFilter(method="product_boolean_methods")
 
@@ -21,6 +22,7 @@ class ProductFilter(rf_filters.FilterSet):
             "category",
             "subcategory",
             "producer",
+            "components",
             "tags",
             "promotions",
             "discontinued",

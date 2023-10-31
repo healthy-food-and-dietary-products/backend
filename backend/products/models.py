@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 
@@ -40,11 +40,20 @@ class Component(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Component name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Component slug"
+    )
 
     class Meta:
         verbose_name = "Component"
         verbose_name_plural = "Components"
         ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a component name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -233,7 +242,11 @@ class Product(models.Model):
     amount = models.PositiveSmallIntegerField(
         "Amount", default=1, help_text="Number of grams, milliliters or items"
     )
-    price = models.FloatField("Price", help_text="Price per one product unit")
+    price = models.FloatField(
+        "Price",
+        validators=[MinValueValidator(0)],
+        help_text="Price per one product unit",
+    )
     promotions = models.ManyToManyField(
         Promotion,
         through="ProductPromotion",

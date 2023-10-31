@@ -5,6 +5,7 @@ from rest_framework import decorators, permissions, response, status, viewsets
 from .filters import ProductFilter
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .products_serializers import (
+    CategoryCreateSerializer,
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductSerializer,
@@ -37,6 +38,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = None
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return CategoryCreateSerializer
+        if self.action == "partial_update":
+            return CategoryCreateSerializer
+        return CategorySerializer
 
 
 class SubcategoryViewSet(viewsets.ModelViewSet):

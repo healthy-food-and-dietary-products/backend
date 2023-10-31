@@ -75,8 +75,8 @@ class SubcategoryAdmin(admin.ModelAdmin):
 class ComponentAdmin(admin.ModelAdmin):
     """Class to display product components in admin panel."""
 
-    list_display = ["pk", "name"]
-    fields = ["name"]
+    list_display = ["pk", "name", "slug"]
+    fields = ["name", "slug"]
     search_fields = ["name"]
     ordering = ["pk"]
 
