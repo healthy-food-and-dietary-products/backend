@@ -106,7 +106,7 @@ class ProducerSerializer(ProducerLightSerializer):
     """Serializer for produsers representation."""
 
     class Meta(ProducerLightSerializer.Meta):
-        fields = ("id", "name", "producer_type", "description", "address")
+        fields = ("id", "name", "slug", "producer_type", "description", "address")
 
 
 class PromotionLightSerializer(serializers.ModelSerializer):
