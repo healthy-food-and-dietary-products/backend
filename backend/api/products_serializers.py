@@ -45,8 +45,6 @@ class CategorySerializer(CategoryLightSerializer):
     """Serializer for categories representation."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
-    # TODO: make possible create subcategories during category creation
-    # TODO: or make special serializer for category creation (without subcategories)
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "subcategories")
@@ -129,11 +127,17 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
+    def validate_discount(self, value):
+        """Checks that the discount is between 0 and 100%."""
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Допустимы числа от 0 до 100.")
+        return value
+
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for displaying products."""
 
-    category = CategoryLightSerializer()
+    category = CategoryLightSerializer(read_only=True)
     subcategory = SubcategoryLightSerializer()
     tags = TagLightSerializer(many=True, required=False)
     producer = ProducerLightSerializer()
@@ -160,7 +164,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",  # TODO: !!!
+            "photo",
             "components",
             "kcal",
             "proteins",
@@ -184,7 +188,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(ProductSerializer):
     """Serializer for creating products."""
 
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
@@ -227,7 +231,6 @@ class ProductLightSerializer(ProductSerializer):
         )
 
 
-# TODO: make it in other way, use @action (see foodgram)
 class FavoriteProductSerializer(serializers.ModelSerializer):
     """Serializer for favorite products representation."""
 
@@ -237,6 +240,3 @@ class FavoriteProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteProduct
         fields = ("id", "user", "product")
-
-
-# TODO: add more validators!

@@ -28,7 +28,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+if os.getenv("MODE") == "dev":
+    DEBUG = True
+else:
+    DEBUG = False
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -69,12 +72,15 @@ INSTALLED_APPS = [
     "djoser",
     "rest_framework.authtoken",
     "django_cleanup.apps.CleanupSelectedConfig",
+    "corsheaders",
     "drf_spectacular",
+    "django_filters",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -107,18 +113,24 @@ WSGI_APPLICATION = "good_food.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        # "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        # "NAME": os.getenv("DB_NAME", default="postgres"),
-        # "USER": os.getenv("POSTGRES_USER", default="postgres"),
-        # "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
-        # "HOST": os.getenv("DB_HOST", default="db"),
-        # "PORT": os.getenv("DB_PORT", default="5432"),
+if os.getenv("DOCKER") == "yes":
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+            "NAME": os.getenv("DB_NAME", default="postgres"),
+            "USER": os.getenv("POSTGRES_USER", default="postgres"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
+            "HOST": os.getenv("DB_HOST", default="db"),
+            "PORT": os.getenv("DB_PORT", default="5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -128,9 +140,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", },
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator", },
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator", },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -170,6 +188,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.CustomPageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -201,3 +221,8 @@ DJOSER = {
         "current_user": "api.users_serializers.UserSerializer",
     },
 }
+
+# CORS
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"^/api/.*$"

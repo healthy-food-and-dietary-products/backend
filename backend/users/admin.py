@@ -23,7 +23,7 @@ class UserAdmin(admin.ModelAdmin):
         "phone_number",
         "photo",
         "preview",
-        "address",
+        # "address",
     ]
 
     list_display = [

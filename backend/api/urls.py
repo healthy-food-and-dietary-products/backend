@@ -25,7 +25,7 @@ router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
-router.register("favorites", FavoriteProductViewSet)
+router.register("favorite-products", FavoriteProductViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )

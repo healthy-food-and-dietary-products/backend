@@ -1,183 +1,178 @@
-import csv
 import os
+from csv import DictReader
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from products.models import Category, Component, Producer, Product, Subcategory, Tag
+from good_food.settings import BASE_DIR
+from products.models import (
+    Category,
+    Component,
+    Producer,
+    Product,
+    Promotion,
+    Subcategory,
+    Tag,
+)
 from users.models import User
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 
 def read_users():
-    with open(
-        os.path.join(settings.BASE_DIR, "data", "users.csv"), "r", encoding="utf-8"
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "users.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            User.objects.get_or_create(
-                id=row[0],
-                username=row[1],
-                email=row[2],
-                password=row[3],
-                first_name=row[4],
-                last_name=row[5],
+            user = User(
+                id=row["id"],
+                username=row["username"],
+                email=row["email"],
+                password=row["password"],
+                first_name=row["first_name"],
+                last_name=row["last_name"],
+                city="Moscow",
             )
-    print("Данные из файла users.csv загружены")
+            user.save()
 
 
 def read_category():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "category.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "category.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Category.objects.get_or_create(
-                id=row[0],
-                name=row[1],
-                slug=row[2],
-            )
-    print("Данные из файла category.csv загружены")
+            category = Category(id=row["id"], name=row["name"], slug=row["slug"])
+            category.save()
 
 
 def read_subcategory():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "subcategory.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "subcategory.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Subcategory.objects.get_or_create(
-                id=row[0], parent_category_id=row[1], name=row[2], slug=row[3]
+            subcategory = Subcategory(
+                id=row["id"],
+                parent_category_id=row["parent_category_id"],
+                name=row["name"],
+                slug=row["slug"],
             )
-    print("Данные из файла subcategory.csv загружены")
+            subcategory.save()
 
 
 def read_tags():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "tags.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "tags.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Tag.objects.get_or_create(
-                id=row[0],
-                name=row[1],
-                slug=row[2],
-            )
-    print("Данные из файла tags.csv загружены")
+            tag = Tag(id=row["id"], name=row["name"], slug=row["slug"])
+            tag.save()
 
 
 def read_producer():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "producer.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "producer.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Producer.objects.get_or_create(
-                id=row[0],
-                name=row[1],
-                producer_type=row[2],
-                description=row[3],
-                address=row[4],
+            producer = Producer(
+                id=row["id"],
+                name=row["name"],
+                producer_type=row["producer_type"],
+                description=row["description"],
+                address=row["address"],
             )
-    print("Данные из файла producer.csv загружены")
+            producer.save()
 
 
 def read_components():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "components.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "components.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Component.objects.get_or_create(
-                id=row[0],
-                name=row[1],
+            component = Component(id=row["id"], name=row["name"])
+            component.save()
+
+
+def read_promotions():
+    with open(os.path.join(DATA_DIR, "promotions.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            promotion = Promotion(
+                id=row["id"],
+                promotion_type=row["promotion_type"],
+                name=row["name"],
+                discount=row["discount"],
             )
-    print("Данные из файла components.csv загружены")
+            promotion.save()
 
 
 def read_products():
-    with open(
-        os.path.join(
-            settings.BASE_DIR,
-            "data",
-            "products.csv",
-        ),
-        "r",
-        encoding="utf-8",
-    ) as f:
-        reader = csv.reader(f, delimiter=",")
+    with open(os.path.join(DATA_DIR, "products.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
         for row in reader:
-            if row[0] == "id":
-                continue
-            Product.objects.get_or_create(
-                id=row[0],
-                name=row[1],
-                description=row[2],
-                categorу_id=row[3],
-                subcategory_id=row[4],
-                tags=row[5],
-                discontinued=row[6],
-                producer_id=row[7],
-                measure_unit=row[8],
-                amount=row[9],
-                price=row[10],
-                photo=row[11],
-                components=row[12],
-                kcal=row[13],
-                proteins=row[14],
-                fats=row[15],
-                carbohydrates=row[16],
+            product = Product(
+                id=row["id"],
+                name=row["name"],
+                description=row["description"],
+                category_id=row["category_id"],
+                subcategory_id=row["subcategory_id"],
+                producer_id=row["producer_id"],
+                measure_unit=row["measure_unit"],
+                amount=row["amount"],
+                price=row["price"],
+                photo=row["photo"],
+                kcal=row["kcal"],
+                proteins=row["proteins"],
+                fats=row["fats"],
+                carbohydrates=row["carbohydrates"],
             )
-    print("Данные из файла products.csv загружены")
+            product.save()
+
+
+def read_products_components():
+    with open(
+        os.path.join(DATA_DIR, "products_components.csv"), "r", encoding="utf-8"
+    ) as f:
+        reader = DictReader(f)
+        for row in reader:
+            product = Product.objects.get(id=row["product_id"])
+            component = Component.objects.get(id=row["component_id"])
+            product.components.add(component)
+
+
+def read_products_tags():
+    with open(os.path.join(DATA_DIR, "products_tags.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            product = Product.objects.get(id=row["product_id"])
+            tag = Tag.objects.get(id=row["tag_id"])
+            product.tags.add(tag)
+
+
+def read_products_promotions():
+    with open(
+        os.path.join(DATA_DIR, "products_promotions.csv"), "r", encoding="utf-8"
+    ) as f:
+        reader = DictReader(f)
+        for row in reader:
+            product = Product.objects.get(id=row["product_id"])
+            promotion = Promotion.objects.get(id=row["promotion_id"])
+            product.promotions.add(promotion)
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         read_users()
+        self.stdout.write("Данные из файла users.csv загружены")
         read_category()
-        read_tags()
-        read_producer()
-        read_components()
+        self.stdout.write("Данные из файла category.csv загружены")
         read_subcategory()
+        self.stdout.write("Данные из файла subcategory.csv загружены")
+        read_tags()
+        self.stdout.write("Данные из файла tags.csv загружены")
+        read_producer()
+        self.stdout.write("Данные из файла producer.csv загружены")
+        read_components()
+        self.stdout.write("Данные из файла components.csv загружены")
+        read_promotions()
+        self.stdout.write("Данные из файла promotions.csv загружены")
         read_products()
+        self.stdout.write("Данные из файла products.csv загружены")
+        read_products_components()
+        self.stdout.write("Данные из файла products_components.csv загружены")
+        read_products_tags()
+        self.stdout.write("Данные из файла products_tags.csv загружены")
+        read_products_promotions()
+        self.stdout.write("Данные из файла products_promotions.csv загружены")
