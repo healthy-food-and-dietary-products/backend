@@ -16,8 +16,9 @@ class ShoppingCartAdmin(admin.ModelAdmin):
         "id",
         "user",
         "status",
+        "total_price"
     )
-    list_editable = ("status",)
+    list_editable = ("status", "total_price")
     list_filter = ("user", "status")
 
 
