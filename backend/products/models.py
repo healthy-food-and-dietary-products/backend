@@ -252,7 +252,7 @@ class Product(models.Model):
     )
     views_number = models.PositiveIntegerField(
         "Views number", default=0, help_text="Number of product page views"
-    )  # TODO: make autoincrement after view
+    )
     orders_number = models.PositiveIntegerField(
         "Orders number", default=0, help_text="Number of orders for this product"
     )  # TODO: make autoincrement after order

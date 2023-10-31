@@ -119,6 +119,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         )
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def retrieve(self, request, *args, **kwargs):
+        """Increments the views_number field when someone views this product."""
+        obj = self.get_object()
+        obj.views_number += 1
+        obj.save(update_fields=("views_number",))
+        return super().retrieve(request, *args, **kwargs)
+
     @decorators.action(
         methods=["post", "delete"],
         detail=True,
