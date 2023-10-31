@@ -4,7 +4,6 @@ from django.utils.safestring import mark_safe
 from .models import Address, User
 from products.admin import UserFavoritesInline
 
-
 # class AddressInline(admin.TabularInline):
 #     model = Address
 #     extra = 1
