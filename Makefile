@@ -10,7 +10,7 @@ migrate:
 superuser:
 	cd backend; python3 manage.py createsuperuser --email test@test.com --username admin -v 3
 
-superuser empty:
+superuser-empty:
 	cd backend; python3 manage.py createsuperuser
 
 shell:
