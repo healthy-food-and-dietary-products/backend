@@ -41,8 +41,16 @@ class CategoryLightSerializer(serializers.ModelSerializer):
         fields = ("category_name",)
 
 
+class CategoryCreateSerializer(CategoryLightSerializer):
+    """Serializer for creating categories."""
+
+    class Meta:
+        model = Category
+        fields = ("category_name", "slug")
+
+
 class CategorySerializer(CategoryLightSerializer):
-    """Serializer for categories representation."""
+    """Serializer for displaying categories."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
 
