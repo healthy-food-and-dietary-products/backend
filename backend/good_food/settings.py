@@ -232,6 +232,3 @@ SWAGGER_SETTINGS = {
         "Token": {"type": "apiKey", "name": "Authorization", "in": "header"}
     }
 }
-
-# Security settings
-SECURE_SSL_REDIRECT = True
