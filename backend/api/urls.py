@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .orders_views import ShoppingCartViewSet
+# from .orders_views import ShoppingCartViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
@@ -19,7 +19,7 @@ app_name = "api"
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet)
-router.register("shopping_cart", ShoppingCartViewSet),
+# router.register("shopping_cart", ShoppingCartViewSet),
 router.register("subcategories", SubcategoryViewSet)
 router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
