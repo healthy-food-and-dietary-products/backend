@@ -232,3 +232,7 @@ SWAGGER_SETTINGS = {
         "Token": {"type": "apiKey", "name": "Authorization", "in": "header"}
     }
 }
+
+# Security settings
+SECURE_PROXY_SSL_HEADER = ("X-FORWARDED-PROTO", "https")
+SECURE_SSL_REDIRECT = True
