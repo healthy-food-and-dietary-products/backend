@@ -135,7 +135,7 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
-    # TODO: Выводится другое сообщение об ошибке
+    # TODO: This error message is not displayed, another error message is displayed
     def validate_discount(self, value):
         """Checks that the discount is between 0 and 100%."""
         if value < 0 or value > 100:
@@ -204,19 +204,11 @@ class ProductCreateSerializer(ProductSerializer):
     components = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Component.objects.all()
     )
-    promotions = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Promotion.objects.all()
-    )
+    promotions = serializers.ReadOnlyField()
+    views_number = serializers.ReadOnlyField()
+    orders_number = serializers.ReadOnlyField()
 
-    def validate_promotions(self, value):
-        """Checks that no promotions are applied to the product during its creation."""
-        if value:
-            raise serializers.ValidationError(
-                "Promotions cannot be applied to a product during its creation."
-            )
-        return value
-
-    # TODO: Выводится другое сообщение об ошибке
+    # TODO: This error message is not displayed, another error message is displayed
     def validate_price(self, value):
         """Checks that the price is more or equals to 0."""
         if value < 0:
@@ -226,6 +218,10 @@ class ProductCreateSerializer(ProductSerializer):
 
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
+
+    promotions = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Promotion.objects.all()
+    )
 
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
