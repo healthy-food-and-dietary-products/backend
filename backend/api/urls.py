@@ -15,8 +15,7 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-
-# from .users_views import AddressViewSet
+from .users_views import AddressViewSet
 
 app_name = "api"
 
@@ -30,9 +29,9 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorite-products", FavoriteProductViewSet)
-# router.register(
-#     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
-# )
+router.register(
+    r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
+)
 
 urlpatterns = [
     path("", include(router.urls)),

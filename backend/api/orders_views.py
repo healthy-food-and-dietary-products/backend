@@ -21,9 +21,13 @@ class ShoppingCartViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return ShoppingCart.objects.filter(user=self.request.user)
-        return Response({"errors": "Просмотр корзины доступен "
-                         "только авторизированному пользователю!"},
-                        status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {
+                "errors": "Просмотр корзины доступен "
+                "только авторизированному пользователю!"
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:

@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import status, viewsets
+from rest_framework.response import Response
 
 from .permissions import IsAuthorOrAdmin
 from .users_serializers import AddressSerializer
@@ -19,7 +20,15 @@ class AddressViewSet(viewsets.ModelViewSet):
         return get_object_or_404(User, id=user_id)
 
     def get_queryset(self):
-        return self.get_user().addresses.all()
+        if self.request.user.is_authenticated:
+            return self.get_user().addresses.all()
+        return Response(
+            {
+                "errors": "Дейсствия с адресами доставки доступны "
+                "только авторизированному пользователю!"
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
