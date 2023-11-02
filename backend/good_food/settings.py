@@ -211,8 +211,8 @@ DJOSER = {
     "ACTIVATION_URL": "#/activate/{uid}/{token}",
     "LOGIN_FIELD": "email",
     "SEND_ACTIVATION_EMAIL": False,
-    "SEND_CONFIRMATION_EMAIL": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "SEND_CONFIRMATION_EMAIL": False,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {
         "user_create": "api.users_serializers.UserCreateSerializer",
