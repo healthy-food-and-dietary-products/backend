@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -37,7 +38,7 @@ class UserCreateSerializer(UserCreateSerializer):
         return city_choices[0][0]
 
 
-class UserSerializer(UserSerializer):
+class UserSerializer(DjoserUserSerializer):
     # address = serializers.SerializerMethodField()
     address_quantity = serializers.SerializerMethodField()
 
@@ -63,3 +64,10 @@ class UserSerializer(UserSerializer):
 
     def get_address_quantity(self, obj):
         return obj.addresses.count()
+
+
+class UserLightSerializer(UserSerializer):
+    """Serializer to represent user in favorite products serializers."""
+
+    class Meta(UserSerializer.Meta):
+        fields = ("username", "email")

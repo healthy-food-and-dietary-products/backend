@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .users_serializers import UserSerializer
+from .users_serializers import UserLightSerializer
 from products.models import (
     MAX_PROMOTIONS_NUMBER,
     Category,
@@ -291,10 +291,21 @@ class ProductLightSerializer(ProductSerializer):
 
 
 class FavoriteProductSerializer(serializers.ModelSerializer):
-    """Serializer for favorite products representation."""
+    """Serializer for favorite products list representation."""
 
     product = ProductLightSerializer()
-    user = UserSerializer()
+    user = UserLightSerializer()
+
+    class Meta:
+        model = FavoriteProduct
+        fields = ("id", "user", "product")
+
+
+class FavoriteProductCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creation favorite products."""
+
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = FavoriteProduct

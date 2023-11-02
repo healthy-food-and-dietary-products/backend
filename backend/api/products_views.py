@@ -9,6 +9,7 @@ from .products_serializers import (
     CategoryCreateSerializer,
     CategorySerializer,
     ComponentSerializer,
+    FavoriteProductCreateSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
@@ -108,6 +109,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             return ProductCreateSerializer
         if self.action == "partial_update":
             return ProductUpdateSerializer
+        if self.action == "favorite":
+            return FavoriteProductCreateSerializer
         return ProductSerializer
 
     def create_delete_or_scold(self, model, product, request):
