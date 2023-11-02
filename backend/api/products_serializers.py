@@ -154,6 +154,7 @@ class ProductSerializer(serializers.ModelSerializer):
     components = ComponentLightSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
+    # photo = serializers.ImageField()
 
     class Meta:
         model = Product
@@ -204,9 +205,29 @@ class ProductCreateSerializer(ProductSerializer):
     components = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Component.objects.all()
     )
-    promotions = serializers.ReadOnlyField()
-    views_number = serializers.ReadOnlyField()
-    orders_number = serializers.ReadOnlyField()
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
 
     # TODO: This error message is not displayed, another error message is displayed
     def validate_price(self, value):
@@ -222,6 +243,30 @@ class ProductUpdateSerializer(ProductCreateSerializer):
     promotions = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Promotion.objects.all()
     )
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "promotions",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
 
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
