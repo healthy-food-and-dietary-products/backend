@@ -3,6 +3,7 @@ from django_filters import rest_framework as rf_filters
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from .filters import ProductFilter
+from .pagination import CustomPageNumberPagination
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .products_serializers import (
     CategoryCreateSerializer,
@@ -37,7 +38,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -54,7 +54,6 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     queryset = Subcategory.objects.all()
     serializer_class = SubcategorySerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
 
 class ComponentViewSet(viewsets.ModelViewSet):
@@ -64,7 +63,6 @@ class ComponentViewSet(viewsets.ModelViewSet):
     queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -74,7 +72,6 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
 
 class ProducerViewSet(viewsets.ModelViewSet):
@@ -84,7 +81,6 @@ class ProducerViewSet(viewsets.ModelViewSet):
     queryset = Producer.objects.all()
     serializer_class = ProducerSerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
 
 class PromotionViewSet(viewsets.ModelViewSet):
@@ -94,7 +90,6 @@ class PromotionViewSet(viewsets.ModelViewSet):
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -106,6 +101,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [rf_filters.DjangoFilterBackend]
     filterset_class = ProductFilter
+    pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -172,4 +168,3 @@ class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FavoriteProduct.objects.all()
     serializer_class = FavoriteProductSerializer
     permission_classes = [IsAdmin]
-    pagination_class = None
