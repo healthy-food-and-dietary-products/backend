@@ -154,7 +154,7 @@ class ProductSerializer(serializers.ModelSerializer):
     components = ComponentLightSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
-    # photo = serializers.ImageField()
+    photo = serializers.ImageField()
 
     class Meta:
         model = Product

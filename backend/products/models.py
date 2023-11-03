@@ -198,7 +198,7 @@ class Product(models.Model):
 
     def product_directory_path(self, filename):
         """Constructs the path which the product photo will be saved."""
-        return f"images/products/{self.pk}"
+        return f"images/products/{self.pk}.jpg"
 
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Product name"
