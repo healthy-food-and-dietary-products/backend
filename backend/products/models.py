@@ -145,6 +145,8 @@ class Promotion(models.Model):
         (MULTIPLE_ITEMS, "Скидка при покупке нескольких штук"),
     ]
 
+    # TODO: make slug field after MVP?
+
     promotion_type = models.CharField(
         "Promotion type", max_length=14, choices=CHOISES, default=SIMPLE
     )
