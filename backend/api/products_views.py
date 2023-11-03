@@ -1,8 +1,10 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as rf_filters
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from .filters import ProductFilter
+from .mixins import DestroyWithPayloadMixin
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .products_serializers import (
@@ -13,7 +15,6 @@ from .products_serializers import (
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
-    ProductLightSerializer,
     ProductSerializer,
     ProductUpdateSerializer,
     PromotionSerializer,
@@ -32,7 +33,7 @@ from products.models import (
 )
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -48,7 +49,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return CategorySerializer
 
 
-class SubcategoryViewSet(viewsets.ModelViewSet):
+class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for subcategories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -57,7 +58,7 @@ class SubcategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class ComponentViewSet(viewsets.ModelViewSet):
+class ComponentViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for components."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -66,7 +67,7 @@ class ComponentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for tags."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -75,7 +76,7 @@ class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class ProducerViewSet(viewsets.ModelViewSet):
+class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for producers."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -84,7 +85,7 @@ class ProducerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class PromotionViewSet(viewsets.ModelViewSet):
+class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for promotions."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -93,7 +94,7 @@ class PromotionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
@@ -113,6 +114,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return FavoriteProductCreateSerializer
         return ProductSerializer
 
+    @transaction.atomic
     def create_delete_or_scold(self, model, product, request):
         instance = model.objects.filter(product=product, user=request.user)
         if request.method == "DELETE" and not instance:
@@ -121,26 +123,36 @@ class ProductViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
+            message = {
+                "favorite_product_object_id": instance[0].id,
+                "favorite_product_id": instance[0].product.id,
+                "favorite_product_name": instance[0].product.name,
+                "user_id": instance[0].user.id,
+                "user_username": instance[0].user.username,
+                "Success": "This favorite product object was successfully deleted",
+            }
             instance.delete()
-            return response.Response(status=status.HTTP_204_NO_CONTENT)
+            return response.Response(data=message, status=status.HTTP_200_OK)
         if instance:
             return response.Response(
                 {"errors": "Этот продукт уже есть в вашем списке Избранного."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        model.objects.create(user=request.user, product=product)
-        serializer = ProductLightSerializer(
-            product,
+        new_favorite_product = model.objects.create(user=request.user, product=product)
+        serializer = FavoriteProductSerializer(
+            new_favorite_product,
             context={"request": request, "format": self.format_kwarg, "view": self},
         )
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @transaction.atomic
     def perform_create(self, serializer):
         subcategory_id = serializer._kwargs["data"]["subcategory"]
         subcategory = Subcategory.objects.get(id=subcategory_id)
         serializer.save(category=subcategory.parent_category)
         return super().perform_create(serializer)
 
+    @transaction.atomic
     def perform_update(self, serializer):
         subcategory_id = serializer._kwargs["data"].get("subcategory")
         if subcategory_id:
@@ -148,6 +160,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             serializer.save(category=subcategory.parent_category)
         return super().perform_update(serializer)
 
+    @transaction.atomic
     def retrieve(self, request, *args, **kwargs):
         """Increments the views_number field when someone views this product."""
         obj = self.get_object()

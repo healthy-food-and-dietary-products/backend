@@ -46,7 +46,7 @@ class CategoryCreateSerializer(CategoryLightSerializer):
 
     class Meta:
         model = Category
-        fields = ("category_name", "slug")
+        fields = ("id", "category_name", "slug")
 
 
 class CategorySerializer(CategoryLightSerializer):
@@ -304,9 +304,6 @@ class FavoriteProductSerializer(serializers.ModelSerializer):
 class FavoriteProductCreateSerializer(serializers.ModelSerializer):
     """Serializer for creation favorite products."""
 
-    product = serializers.PrimaryKeyRelatedField(read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = FavoriteProduct
-        fields = ("id", "user", "product")
+        fields = ("id",)
