@@ -4,6 +4,7 @@ from csv import DictReader
 from django.core.management.base import BaseCommand
 
 from good_food.settings import BASE_DIR
+from orders.models import Delivery
 from products.models import (
     Category,
     Component,
@@ -14,7 +15,6 @@ from products.models import (
     Tag,
 )
 from users.models import User
-from orders.models import Delivery
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
@@ -154,7 +154,8 @@ def read_products_promotions():
 
 
 def read_delivery_points():
-    with open(os.path.join(DATA_DIR, "delivery_points.csv"), "r", encoding="utf-8") as f:
+    with open(os.path.join(DATA_DIR, "delivery_points.csv"),
+              "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
             delivery_point = Delivery(

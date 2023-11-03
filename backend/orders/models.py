@@ -158,6 +158,4 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"{self.ordering_date}," \
-               f"{self.order_number}", \
-               f"{self.user.username}."
+        return f"{self.ordering_date} , {self.order_number} ,{self.user.username}."

@@ -1,13 +1,16 @@
-from rest_framework import permissions, status
+from rest_framework import permissions, status, mixins
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from .orders_serializers import (
+    OrderListSerializer,
+    OrderPostDeleteSerializer,
     ShoppingCartGetSerializer,
     ShoppingCartPostUpdateDeleteSerializer,
 )
-from orders.models import ShoppingCart, ShoppingCartProduct
+from orders.models import Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
 
 
@@ -17,6 +20,7 @@ class ShoppingCartViewSet(ModelViewSet):
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
+    pagination_class = None
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -86,4 +90,49 @@ class ShoppingCartViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         shopping_cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class OrderViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
+    """Viewset for Order."""
+
+    queryset = Order.objects.all()
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ["get", "post", "delete"]
+    pagination_class = None
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Order.objects.filter(user=self.request.user.id)
+        return Response({"errorrs": "Создание заказа доступно "
+                         "только авторизированному пользователю!"},
+                        status=status.HTTP_401_UNAUTHORIZED)
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return OrderListSerializer
+        return OrderPostDeleteSerializer
+
+
+    def delete(self, request, *args, **kwargs):
+        print(kwargs, request.data)
+        order = get_object_or_404(Order, id=self.kwargs.get('order_id'))
+            # Order.objects.get(user=request.user).filter(
+            # id=self.kwargs["id"])
+        print(order)
+        if order.values("status") in ("In delivering", "Delivered", "Completed"):
+            Response({"errors": "Отмена заказа невозможна,"
+                                "только отказ при получении!"})
+        if not order:
+            return Response(
+                "У вас нет неисполненных заказов.",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
