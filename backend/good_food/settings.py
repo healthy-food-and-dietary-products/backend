@@ -190,6 +190,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "api.exception_handlers.custom_404_exception_handler",
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
