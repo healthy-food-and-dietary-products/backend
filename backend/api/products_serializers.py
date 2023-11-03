@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .users_serializers import UserSerializer
+from .users_serializers import UserLightSerializer
 from products.models import (
     MAX_PROMOTIONS_NUMBER,
     Category,
@@ -46,7 +46,7 @@ class CategoryCreateSerializer(CategoryLightSerializer):
 
     class Meta:
         model = Category
-        fields = ("category_name", "slug")
+        fields = ("id", "category_name", "slug")
 
 
 class CategorySerializer(CategoryLightSerializer):
@@ -154,6 +154,7 @@ class ProductSerializer(serializers.ModelSerializer):
     components = ComponentLightSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
+    # photo = serializers.ImageField()
 
     class Meta:
         model = Product
@@ -200,13 +201,35 @@ class ProductCreateSerializer(ProductSerializer):
     category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(), required=False
+    )
     components = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Component.objects.all()
     )
-    promotions = serializers.ReadOnlyField()
-    views_number = serializers.ReadOnlyField()
-    orders_number = serializers.ReadOnlyField()
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
 
     # TODO: This error message is not displayed, another error message is displayed
     def validate_price(self, value):
@@ -222,6 +245,30 @@ class ProductUpdateSerializer(ProductCreateSerializer):
     promotions = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Promotion.objects.all()
     )
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "promotions",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
 
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
@@ -244,11 +291,19 @@ class ProductLightSerializer(ProductSerializer):
 
 
 class FavoriteProductSerializer(serializers.ModelSerializer):
-    """Serializer for favorite products representation."""
+    """Serializer for favorite products list representation."""
 
     product = ProductLightSerializer()
-    user = UserSerializer()
+    user = UserLightSerializer()
 
     class Meta:
         model = FavoriteProduct
         fields = ("id", "user", "product")
+
+
+class FavoriteProductCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creation favorite products."""
+
+    class Meta:
+        model = FavoriteProduct
+        fields = ("id",)

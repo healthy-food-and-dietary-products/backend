@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
     ShoppingCartGetSerializer,
     ShoppingCartPostUpdateDeleteSerializer,
@@ -11,7 +12,7 @@ from orders.models import ShoppingCart, ShoppingCartProduct
 from products.models import Product
 
 
-class ShoppingCartViewSet(ModelViewSet):
+class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
     queryset = ShoppingCart.objects.all()

@@ -2,12 +2,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
+from .mixins import DestroyWithPayloadMixin
 from .permissions import IsAuthorOrAdmin
 from .users_serializers import AddressSerializer
 from users.models import User
 
 
-class AddressViewSet(viewsets.ModelViewSet):
+class AddressViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for addresses."""
 
     serializer_class = AddressSerializer

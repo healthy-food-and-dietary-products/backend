@@ -44,7 +44,6 @@ schema_view = get_schema_view(
         title="Good Food API",
         default_version="v1",
         description="API documentation for the GoodFood project",
-        # terms_of_service="URL страницы с пользовательским соглашением",
         contact=openapi.Contact(email="healthyfoodapi@yandex.ru"),
         license=openapi.License(name="MIT License"),
     ),
