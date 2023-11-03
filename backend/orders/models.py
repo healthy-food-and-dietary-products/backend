@@ -74,6 +74,22 @@ class ShoppingCartProduct(models.Model):
         )
 
 
+class Delivery(models.Model):
+    """Model for creating delivery."""
+
+    delivery_point = models.CharField(
+        max_length=150,
+        verbose_name="Пункт выдачи",
+    )
+
+    class Meta:
+        verbose_name = "Пункт выдачи"
+        verbose_name_plural = "Пункты выдачи"
+
+    def __str__(self):
+        return f"{self.delivery_point}."
+
+
 class Order(models.Model):
     """Model for creating an order."""
 
@@ -98,9 +114,15 @@ class Order(models.Model):
         ("By courier", "Курьером"),
     )
 
-    # order_number = models.PositiveIntegerField(
-    #     auto_created=True, verbose_name="Номер заказа"
-    # )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Покупатель",
+    )
+    order_number = models.PositiveIntegerField(
+        default=1, verbose_name="Номер заказа"
+    )
     ordering_date = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата оформления заказа"
     )
@@ -124,6 +146,11 @@ class Order(models.Model):
         null=True,
     )
     package = models.BooleanField(default=False, verbose_name="Упаковка")
+    delivery_point = models.ForeignKey(
+        Delivery,
+        on_delete=models.CASCADE,
+        verbose_name="Пункт выдачи",
+    )
 
     class Meta:
         ordering = ["-ordering_date"]
@@ -131,4 +158,6 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"{self.ordering_date}: " f"{self.shopping_cart.user.username}."
+        return f"{self.ordering_date}," \
+               f"{self.order_number}", \
+               f"{self.user.username}."
