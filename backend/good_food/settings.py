@@ -208,12 +208,12 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_ADMIN = os.getenv("EMAIL_HOST_USER")
 
 DJOSER = {
-    "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
-    "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "api/users/activate/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "api/users/reset_password_confrim/{uid}/{token}",
+    "USERNAME_RESET_CONFIRM_URL": "api/users/reset_username_confirm{uid}/{token}",
+    "ACTIVATION_URL": "api/account-activate/{uid}/{token}/",
     "LOGIN_FIELD": "email",
     "SEND_ACTIVATION_EMAIL": True,
-    "SEND_CONFIRMATION_EMAIL": True,
+    "SEND_CONFIRMATION_EMAIL": False,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {
