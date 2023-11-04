@@ -44,17 +44,17 @@ class UserAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "username",
-        "is_staff",
         "is_active",
         "role",
         "email",
+        "birth_date",
         "date_joined",
         "last_login",
     ]
     readonly_fields = ["preview"]
-    search_fields = ["username", "role"]
+    search_fields = ["username", "email"]
     ordering = ["id"]
-    list_filter = ["username", "birth_date", "city"]
+    list_filter = ["role", "is_active", "city"]
     inlines = [UserFavoritesInline, AddressInline]
 
     def preview(self, obj):
