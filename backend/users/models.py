@@ -79,7 +79,7 @@ class Address(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name="addresses",
-        verbose_name="Address",
+        verbose_name="User",
     )
     priority_address = models.BooleanField("Priority", default=False)
 
