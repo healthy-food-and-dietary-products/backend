@@ -33,14 +33,6 @@ class User(AbstractUser):
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
     birth_date = models.DateField("Birth_date", blank=True, null=True)
-    # address = models.ForeignKey(
-    #     Address,
-    #     blank=True,
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    #     related_name="users",
-    #     verbose_name="Addresses",
-    # )
     phone_number = PhoneNumberField("Phone_number", blank=True)
     photo = models.ImageField(
         "Photo",
@@ -82,14 +74,14 @@ class User(AbstractUser):
 class Address(models.Model):
     """Describes address of user."""
 
-    address = models.TextField("Address", unique=True)
+    address = models.TextField("Address")
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="addresses",
         verbose_name="Address",
     )
-    priority_address = models.BooleanField(default=False)
+    priority_address = models.BooleanField("Priority", default=False)
 
     def __str__(self):
         return f"{self.address}"
@@ -97,6 +89,11 @@ class Address(models.Model):
     class Meta:
         verbose_name = "Address"
         verbose_name_plural = "Addresses"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "address"], name="unique_user_address"
+            )
+        ]
 
     # def clean_fields(self, exclude=None):
     #     """Checks that the user has only one priority address."""

@@ -2,15 +2,15 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from .mixins import DestroyWithPayloadMixin
 from .permissions import IsAuthorOrAdmin
 from .users_serializers import AddressSerializer
 from users.models import User
 
 
-class AddressViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
+class AddressViewSet(viewsets.ModelViewSet):
     """Viewset for addresses."""
 
+    http_method_names = ["get"]
     serializer_class = AddressSerializer
     permission_classes = [
         IsAuthorOrAdmin,
@@ -25,8 +25,10 @@ class AddressViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             return self.get_user().addresses.all()
         return Response(
             {
-                "errors": "Дейсствия с адресами доставки доступны "
-                "только авторизированному пользователю!"
+                "errors": (
+                    "Действия c адресами доставки доступны "
+                    "только авторизированному пользователю."
+                )
             },
             status=status.HTTP_401_UNAUTHORIZED,
         )
