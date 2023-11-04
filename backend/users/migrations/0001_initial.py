@@ -175,15 +175,18 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("address", models.TextField(unique=True, verbose_name="Address")),
-                ("priority_address", models.BooleanField(default=False)),
+                ("address", models.TextField(verbose_name="Address")),
+                (
+                    "priority_address",
+                    models.BooleanField(default=False, verbose_name="Priority"),
+                ),
                 (
                     "user",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="addresses",
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Address",
+                        verbose_name="User",
                     ),
                 ),
             ],
@@ -191,5 +194,11 @@ class Migration(migrations.Migration):
                 "verbose_name": "Address",
                 "verbose_name_plural": "Addresses",
             },
+        ),
+        migrations.AddConstraint(
+            model_name="address",
+            constraint=models.UniqueConstraint(
+                fields=("user", "address"), name="unique_user_address"
+            ),
         ),
     ]

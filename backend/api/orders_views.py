@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
     OrderListSerializer,
     OrderPostDeleteSerializer,
@@ -14,7 +15,7 @@ from orders.models import Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
 
 
-class ShoppingCartViewSet(ModelViewSet):
+class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
     queryset = ShoppingCart.objects.all()
@@ -27,7 +28,7 @@ class ShoppingCartViewSet(ModelViewSet):
             return ShoppingCart.objects.filter(user=self.request.user)
         return Response(
             {
-                "errorrs": "Просмотр корзины доступен "
+                "errors": "Просмотр корзины доступен "
                 "только авторизированному пользователю!"
             },
             status=status.HTTP_401_UNAUTHORIZED,
@@ -48,7 +49,7 @@ class ShoppingCartViewSet(ModelViewSet):
             return Response(
                 {
                     "errors": "Ваша корзина еще не оформлена, "
-                    "можно добавить продукты, изменить или удалить!"
+                    "можно добавить продукты, изменить или удалить."
                 }
             )
         products = request.data["products"]

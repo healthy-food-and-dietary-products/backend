@@ -14,6 +14,8 @@ class ProductFilter(rf_filters.FilterSet):
     components = rf_filters.AllValuesMultipleFilter(field_name="components__slug")
     tags = rf_filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = rf_filters.NumberFilter(method="product_boolean_methods")
+    min_price = rf_filters.NumberFilter(method="get_min_price")
+    max_price = rf_filters.NumberFilter(method="get_max_price")
 
     class Meta:
         model = Product
@@ -27,6 +29,8 @@ class ProductFilter(rf_filters.FilterSet):
             "promotions",
             "discontinued",
             "is_favorited",
+            "min_price",
+            "max_price",
         ]
 
     def startswith_contains_union_method(self, queryset, name, value):
@@ -52,7 +56,23 @@ class ProductFilter(rf_filters.FilterSet):
         user = self.request.user
         if user.is_anonymous:
             return queryset
-        product_ids = [r.pk for r in queryset if getattr(r, name)(user) == value]
+        product_ids = [obj.pk for obj in queryset if getattr(obj, name)(user) == value]
+        if product_ids:
+            return queryset.filter(pk__in=product_ids)
+        return queryset.none()
+
+    def get_min_price(self, queryset, name, value):
+        if value <= 0:
+            return queryset
+        product_ids = [obj.pk for obj in queryset if obj.final_price >= value]
+        if product_ids:
+            return queryset.filter(pk__in=product_ids)
+        return queryset.none()
+
+    def get_max_price(self, queryset, name, value):
+        if value <= 0:
+            return queryset
+        product_ids = [obj.pk for obj in queryset if obj.final_price <= value]
         if product_ids:
             return queryset.filter(pk__in=product_ids)
         return queryset.none()
