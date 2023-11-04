@@ -23,12 +23,16 @@ class ShoppingCart(models.Model):
         verbose_name="Продукты в корзине",
     )
     status = models.CharField(max_length=50, choices=SHOPPINGCART, default="В работе")
-
     total_price = models.PositiveIntegerField(default=0)
+    created = models.DateTimeField("Created", auto_now_add=True)
 
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзина"
+
+    def __str__(self) -> str:
+        moment = self.created.strftime("%m/%d/%Y, %H:%M:%S")
+        return f"Shopping cart of {self.user}, {self.status}, {moment}"
 
 
 class ShoppingCartProduct(models.Model):
@@ -75,10 +79,11 @@ class ShoppingCartProduct(models.Model):
 
 
 class Delivery(models.Model):
-    """Model for creating delivery."""
+    """Model to store pick-up points addresses."""
 
     delivery_point = models.CharField(
         max_length=150,
+        unique=True,
         verbose_name="Пункт выдачи",
     )
 
@@ -87,7 +92,7 @@ class Delivery(models.Model):
         verbose_name_plural = "Пункты выдачи"
 
     def __str__(self):
-        return f"{self.delivery_point}."
+        return self.delivery_point
 
 
 class Order(models.Model):
@@ -111,43 +116,50 @@ class Order(models.Model):
 
     DELIVERY_METHOD = (
         ("Point of delivery", "Пункт выдачи"),
-        ("By courier", "Курьером"),
+        ("By courier", "Курьер"),
     )
 
-    user = models.ForeignKey(
-        User,
+    order_number = models.CharField("Number", max_length=50, default="1")
+    ordering_date = models.DateTimeField(auto_now_add=True, verbose_name="DateTime")
+    shopping_cart = models.ForeignKey(
+        ShoppingCart,
         on_delete=models.CASCADE,
         related_name="orders",
-        verbose_name="Покупатель",
+        verbose_name="Shopping Cart",
     )
-    order_number = models.PositiveIntegerField(default=1, verbose_name="Номер заказа")
-    ordering_date = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата оформления заказа"
+    status = models.CharField(
+        "Status", max_length=50, choices=STATUS, default="Оформлен"
     )
-    shopping_cart = models.ForeignKey(
-        ShoppingCart, on_delete=models.CASCADE, related_name="orders"
-    )
-    status = models.CharField(max_length=50, choices=STATUS, default="Оформлен")
     payment_method = models.CharField(
-        max_length=50, choices=PAYMENT_METHODS, default="Картой на сайте"
+        "Payment Method",
+        max_length=50,
+        choices=PAYMENT_METHODS,
+        default="Картой на сайте",
     )
-    is_paid = models.BooleanField(default=False)
-    comment = models.TextField(max_length=400, blank=True)
+    is_paid = models.BooleanField("Is paid", default=False)
+    comment = models.TextField("Comment", blank=True)
     delivery_method = models.CharField(
-        max_length=50, choices=DELIVERY_METHOD, default="Курьером"
+        "Delivery Method", max_length=50, choices=DELIVERY_METHOD, default="Курьер"
     )
     address = models.ForeignKey(
         Address,
-        on_delete=models.CASCADE,
-        verbose_name="Адрес покупателя",
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        verbose_name="User's address",
     )
-    package = models.BooleanField(default=False, verbose_name="Упаковка")
+    package = models.FloatField(
+        "Package price",
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Price per order packaging",
+    )
     delivery_point = models.ForeignKey(
         Delivery,
-        on_delete=models.CASCADE,
-        verbose_name="Пункт выдачи",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Delivery Point",
     )
 
     class Meta:
@@ -155,5 +167,12 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
 
+    @property
+    def user(self):
+        """Gets the user associated with the shopping cart associated with the order."""
+        return self.shopping_cart.user
+
     def __str__(self):
-        return f"{self.ordering_date} , {self.order_number} ,{self.user.username}."
+        return (
+            f"{self.ordering_date} - {self.order_number} - {self.shopping_cart.user}."
+        )
