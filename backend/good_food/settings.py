@@ -196,8 +196,11 @@ REST_FRAMEWORK = {
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 465
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = "temagovorlivyh@yandex.ru"
+EMAIL_HOST_PASSWORD = "dqhhwisgrmmjabme"
+
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
@@ -207,10 +210,10 @@ EMAIL_ADMIN = os.getenv("EMAIL_HOST_USER")
 DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
-    "ACTIVATION_URL": "#/activate/{uid}/{token}",
+    "ACTIVATION_URL": "api/users/activate/{uid}/{token}",
     "LOGIN_FIELD": "email",
-    "SEND_ACTIVATION_EMAIL": False,
-    "SEND_CONFIRMATION_EMAIL": False,
+    "SEND_ACTIVATION_EMAIL": True,
+    "SEND_CONFIRMATION_EMAIL": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
     "SERIALIZERS": {

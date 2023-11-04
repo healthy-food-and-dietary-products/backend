@@ -33,8 +33,11 @@ router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
 
+from users.views import UserActivationView
+
 urlpatterns = [
     path("", include(router.urls)),
+    path(r'users/activate/(?P<uid>[\w-]+)/(?P<token>[\w-]+)/$', UserActivationView.as_view()),
     path("", include("djoser.urls")),
     path("", include("djoser.urls.authtoken")),
 ]
