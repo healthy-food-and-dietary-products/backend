@@ -1,15 +1,32 @@
+from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import Address, User
 from products.admin import UserFavoritesInline
 
-# class AddressInline(admin.TabularInline):
-#     model = Address
-#     extra = 1
+
+class AddressAdminForm(forms.ModelForm):
+    """Form to change widget in AddressInline"""
+
+    class Meta:
+        model = Address
+        widgets = {"address": forms.TextInput}
+        fields = "__all__"
 
 
+class AddressInline(admin.TabularInline):
+    """Inline class to display addresses of a user."""
+
+    model = Address
+    form = AddressAdminForm
+    extra = 1
+
+
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    """Class to display users in admin panel."""
+
     fields = [
         "username",
         "is_staff",
@@ -23,55 +40,32 @@ class UserAdmin(admin.ModelAdmin):
         "phone_number",
         "photo",
         "preview",
-        # "address",
     ]
-
     list_display = [
         "id",
         "username",
-        "is_staff",
         "is_active",
         "role",
         "email",
+        "birth_date",
         "date_joined",
         "last_login",
     ]
-    readonly_fields = [
-        "preview",
-    ]
-    search_fields = [
-        "username",
-        "role",
-    ]
-    ordering = [
-        "id",
-    ]
-    list_filter = [
-        "username",
-        "birth_date",
-        "city",
-    ]
-    inlines = [UserFavoritesInline]
+    readonly_fields = ["preview"]
+    search_fields = ["username", "email"]
+    ordering = ["id"]
+    list_filter = ["role", "is_active", "city"]
+    inlines = [UserFavoritesInline, AddressInline]
 
     def preview(self, obj):
         return mark_safe(f'<img src="{obj.photo.url}" style="max-height: 200px;">')
 
 
+@admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = [
-        "id",
-        "address",
-    ]
+    """Class to display addresses in admin panel."""
 
-
-# @admin.register(UserAddress)
-# class UserAddressAdmin(admin.ModelAdmin):
-#     list_display = ["id", "user", "address", "priority_address"]
-#     fields = ["user", "address", "priority_address"]
-#     search_fields = ["user", "address"]
-#     ordering = ["id"]
-#     list_filter = ["priority_address"]
-
-
-admin.site.register(User, UserAdmin)
-admin.site.register(Address, AddressAdmin)
+    list_display = ["id", "address", "user", "priority_address"]
+    search_fields = ["address"]
+    list_filter = ["priority_address", "user"]
+    ordering = ["id"]
