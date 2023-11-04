@@ -80,6 +80,7 @@ class UserSerializer(DjoserUserSerializer):
         if not validated_data.get("addresses"):
             return instance
         addresses = validated_data.pop("addresses")
+        priority_count = 0
         for existing_address in instance.addresses.all():
             existing_address.delete()
         for address_dict in addresses:
@@ -89,6 +90,11 @@ class UserSerializer(DjoserUserSerializer):
                     user=instance,
                     priority_address=address_dict["priority_address"],
                 )
+                priority_count += address_dict["priority_address"]
+                if priority_count > 1:
+                    raise serializers.ValidationError(
+                        "Разрешен только один приоритетный адрес."
+                    )
         return instance
 
 

@@ -53,13 +53,13 @@ class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_quantity(self, data):
         if data < 1:
-            raise serializers.ValidationError("Укажите количество товара!")
+            raise serializers.ValidationError("Укажите количество товара.")
         return data
 
     def validate_id(self, data):
         if not Product.objects.filter(id=data).exists():
             raise serializers.ValidationError(
-                "У нас нет таких продуктов! Выберете из представленных!"
+                "У нас нет таких продуктов. Выберете из представленных."
             )
         return data
 

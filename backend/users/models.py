@@ -94,16 +94,3 @@ class Address(models.Model):
                 fields=["user", "address"], name="unique_user_address"
             )
         ]
-
-    # def clean_fields(self, exclude=None):
-    #     """Checks that the user has only one priority address."""
-    #     super().clean_fields(exclude=exclude)
-    #     priority_count = 1 if self.priority_address else 0
-    #     for address in self.user.user_addresses.all():
-    #         if address.priority_address:
-    #             priority_count += 1
-    #     if priority_count > 1:
-    #         raise ValidationError(
-    #             "У пользователя может быть только один приоритетный адрес."
-    #         )
-    # this func don't work. Fix it.

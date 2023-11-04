@@ -45,7 +45,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             return Response(
                 {
                     "errors": "Ваша корзина еще не оформлена, "
-                    "можно добавить продукты, изменить или удалить!"
+                    "можно добавить продукты, изменить или удалить."
                 }
             )
         products = request.data["products"]
