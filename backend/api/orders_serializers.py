@@ -120,14 +120,14 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-                "id",
-                "user",
-                "order_number",
-                "ordering_date",
-                "status",
-                "is_paid",
-                "delivery_method",
-                "total_price"
+            "id",
+            "user",
+            "order_number",
+            "ordering_date",
+            "status",
+            "is_paid",
+            "delivery_method",
+            "total_price",
         )
         model = Order
 
@@ -148,13 +148,12 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "package",
             "total_price",
             "comment",
-            "address"
+            "address",
         )
 
     def get_order_number(self, obj):
         print(obj, "order number")
-        number = obj.shopping_cart
-        return number
+        return obj.shopping_cart
 
     def get_total_price(self, obj):
         if self.package:
@@ -164,11 +163,11 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         user = self.context["request"].user
-        shopping_cart = ShoppingCart.objects.filter(
-            user=user, status="In work")
+        shopping_cart = ShoppingCart.objects.filter(user=user, status="In work")
         if not shopping_cart:
             raise serializers.ValidationError(
-            "У вас нет продуктов в для заказа, наполните корзину!")
+                "У вас нет продуктов в для заказа, наполните корзину!"
+            )
         payment_method = validated_data.pop("payment_method")
         delivery_method = validated_data.pop("delivery_method")
         package = validated_data.pop("package")
@@ -190,7 +189,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             delivery_method=delivery_method,
             package=package,
             comment=comment,
-            address=address
+            address=address,
         )
 
         shopping_cart.status = "Ordered"

@@ -120,9 +120,7 @@ class Order(models.Model):
         related_name="orders",
         verbose_name="Покупатель",
     )
-    order_number = models.PositiveIntegerField(
-        default=1, verbose_name="Номер заказа"
-    )
+    order_number = models.PositiveIntegerField(default=1, verbose_name="Номер заказа")
     ordering_date = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата оформления заказа"
     )
