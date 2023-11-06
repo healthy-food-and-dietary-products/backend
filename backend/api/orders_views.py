@@ -22,8 +22,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     def get_queryset(self, **kwargs) -> object:
         user_id = self.kwargs.get("user_id")
-        if self.request.user.is_authenticated and self.request.user.id == user_id:
-            return ShoppingCart.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_authenticated and int(user.id) == int(user_id):
+            return ShoppingCart.objects.filter(user=user)
         if self.request.user.is_staff:
             return ShoppingCart.objects.filter(user=user_id)
         raise PermissionDenied()
