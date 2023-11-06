@@ -4,7 +4,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
-from .orders_views import ShoppingCartViewSet
+from .orders_views import ShoppingCartViewSet, OrderViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
@@ -32,6 +32,8 @@ router.register("favorite-products", FavoriteProductViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
+router.register(
+    r"users/(?P<user_id>\d+)/order", OrderViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

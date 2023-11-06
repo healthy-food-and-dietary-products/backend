@@ -119,6 +119,12 @@ class Order(models.Model):
         ("By courier", "Курьер"),
     )
 
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Покупатель",
+    )
     order_number = models.CharField("Number", max_length=50, default="1")
     ordering_date = models.DateTimeField(auto_now_add=True, verbose_name="DateTime")
     shopping_cart = models.ForeignKey(
@@ -166,11 +172,6 @@ class Order(models.Model):
         ordering = ["-ordering_date"]
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
-
-    @property
-    def user(self):
-        """Gets the user associated with the shopping cart associated with the order."""
-        return self.shopping_cart.user
 
     def __str__(self):
         return (

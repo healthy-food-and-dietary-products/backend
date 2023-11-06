@@ -11,8 +11,10 @@ from .orders_serializers import (
     ShoppingCartGetSerializer,
     ShoppingCartPostUpdateDeleteSerializer,
 )
+from .permissions import IsAuthorOrAdmin
 from orders.models import Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
+from users.models import User
 
 
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
@@ -108,13 +110,24 @@ class OrderViewSet(
     """Viewset for Order."""
 
     queryset = Order.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+        IsAuthorOrAdmin,
+    ]
     http_method_names = ["get", "post", "delete"]
     pagination_class = None
 
+    def get_user(self):
+        user_id = self.kwargs.get("user_id")
+        return get_object_or_404(User, id=user_id)
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Order.objects.filter(user=self.request.user.id)
+            user = self.request.user
+            if user.role == "admin" or user.role == "moderator":
+                return self.get_user().orders.all()
+                print(user.role)
+            else:
+                return self.request.user.orders.all()
         return Response(
             {
                 "errorrs": "Создание заказа доступно "
@@ -129,11 +142,8 @@ class OrderViewSet(
         return OrderPostDeleteSerializer
 
     def delete(self, request, *args, **kwargs):
-        print(kwargs, request.data)
+        print(self.kwargs.get("order_id"))
         order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
-        # Order.objects.get(user=request.user).filter(
-        # id=self.kwargs["id"])
-        print(order)
         if order.values("status") in ("In delivering", "Delivered", "Completed"):
             Response(
                 {"errors": "Отмена заказа невозможна," "только отказ при получении!"}
@@ -143,4 +153,4 @@ class OrderViewSet(
                 "У вас нет неисполненных заказов.", status=status.HTTP_400_BAD_REQUEST
             )
         order.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response("Заказ успешно удален.", status=status.HTTP_204_NO_CONTENT)

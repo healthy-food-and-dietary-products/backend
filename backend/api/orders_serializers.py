@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .users_serializers import UserSerializer
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.models import Delivery, Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
 from users.models import Address, User
 
@@ -114,29 +114,44 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
 class OrderListSerializer(serializers.ModelSerializer):
     """Serializer for order representation."""
 
-    user = UserSerializer(read_only=True)
-    total_price = serializers.ReadOnlyField(source="shopping_cart.total_price")
+    user = UserPresentSerializer(read_only=True)
+    total_price = serializers.SerializerMethodField()
+    shopping_cart = ShoppingCartGetSerializer(read_only=True)
+    address = serializers.StringRelatedField()
+    delivery_point = serializers.StringRelatedField()
+    order_number = serializers.SerializerMethodField()
+
+    def get_order_number(self, obj):
+        return obj.shopping_cart.id
+
+    def get_total_price(self, obj):
+        return (obj.shopping_cart.total_price + obj.package)
 
     class Meta:
         fields = (
             "id",
             "user",
+            "shopping_cart",
             "order_number",
             "ordering_date",
             "status",
+            "payment_method",
             "is_paid",
             "delivery_method",
+            "address",
+            "delivery_point",
+            "package",
+            "comment",
             "total_price",
         )
         model = Order
 
+    def get_queryset(self):
+        return Order.objects.filter(user=self.get_user())
+
 
 class OrderPostDeleteSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete order."""
-
-    order_number = serializers.SerializerMethodField()
-    package = serializers.BooleanField()
-    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -144,48 +159,44 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "order_number",
             "payment_method",
             "delivery_method",
+            "delivery_point",
             "package",
-            "total_price",
+            # "total_price",
             "comment",
             "address",
         )
 
-    def get_order_number(self, obj):
-        print(obj, "order number")
-        return obj.shopping_cart
-
-    def get_total_price(self, obj):
-        if self.package:
-            obj += 10
-        return obj.total_price
-
     @transaction.atomic
     def create(self, validated_data):
         user = self.context["request"].user
-        shopping_cart = ShoppingCart.objects.filter(user=user, status="In work")
-        if not shopping_cart:
+        try:
+            shopping_cart = ShoppingCart.objects.get(user=user, status="In work")
+        except Exception:
             raise serializers.ValidationError(
-                "У вас нет продуктов в для заказа, наполните корзину!"
+                "У вас нет продуктов в для заказа, наполните корзину!!"
             )
         payment_method = validated_data.pop("payment_method")
         delivery_method = validated_data.pop("delivery_method")
         package = validated_data.pop("package")
         comment = validated_data.pop("comment")
         if delivery_method == "Point of delivery":
-            address = validated_data.pop("address")
-            if not address:
+            delivery_point = validated_data.pop("delivery_point")
+            if not delivery_point:
                 raise serializers.ValidationError("Нужно выбрать пункт выдачи!")
+            delivery_point = Delivery.objects.get(delivery_point=delivery_point)
+            address = None
         else:
-            address = Address.objects.filter(user=user)
-            package = True
+            address = Address.objects.get(address=validated_data.pop("address"))
             if not address:
                 raise serializers.ValidationError("Нужно указать адрес доставки!")
+            delivery_point = None
         order = Order.objects.create(
             user=user,
             shopping_cart=shopping_cart,
             status="Ordered",
             payment_method=payment_method,
             delivery_method=delivery_method,
+            delivery_point=delivery_point,
             package=package,
             comment=comment,
             address=address,
@@ -193,9 +204,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
 
         shopping_cart.status = "Ordered"
         shopping_cart.save()
-        print(shopping_cart.values(), "|||||||||||||||||||||")
         return order
 
     def to_representation(self, instance):
-        print(instance, "?????????????????????")
         return OrderListSerializer(instance, context=self.context).data
