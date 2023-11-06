@@ -208,7 +208,7 @@ DJOSER = {
     "USERNAME_RESET_CONFIRM_URL": "api/users/reset_username_confirm{uid}/{token}",
     "ACTIVATION_URL": "api/account-activate/{uid}/{token}/",
     "LOGIN_FIELD": "email",
-    "SEND_ACTIVATION_EMAIL": True,
+    "SEND_ACTIVATION_EMAIL": False,
     "SEND_CONFIRMATION_EMAIL": False,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
