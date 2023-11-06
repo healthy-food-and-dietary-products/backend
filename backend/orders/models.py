@@ -109,9 +109,8 @@ class Order(models.Model):
     )
 
     PAYMENT_METHODS = (
-        ("Cash", "Наличные"),
-        ("By card on the website", "Картой на сайте"),
-        ("In getting by card", "Оплата картой курьеру"),
+        ("Payment at the point of delivery", "Оплата в пункте самовывоза"),
+        ("In getting by cash", "Оплата наличными курьеру"),
     )
 
     DELIVERY_METHOD = (
