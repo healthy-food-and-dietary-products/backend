@@ -16,7 +16,7 @@ from .products_views import (
     TagViewSet,
 )
 from .users_views import AddressViewSet
-from users.views import ActivateUser
+# from users.views import ActivateUser
 
 app_name = "api"
 
@@ -37,11 +37,11 @@ router.register(
 
 urlpatterns = [
     path("", include(router.urls)),
-    path(
-        "account-activate/<str:uid>/<str:token>/",
-        ActivateUser.as_view(),
-        name="activate_email",
-    ),
+    # path(
+    #     "account-activate/<str:uid>/<str:token>/",
+    #     ActivateUser.as_view(),
+    #     name="activate_email",
+    # ),
     path("", include("djoser.urls")),
     path("", include("djoser.urls.authtoken")),
 ]
