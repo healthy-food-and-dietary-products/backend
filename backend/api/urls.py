@@ -16,6 +16,7 @@ from .products_views import (
     TagViewSet,
 )
 from .users_views import AddressViewSet
+
 # from users.views import ActivateUser
 
 app_name = "api"
