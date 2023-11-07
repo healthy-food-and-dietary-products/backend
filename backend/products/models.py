@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 from core.models import CategoryModel
@@ -15,7 +16,7 @@ class Category(CategoryModel):
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
-        ordering = ["name"]
+        ordering = ["id"]
 
 
 class Subcategory(CategoryModel):
@@ -31,7 +32,7 @@ class Subcategory(CategoryModel):
     class Meta:
         verbose_name = "Subcategory"
         verbose_name_plural = "Subcategories"
-        ordering = ["name"]
+        ordering = ["id"]
 
 
 class Component(models.Model):
@@ -40,11 +41,20 @@ class Component(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Component name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Component slug"
+    )
 
     class Meta:
         verbose_name = "Component"
         verbose_name_plural = "Components"
-        ordering = ["name"]
+        ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a component name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -61,7 +71,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -87,6 +97,9 @@ class Producer(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Producer name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Producer slug"
+    )
     producer_type = models.CharField(
         "Producer type", max_length=12, choices=CHOISES, default=COMPANY
     )
@@ -95,13 +108,18 @@ class Producer(models.Model):
         blank=True,
         help_text="Brief information about the company or entrepreneur",
     )
-    # TODO: think, do we need to connect the address field to the Address model (users)
     address = models.TextField("Address", help_text="Legal address of the producers")
 
     class Meta:
         verbose_name = "Producer"
         verbose_name_plural = "Producers"
-        ordering = ["name"]
+        ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a producer name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -127,6 +145,8 @@ class Promotion(models.Model):
         (TWO_FOR_ONE, "Два по цене одного"),
         (MULTIPLE_ITEMS, "Скидка при покупке нескольких штук"),
     ]
+
+    # TODO: make slug field after MVP?
 
     promotion_type = models.CharField(
         "Promotion type", max_length=14, choices=CHOISES, default=SIMPLE
@@ -158,7 +178,7 @@ class Promotion(models.Model):
     class Meta:
         verbose_name = "Promotion"
         verbose_name_plural = "Promotions"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -179,7 +199,7 @@ class Product(models.Model):
 
     def product_directory_path(self, filename):
         """Constructs the path which the product photo will be saved."""
-        return f"images/products/{self.pk}"
+        return f"images/products/{self.pk}.jpg"
 
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Product name"
@@ -225,7 +245,11 @@ class Product(models.Model):
     amount = models.PositiveSmallIntegerField(
         "Amount", default=1, help_text="Number of grams, milliliters or items"
     )
-    price = models.FloatField("Price", help_text="Price per one product unit")
+    price = models.FloatField(
+        "Price",
+        validators=[MinValueValidator(0)],
+        help_text="Price per one product unit",
+    )
     promotions = models.ManyToManyField(
         Promotion,
         through="ProductPromotion",
@@ -253,7 +277,7 @@ class Product(models.Model):
     )
     views_number = models.PositiveIntegerField(
         "Views number", default=0, help_text="Number of product page views"
-    )  # TODO: make autoincrement after view
+    )
     orders_number = models.PositiveIntegerField(
         "Orders number", default=0, help_text="Number of orders for this product"
     )  # TODO: make autoincrement after order
@@ -261,7 +285,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = "Product"
         verbose_name_plural = "Products"
-        ordering = ["name"]
+        ordering = ["id"]
 
     @property
     def final_price(self):
@@ -271,7 +295,11 @@ class Product(models.Model):
         max_discount = self.promotions.aggregate(models.Max("discount"))[
             "discount__max"
         ]
-        return self.price * (1 - max_discount / 100) if max_discount else self.price
+        return (
+            round(self.price * (1 - max_discount / 100), 2)
+            if max_discount
+            else self.price
+        )
 
     def is_favorited(self, user):
         """Checks whether the product is in the user's favorites."""
@@ -310,6 +338,7 @@ class FavoriteProduct(models.Model):
                 fields=["user", "product"], name="unique_favorite_user"
             )
         ]
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.user} added {self.product} to favorites"
@@ -326,18 +355,30 @@ class ProductPromotion(models.Model):
         verbose_name_plural = "ProductPromotions"
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "promotion"], name="unique_product_promotion",
+                fields=["product", "promotion"], name="unique_product_promotion"
             )
         ]
-
-    def clean_fields(self, exclude=None):
-        """Checks the number of promotions that apply to a product."""
-        super().clean_fields(exclude=exclude)
-        if self.product.promotions.count() + 1 > MAX_PROMOTIONS_NUMBER:
-            raise ValidationError(
-                "The number of promotions for one product "
-                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-            )
+        ordering = ["id"]
 
     def __str__(self) -> str:
         return f"Product {self.product} has promotion {self.promotion}"
+
+
+@receiver(models.signals.post_save, sender=Product)
+def check_promotion_quantity_after_product_save(sender, instance, **kwargs):
+    """Checks promotion quantity of a product after product save."""
+    if instance.promotions.count() > MAX_PROMOTIONS_NUMBER:
+        raise ValidationError(
+            "The number of promotions for one product "
+            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+        )
+
+
+@receiver(models.signals.post_save, sender=ProductPromotion)
+def check_promotion_quantity_after_product_promotion_save(sender, instance, **kwargs):
+    """Checks promotion quantity of a product after product_promotion save."""
+    if instance.product.promotions.count() > MAX_PROMOTIONS_NUMBER:
+        raise ValidationError(
+            "The number of promotions for one product "
+            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+        )

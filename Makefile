@@ -29,10 +29,10 @@ collectstatic:
 	cd backend; python3 manage.py collectstatic --no-input
 
 up-compose:
-	cd infra; sudo docker compose up -d
+	cd infra; sudo docker compose -f docker-compose.local.yml up -d
 
 build-compose:
-	cd infra; sudo docker compose up -d --build
+	cd infra; sudo docker compose -f docker-compose.local.yml up -d --build
 
 stop-compose:
 	cd infra; sudo docker compose stop
@@ -48,3 +48,12 @@ migrate-compose:
 
 superuser-compose:
 	cd infra; sudo docker compose exec -it web python manage.py createsuperuser --email test@test.com --username admin -v 3
+
+collectstatic-compose:
+	cd infra; sudo docker compose exec -it web python manage.py collectstatic --no-input
+
+prune-containers:
+	sudo docker container prune
+
+prune-images:
+	sudo docker image prune

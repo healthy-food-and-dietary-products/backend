@@ -75,8 +75,8 @@ class SubcategoryAdmin(admin.ModelAdmin):
 class ComponentAdmin(admin.ModelAdmin):
     """Class to display product components in admin panel."""
 
-    list_display = ["pk", "name"]
-    fields = ["name"]
+    list_display = ["pk", "name", "slug"]
+    fields = ["name", "slug"]
     search_fields = ["name"]
     ordering = ["pk"]
 
@@ -96,7 +96,7 @@ class ProducerAdmin(admin.ModelAdmin):
     """Class to display product producers in admin panel."""
 
     list_display = ["pk", "producer_type", "name", "address", "description"]
-    fields = ["producer_type", "name", "address", "description"]
+    fields = ["producer_type", "name", "slug", "address", "description"]
     search_fields = ["name", "address", "description"]
     ordering = ["pk"]
     list_filter = ["producer_type"]
@@ -168,7 +168,7 @@ class ProductAdmin(admin.ModelAdmin):
         "carbohydrates",
         "views_number",
         "orders_number",
-        # "photo",
+        "photo",
     ]
     search_fields = ["name", "description", "producer"]
     readonly_fields = ["creation_time", "promotion_quantity", "final_price"]

@@ -1,35 +1,37 @@
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.response import Response
 
-from .users_serializers import AddressSerializer, UserCreateSerializer, UserSerializer
-from users.models import Address, User
+from .permissions import IsAuthorOrAdmin
+from .users_serializers import AddressSerializer
+from users.models import User
 
 
 class AddressViewSet(viewsets.ModelViewSet):
     """Viewset for addresses."""
 
-    http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Address.objects.all()
+    http_method_names = ["get"]
     serializer_class = AddressSerializer
-    # TODO: add permissions:
-    # admins see all the addresses,
-    # users see their own addresses on their own profile pages
-    permission_classes = []
+    permission_classes = [
+        IsAuthorOrAdmin,
+    ]
 
+    def get_user(self):
+        user_id = self.kwargs.get("user_id")
+        return get_object_or_404(User, id=user_id)
 
-class UserViewSet(viewsets.ModelViewSet):
-    """Viewset for users."""
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return self.get_user().addresses.all()
+        return Response(
+            {
+                "errors": (
+                    "Действия c адресами доставки доступны "
+                    "только авторизированному пользователю."
+                )
+            },
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
 
-    http_method_names = ["get", "post", "patch", "delete"]
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    # TODO: add permissions:
-    # admins see all the users,
-    # users see their own user info
-    permission_classes = []
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return UserCreateSerializer
-        # if self.action == "partial_update":
-        #     return UserUpdateSerializer  # TODO: make this serializer
-        return UserSerializer
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

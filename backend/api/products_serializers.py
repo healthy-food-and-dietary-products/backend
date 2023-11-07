@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .users_serializers import UserSerializer
+from .users_serializers import UserLightSerializer
 from products.models import (
     MAX_PROMOTIONS_NUMBER,
     Category,
@@ -41,12 +41,18 @@ class CategoryLightSerializer(serializers.ModelSerializer):
         fields = ("category_name",)
 
 
+class CategoryCreateSerializer(CategoryLightSerializer):
+    """Serializer for creating categories."""
+
+    class Meta:
+        model = Category
+        fields = ("id", "category_name", "slug")
+
+
 class CategorySerializer(CategoryLightSerializer):
-    """Serializer for categories representation."""
+    """Serializer for displaying categories."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
-    # TODO: make possible create subcategories during category creation
-    # TODO: or make special serializer for category creation (without subcategories)
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "subcategories")
@@ -83,7 +89,7 @@ class ComponentSerializer(ComponentLightSerializer):
     """Serializer for components representation."""
 
     class Meta(ComponentLightSerializer.Meta):
-        fields = ("id", "name")
+        fields = ("id", "name", "slug")
 
 
 class ProducerLightSerializer(serializers.ModelSerializer):
@@ -100,7 +106,7 @@ class ProducerSerializer(ProducerLightSerializer):
     """Serializer for produsers representation."""
 
     class Meta(ProducerLightSerializer.Meta):
-        fields = ("id", "name", "producer_type", "description", "address")
+        fields = ("id", "name", "slug", "producer_type", "description", "address")
 
 
 class PromotionLightSerializer(serializers.ModelSerializer):
@@ -129,11 +135,18 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
+    # TODO: This error message is not displayed, another error message is displayed
+    def validate_discount(self, value):
+        """Checks that the discount is between 0 and 100%."""
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Допустимы числа от 0 до 100.")
+        return value
+
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for displaying products."""
 
-    category = CategoryLightSerializer()
+    category = CategoryLightSerializer(read_only=True)
     subcategory = SubcategoryLightSerializer()
     tags = TagLightSerializer(many=True, required=False)
     producer = ProducerLightSerializer()
@@ -141,6 +154,7 @@ class ProductSerializer(serializers.ModelSerializer):
     components = ComponentLightSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
+    photo = serializers.ImageField(required=False)
 
     class Meta:
         model = Product
@@ -160,7 +174,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price",
             "promotions",
             "promotion_quantity",
-            "photo",  # TODO: !!!
+            "photo",
             "components",
             "kcal",
             "proteins",
@@ -184,28 +198,77 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(ProductSerializer):
     """Serializer for creating products."""
 
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+    category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all(), required=False
+    )
     components = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Component.objects.all()
     )
-    promotions = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Promotion.objects.all()
-    )
 
-    def validate_promotions(self, value):
-        """Checks that no promotions are applied to the product during its creation."""
-        if value:
-            raise serializers.ValidationError(
-                "Promotions cannot be applied to a product during its creation."
-            )
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
+
+    # TODO: This error message is not displayed, another error message is displayed
+    def validate_price(self, value):
+        """Checks that the price is more or equals to 0."""
+        if value < 0:
+            raise serializers.ValidationError("Отрицательная цена недопустима.")
         return value
 
 
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
+
+    promotions = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Promotion.objects.all()
+    )
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            "id",
+            "name",
+            "description",
+            "creation_time",
+            "category",
+            "subcategory",
+            "tags",
+            "discontinued",
+            "producer",
+            "measure_unit",
+            "amount",
+            "price",
+            "final_price",
+            "promotions",
+            "photo",
+            "components",
+            "kcal",
+            "proteins",
+            "fats",
+            "carbohydrates",
+        )
 
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
@@ -227,16 +290,20 @@ class ProductLightSerializer(ProductSerializer):
         )
 
 
-# TODO: make it in other way, use @action (see foodgram)
 class FavoriteProductSerializer(serializers.ModelSerializer):
-    """Serializer for favorite products representation."""
+    """Serializer for favorite products list representation."""
 
     product = ProductLightSerializer()
-    user = UserSerializer()
+    user = UserLightSerializer()
 
     class Meta:
         model = FavoriteProduct
         fields = ("id", "user", "product")
 
 
-# TODO: add more validators!
+class FavoriteProductCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creation favorite products."""
+
+    class Meta:
+        model = FavoriteProduct
+        fields = ("id",)
