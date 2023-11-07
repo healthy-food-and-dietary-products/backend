@@ -20,12 +20,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
 
-    def get_queryset(self, **kwargs) -> object:
+    def get_queryset(self, **kwargs):
         user_id = self.kwargs.get("user_id")
         user = self.request.user
         if user.is_authenticated and int(user.id) == int(user_id):
             return ShoppingCart.objects.filter(user=user)
-        if self.request.user.is_staff:
+        if self.request.is_admin:
             return ShoppingCart.objects.filter(user=user_id)
         raise PermissionDenied()
 
@@ -36,7 +36,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     def get_shopping_cart(self):
         return ShoppingCart.objects.filter(user=self.request.user).filter(
-            status="In work"
+            status=ShoppingCart.INWORK
         )
 
     def create(self, request, *args, **kwargs):
@@ -55,7 +55,6 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            status="In work",
             total_price=sum(
                 [
                     int(Product.objects.get(id=product["id"]).price)
