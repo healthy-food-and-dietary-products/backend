@@ -1,4 +1,5 @@
 from django.urls import include, path, re_path
+from djoser.views import UserViewSet
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -23,7 +24,7 @@ app_name = "api"
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet)
-router.register("shopping_cart", ShoppingCartViewSet),
+router.register("shopping_cart", ShoppingCartViewSet)
 router.register("subcategories", SubcategoryViewSet)
 router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
@@ -31,6 +32,7 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorite-products", FavoriteProductViewSet)
+router.register("users", UserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )

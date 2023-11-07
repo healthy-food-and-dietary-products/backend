@@ -193,7 +193,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "api.exception_handlers.custom_404_exception_handler",
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -204,9 +204,9 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Djoser
 DJOSER = {
-    "PASSWORD_RESET_CONFIRM_URL": "api/users/reset_password_confrim/{uid}/{token}",
-    "USERNAME_RESET_CONFIRM_URL": "api/users/reset_username_confirm{uid}/{token}",
-    "ACTIVATION_URL": "api/account-activate/{uid}/{token}/",
+    # "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
+    # "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
+    # "ACTIVATION_URL": "#/activate/{uid}/{token}",
     "LOGIN_FIELD": "email",
     "SEND_ACTIVATION_EMAIL": False,
     "SEND_CONFIRMATION_EMAIL": False,

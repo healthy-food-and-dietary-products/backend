@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
@@ -18,12 +16,6 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = ("id", "address", "priority_address")
-
-    def to_representation(self, instance):
-        new_repr = OrderedDict()
-        new_repr["address"] = instance.address
-        new_repr["priority_address"] = instance.priority_address
-        return new_repr
 
 
 class UserCreateSerializer(DjoserUserCreateSerializer):

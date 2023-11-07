@@ -2,19 +2,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from .permissions import IsAuthorOrAdmin
+from .permissions import IsAdmin
 from .users_serializers import AddressSerializer
 from users.models import User
 
 
-class AddressViewSet(viewsets.ModelViewSet):
+class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for addresses."""
 
-    http_method_names = ["get"]
     serializer_class = AddressSerializer
-    permission_classes = [
-        IsAuthorOrAdmin,
-    ]
+    permission_classes = [IsAdmin]
 
     def get_user(self):
         user_id = self.kwargs.get("user_id")
