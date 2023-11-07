@@ -8,7 +8,9 @@ from users.models import Address, User
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
 
-    SHOPPINGCART = (("Ordered", "Передано в заказ"), ("In work", "В работе"))
+    ORDERED = "Передано в заказ"
+    INWORK = "В работе"
+    SHOPPINGCART = ((ORDERED, "Передано в заказ"), (INWORK, "В работе"))
 
     user = models.ForeignKey(
         User,
@@ -22,7 +24,7 @@ class ShoppingCart(models.Model):
         through_fields=("shopping_cart", "product"),
         verbose_name="Продукты в корзине",
     )
-    status = models.CharField(max_length=50, choices=SHOPPINGCART, default="В работе")
+    status = models.CharField(max_length=50, choices=SHOPPINGCART, default=INWORK)
     total_price = models.PositiveIntegerField(default=0)
     created = models.DateTimeField("Created", auto_now_add=True)
 
