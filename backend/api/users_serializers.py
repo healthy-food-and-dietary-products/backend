@@ -77,7 +77,7 @@ class UserSerializer(DjoserUserSerializer):
         return obj.addresses.count()
 
     def update(self, instance, validated_data):
-        if not validated_data.get("addresses"):
+        if validated_data.get("addresses") is None:
             return instance
         addresses = validated_data.pop("addresses")
         priority_count = 0
