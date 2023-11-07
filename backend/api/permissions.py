@@ -19,7 +19,6 @@ class IsAdmin(permissions.BasePermission):
         return request.user.is_authenticated and request.user.is_admin
 
 
-# TODO: no need in this permission anymore as we changed permission in AddressViewSet
 class IsAuthorOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and (

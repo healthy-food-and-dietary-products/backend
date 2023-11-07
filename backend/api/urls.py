@@ -5,7 +5,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
-from .orders_views import ShoppingCartViewSet
+from .orders_views import OrderViewSet, ShoppingCartViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
@@ -38,6 +38,7 @@ router.register(
     ShoppingCartViewSet,
     basename="shopping_carts",
 )
+router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet)  # need basename
 
 urlpatterns = [
     path("", include(router.urls)),

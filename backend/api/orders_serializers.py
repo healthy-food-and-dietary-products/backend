@@ -2,9 +2,9 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .users_serializers import UserSerializer
-from orders.models import ShoppingCart, ShoppingCartProduct
+from orders.models import Delivery, Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
-from users.models import User
+from users.models import Address, User
 
 
 class UserPresentSerializer(UserSerializer):
@@ -109,3 +109,100 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return ShoppingCartGetSerializer(instance, context=self.context).data
+
+
+class OrderListSerializer(serializers.ModelSerializer):
+    """Serializer for order representation."""
+
+    user = UserPresentSerializer(read_only=True)
+    total_price = serializers.SerializerMethodField()
+    shopping_cart = ShoppingCartGetSerializer(read_only=True)
+    address = serializers.StringRelatedField()
+    delivery_point = serializers.StringRelatedField()
+    order_number = serializers.SerializerMethodField()
+
+    def get_order_number(self, obj):
+        return obj.shopping_cart.id
+
+    def get_total_price(self, obj):
+        return obj.shopping_cart.total_price + obj.package
+
+    class Meta:
+        fields = (
+            "id",
+            "user",
+            "shopping_cart",
+            "order_number",
+            "ordering_date",
+            "status",
+            "payment_method",
+            "is_paid",
+            "delivery_method",
+            "address",
+            "delivery_point",
+            "package",
+            "comment",
+            "total_price",
+        )
+        model = Order
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.get_user())
+
+
+class OrderPostDeleteSerializer(serializers.ModelSerializer):
+    """Serializer for create/update/delete order."""
+
+    class Meta:
+        model = Order
+        fields = (
+            "order_number",
+            "payment_method",
+            "delivery_method",
+            "delivery_point",
+            "package",
+            # "total_price",
+            "comment",
+            "address",
+        )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        user = self.context["request"].user
+        try:
+            shopping_cart = ShoppingCart.objects.get(user=user, status="In work")
+        except Exception:
+            raise serializers.ValidationError(
+                "У вас нет продуктов для заказа, наполните корзину."
+            )
+        payment_method = validated_data.pop("payment_method")
+        delivery_method = validated_data.pop("delivery_method")
+        package = validated_data.pop("package")
+        comment = validated_data.pop("comment")
+        if delivery_method == "Point of delivery":
+            delivery_point = validated_data.pop("delivery_point")
+            if not delivery_point:
+                raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
+            delivery_point = Delivery.objects.get(delivery_point=delivery_point)
+            address = None
+        else:
+            address = Address.objects.get(address=validated_data.pop("address"))
+            if not address:
+                raise serializers.ValidationError("Нужно указать адрес доставки.")
+            delivery_point = None
+        shopping_cart.status = "Ordered"
+        shopping_cart.save()
+        return Order.objects.create(
+            user=user,
+            shopping_cart=shopping_cart,
+            status="Ordered",
+            payment_method=payment_method,
+            delivery_method=delivery_method,
+            delivery_point=delivery_point,
+            package=package,
+            comment=comment,
+            address=address,
+        )
+
+    def to_representation(self, instance):
+        return OrderListSerializer(instance, context=self.context).data

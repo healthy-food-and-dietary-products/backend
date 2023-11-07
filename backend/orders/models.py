@@ -111,9 +111,8 @@ class Order(models.Model):
     )
 
     PAYMENT_METHODS = (
-        ("Cash", "Наличные"),
-        ("By card on the website", "Картой на сайте"),
-        ("In getting by card", "Оплата картой курьеру"),
+        ("Payment at the point of delivery", "Оплата в пункте самовывоза"),
+        ("In getting by cash", "Оплата наличными курьеру"),
     )
 
     DELIVERY_METHOD = (
@@ -128,35 +127,46 @@ class Order(models.Model):
         verbose_name="Покупатель",
     )
     order_number = models.CharField("Number", max_length=50, default="1")
-    ordering_date = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата оформления заказа"
-    )
+    ordering_date = models.DateTimeField(auto_now_add=True, verbose_name="DateTime")
     shopping_cart = models.ForeignKey(
-        ShoppingCart, on_delete=models.CASCADE, related_name="orders"
+        ShoppingCart,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Shopping Cart",
     )
-    status = models.CharField(max_length=50, choices=STATUS, default="Оформлен")
+    status = models.CharField(
+        "Status", max_length=50, choices=STATUS, default="Оформлен"  # make variable
+    )
     payment_method = models.CharField(
-        max_length=50, choices=PAYMENT_METHODS, default="Картой на сайте"
+        "Payment Method",
+        max_length=50,
+        choices=PAYMENT_METHODS,
+        default="Картой на сайте",  # This method no longer exists, make variable
     )
-    is_paid = models.BooleanField(default=False)
-    comment = models.TextField(max_length=400, blank=True)
+    is_paid = models.BooleanField("Is paid", default=False)
+    comment = models.TextField("Comment", blank=True)  # make null true
     delivery_method = models.CharField(
-        max_length=50, choices=DELIVERY_METHOD, default="Курьером"
-    )
+        "Delivery Method", max_length=50, choices=DELIVERY_METHOD, default="Курьер"
+    )  # make variable
     address = models.ForeignKey(
         Address,
-        on_delete=models.CASCADE,
-        verbose_name="Адрес покупателя",
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        verbose_name="User's address",
     )
-    package = models.BooleanField(default=False, verbose_name="Упаковка")
+    package = models.FloatField(
+        "Package price",
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Price per order packaging",
+    )
     delivery_point = models.ForeignKey(
         Delivery,
-        on_delete=models.CASCADE,
-        verbose_name="Пункт выдачи",
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        verbose_name="Delivery Point",
     )
 
     class Meta:
@@ -165,4 +175,6 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"{self.ordering_date} , {self.order_number} ,{self.user.username}."
+        return (
+            f"{self.ordering_date} - {self.order_number} - {self.shopping_cart.user}."
+        )
