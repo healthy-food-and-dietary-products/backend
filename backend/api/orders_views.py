@@ -73,7 +73,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 for product in products
             ]
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def patch(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
