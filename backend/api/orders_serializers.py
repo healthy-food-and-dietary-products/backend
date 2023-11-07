@@ -107,6 +107,4 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         model = ShoppingCart
 
     def to_representation(self, instance):
-        instance = instance["products"]
-        context = self.context
-        return ShoppingCartGetSerializer(instance, context).data
+        return ShoppingCartGetSerializer(instance, context=self.context).data
