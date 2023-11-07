@@ -18,8 +18,6 @@ from .products_views import (
 )
 from .users_views import AddressViewSet
 
-# from users.views import ActivateUser
-
 app_name = "api"
 
 router = DefaultRouter()
@@ -37,14 +35,8 @@ router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
 
-
 urlpatterns = [
     path("", include(router.urls)),
-    # path(
-    #     "account-activate/<str:uid>/<str:token>/",
-    #     ActivateUser.as_view(),
-    #     name="activate_email",
-    # ),
     path("", include("djoser.urls")),
     path("", include("djoser.urls.authtoken")),
 ]
