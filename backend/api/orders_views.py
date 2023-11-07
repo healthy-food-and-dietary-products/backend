@@ -25,7 +25,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         user = self.request.user
         if user.is_authenticated and int(user.id) == int(user_id):
             return ShoppingCart.objects.filter(user=user)
-        if self.request.is_admin:
+        if self.request.user.is_admin:
             return ShoppingCart.objects.filter(user=user_id)
         raise PermissionDenied()
 
