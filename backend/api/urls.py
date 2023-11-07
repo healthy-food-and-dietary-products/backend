@@ -22,7 +22,6 @@ app_name = "api"
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet)
-router.register("shopping_cart", ShoppingCartViewSet)
 router.register("subcategories", SubcategoryViewSet)
 router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
@@ -33,6 +32,11 @@ router.register("favorite-products", FavoriteProductViewSet)
 router.register("users", UserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
+)
+router.register(
+    r"users/(?P<user_id>\d+)/shopping_cart",
+    ShoppingCartViewSet,
+    basename="shopping_carts"
 )
 
 urlpatterns = [

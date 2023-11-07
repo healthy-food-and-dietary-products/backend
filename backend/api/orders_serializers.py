@@ -18,27 +18,26 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
 
     id = serializers.ReadOnlyField(source="product.id")
     name = serializers.ReadOnlyField(source="product.name")
-    measurement_unit = serializers.ReadOnlyField(source="product.measurement_unit")
+    measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
     amount = serializers.ReadOnlyField(source="product.amount")
-    price = serializers.ReadOnlyField(source="product.price")
-    # is_favorited = serializers.SerializerMethodField()
+    final_price = serializers.ReadOnlyField(source="product.final_price")
+    is_favorited_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = ShoppingCartProduct
         fields = (
             "id",
             "name",
-            "measurement_unit",
-            "price",
+            "measure_unit",
+            "final_price",
             "amount",
             "quantity",
-            # "is_favorited",
+            "is_favorited_by_user",
         )
 
-    # def get_is_favorited(self, obj):
-    #     user = self.context["request"].user
-    #
-    #     return FavoriteProduct.objects.filter(user=user, product=obj).exists()
+    def get_is_favorited_by_user(self, obj):
+        """Checks if this product is in the buyer's favorites."""
+        return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
 
 
 class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
@@ -104,7 +103,7 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
     products = ShoppingCartProductCreateUpdateSerializer(many=True)
 
     class Meta:
-        fields = ("user", "products", "total_price", "status")
+        fields = ("products",)
         model = ShoppingCart
 
     def to_representation(self, instance):

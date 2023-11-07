@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from rest_framework import permissions, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,16 +20,14 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
 
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            return ShoppingCart.objects.filter(user=self.request.user)
-        return Response(
-            {
-                "errors": "Просмотр корзины доступен "
-                "только авторизированному пользователю!"
-            },
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+    def get_queryset(self, **kwargs):
+        user_id = self.kwargs.get("user_id")
+        user = self.request.user
+        if user.is_authenticated and int(user.id) == int(user_id): # кажется здесь не нужен int
+            return ShoppingCart.objects.filter(user=user)
+        if user.is_admin:
+            return ShoppingCart.objects.filter(user=user_id)
+        raise PermissionDenied()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -37,7 +36,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     def get_shopping_cart(self):
         return ShoppingCart.objects.filter(user=self.request.user).filter(
-            status="In work"
+            status=ShoppingCart.INWORK
         )
 
     def create(self, request, *args, **kwargs):
@@ -56,11 +55,10 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            status="In work",
             total_price=sum(
                 [
-                    int(Product.objects.get(id=product["id"]).price)
-                    * int(product["quantity"])
+                    int(Product.objects.get(id=product["id"]).price) # final_price. Зачем int?
+                    * int(product["quantity"]) # Зачем int?
                     for product in products
                 ]
             ),

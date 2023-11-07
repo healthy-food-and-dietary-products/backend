@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.models import Delivery, Order, ShoppingCart, ShoppingCartProduct
+
+
+@admin.register(Delivery)
+class DeliveryAdmin(admin.ModelAdmin):
+    list_display = ("id", "delivery_point")
+    list_editable = ("delivery_point",)
 
 
 class ShoppingCartProductInline(admin.TabularInline):
