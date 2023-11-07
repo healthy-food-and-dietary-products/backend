@@ -38,7 +38,7 @@ router.register(
     ShoppingCartViewSet,
     basename="shopping_carts",
 )
-router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet)  # need basename
+router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet, basename="orders")
 
 urlpatterns = [
     path("", include(router.urls)),

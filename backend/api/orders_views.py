@@ -21,6 +21,17 @@ from users.models import User
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
+    # TODO: если при создании корзины ввести id другого пользователя,
+    # корзина все равно создастся у меня, нужно, чтобы в этом случае была
+    # ошибка типа "detail": "У вас недостаточно прав для выполнения данного действия."
+    # (такую ошибку обычно выдает сработавший permission)
+
+    # TODO: невозможно отредактировать собственную корзину методом PATCH,
+    # ошибка AssertionError: The `.update()` method does not support writable nested
+    # fields by default. Write an explicit `.update()` method for serializer
+    # `api.orders_serializers.ShoppingCartPostUpdateDeleteSerializer`, or set
+    # `read_only=True` on nested serializer fields.
+
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
@@ -78,7 +89,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 for product in products
             ]
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def patch(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
