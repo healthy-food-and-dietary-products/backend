@@ -155,6 +155,8 @@ class Order(models.Model):
         Delivery,
         on_delete=models.CASCADE,
         verbose_name="Пункт выдачи",
+        blank=True,
+        null=True,
     )
 
     class Meta:

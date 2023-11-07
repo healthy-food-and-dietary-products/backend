@@ -97,6 +97,7 @@ class ShoppingCartGetSerializer(serializers.ModelSerializer):
         fields = ("id", "user", "products", "total_price", "status")
 
 
+# TODO: Show info about the created shoppingcart in the response (it's empty now)
 class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete shopping_cart."""
 

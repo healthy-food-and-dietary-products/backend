@@ -23,7 +23,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     def get_queryset(self, **kwargs):
         user_id = self.kwargs.get("user_id")
         user = self.request.user
-        if user.is_authenticated and int(user.id) == int(user_id): # кажется здесь не нужен int
+        if user.is_authenticated and user.id == int(user_id):
             return ShoppingCart.objects.filter(user=user)
         if user.is_admin:
             return ShoppingCart.objects.filter(user=user_id)
@@ -57,8 +57,8 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             user=self.request.user,
             total_price=sum(
                 [
-                    int(Product.objects.get(id=product["id"]).price) # final_price. Зачем int?
-                    * int(product["quantity"]) # Зачем int?
+                    Product.objects.get(id=product["id"]).final_price
+                    * product["quantity"]
                     for product in products
                 ]
             ),

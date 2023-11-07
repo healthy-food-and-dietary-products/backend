@@ -36,7 +36,7 @@ router.register(
 router.register(
     r"users/(?P<user_id>\d+)/shopping_cart",
     ShoppingCartViewSet,
-    basename="shopping_carts"
+    basename="shopping_carts",
 )
 
 urlpatterns = [
