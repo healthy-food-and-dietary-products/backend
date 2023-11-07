@@ -161,7 +161,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "delivery_method",
             "delivery_point",
             "package",
-            # "total_price",
+            # "total_price", # TODO: add method
             "comment",
             "address",
         )

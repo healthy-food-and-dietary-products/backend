@@ -8,8 +8,9 @@ from users.models import Address, User
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
 
-    ORDERED = "Передано в заказ"
-    INWORK = "В работе"
+    ORDERED = "Ordered"
+    INWORK = "In Work"
+
     SHOPPINGCART = ((ORDERED, "Передано в заказ"), (INWORK, "В работе"))
 
     user = models.ForeignKey(
@@ -100,25 +101,36 @@ class Delivery(models.Model):
 class Order(models.Model):
     """Model for creating an order."""
 
+    ORDERED = "Ordered"
+    PROCESSED = "In processing"
+    COMPLETED = "Completed"
+    GATHERED = "Gathered"
+    DELIVERING = "In delivering"
+    DELIVERED = "Delivered"
+    COMPLETED = "Completed"
+
     STATUS = (
-        ("Ordered", "Оформлен"),
-        ("In processing", "В обработке"),
-        ("Completed", "Комплектуется"),
-        ("Gathered", "Собран"),
-        ("In delivering", "Передан в доставку"),
-        ("Delivered", "Доставлен"),
-        ("Completed", "Завершен"),
+        (ORDERED, "Оформлен"),
+        (PROCESSED, "В обработке"),
+        (COMPLETED, "Комплектуется"),
+        (GATHERED, "Собран"),
+        (DELIVERING, "Передан в доставку"),
+        (DELIVERED, "Доставлен"),
+        (COMPLETED, "Завершен"),
     )
+
+    DELIVERY_POINT_PAYMENT = "Payment at the point of delivery"
+    COURIER_CASH_PAYMENT = "In getting by cash"
 
     PAYMENT_METHODS = (
-        ("Payment at the point of delivery", "Оплата в пункте самовывоза"),
-        ("In getting by cash", "Оплата наличными курьеру"),
+        (DELIVERY_POINT_PAYMENT, "Оплата в пункте самовывоза"),
+        (COURIER_CASH_PAYMENT, "Оплата наличными курьеру"),
     )
 
-    DELIVERY_METHOD = (
-        ("Point of delivery", "Пункт выдачи"),
-        ("By courier", "Курьер"),
-    )
+    DELIVERY_POINT = "Point of delivery"
+    COURIER = "By courier"
+
+    DELIVERY_METHOD = ((DELIVERY_POINT, "Пункт выдачи"), (COURIER, "Курьер"))
 
     user = models.ForeignKey(
         User,
@@ -134,20 +146,18 @@ class Order(models.Model):
         related_name="orders",
         verbose_name="Shopping Cart",
     )
-    status = models.CharField(
-        "Status", max_length=50, choices=STATUS, default="Оформлен"  # make variable
-    )
+    status = models.CharField("Status", max_length=50, choices=STATUS, default=ORDERED)
     payment_method = models.CharField(
         "Payment Method",
         max_length=50,
         choices=PAYMENT_METHODS,
-        default="Картой на сайте",  # This method no longer exists, make variable
+        default=COURIER_CASH_PAYMENT,
     )
     is_paid = models.BooleanField("Is paid", default=False)
-    comment = models.TextField("Comment", blank=True)  # make null true
+    comment = models.TextField("Comment", null=True, blank=True)
     delivery_method = models.CharField(
-        "Delivery Method", max_length=50, choices=DELIVERY_METHOD, default="Курьер"
-    )  # make variable
+        "Delivery Method", max_length=50, choices=DELIVERY_METHOD, default=COURIER
+    )
     address = models.ForeignKey(
         Address,
         on_delete=models.SET_NULL,

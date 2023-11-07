@@ -126,7 +126,7 @@ class OrderViewSet(
         return Response(
             {
                 "errorrs": "Создание заказа доступно "
-                "только авторизированному пользователю!"
+                "только авторизированному пользователю."
             },
             status=status.HTTP_401_UNAUTHORIZED,
         )
@@ -140,7 +140,7 @@ class OrderViewSet(
         order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
         if order.values("status") in ("In delivering", "Delivered", "Completed"):
             Response(
-                {"errors": "Отмена заказа невозможна," "только отказ при получении!"}
+                {"errors": "Отмена заказа невозможна, только отказ при получении."}
             )
         if not order:
             return Response(
