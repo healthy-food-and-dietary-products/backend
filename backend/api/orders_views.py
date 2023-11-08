@@ -1,10 +1,10 @@
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from rest_framework import mixins, permissions, status
+from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
@@ -137,20 +137,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class OrderViewSet(
-    DestroyWithPayloadMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.CreateModelMixin,
-    GenericViewSet,
-):
+class OrderViewSet(ModelViewSet):
     """Viewset for Order."""
 
+    http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrAdmin]
-    http_method_names = ["get", "post", "delete"]
-    pagination_class = None
 
     def get_user(self):
         user_id = self.kwargs.get("user_id")
@@ -176,20 +168,22 @@ class OrderViewSet(
             raise PermissionDenied()
         return super().create(request, *args, **kwargs)
 
-    def delete(self, request, *args, **kwargs):  # TODO: check all possible cases
-        order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
+    def destroy(self, *args, **kwargs):
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user != self.get_user():
+            raise PermissionDenied()
         order_restricted_deletion_statuses = [
-            Order.COMPLETED,
+            Order.COLLECTING,
             Order.GATHERED,
             Order.DELIVERING,
             Order.DELIVERED,
             Order.COMPLETED,
         ]
-        if order.values("status") in order_restricted_deletion_statuses:
-            Response({"errors": "Отмена заказа после комплектования невозможна."})
-        if not order:
+        if order.status in order_restricted_deletion_statuses:
             return Response(
-                "У вас нет неисполненных заказов.", status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Отмена заказа после комплектования невозможна."}
             )
+        serializer_data = self.get_serializer(order).data
+        serializer_data["Success"] = "This object was successfully deleted"
         order.delete()
-        return Response("Заказ успешно удален.", status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer_data, status=status.HTTP_200_OK)
