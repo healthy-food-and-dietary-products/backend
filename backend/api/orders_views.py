@@ -22,13 +22,6 @@ from users.models import User
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
-    # TODO: Теперь корзину можно поменять методом PATCH (django не падает с ошибкой,
-    # а в Response видны обновленные данные корзины),
-    # но если потом запросить данные об этой корзине методом GET, то там старая
-    # информация, без внесенных в корзину изменений. То есть после patch корзина
-    # не сохранила изменения. Если эту корзину удалить, то в Response тоже будут
-    # старые данные корзины (какая она была при создании, без учета внесенных изменений)
-
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
@@ -81,17 +74,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            total_price=(
-                round(
-                    sum(
-                        [
-                            Product.objects.get(id=product["id"]).final_price
-                            * product["quantity"]
-                            for product in products
-                        ]
-                    ),
-                    2,
-                )
+            total_price=(round(sum(
+                [
+                    (float(Product.objects.get(id=product["id"]).final_price))
+                    * int(product["quantity"])
+                    for product in products
+                ]), 2)
             ),
         )
         ShoppingCartProduct.objects.bulk_create(
@@ -109,8 +97,24 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
+        products = request.data["products"]
         serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        if products is not None:
+            shopping_cart.products.clear()
+        ShoppingCartProduct.objects.bulk_create(
+            [ShoppingCartProduct(
+                shopping_cart=shopping_cart,
+                quantity=product["quantity"],
+                product=Product.objects.get(id=product["id"]),
+            )
+                for product in products]
+        )
+        shopping_cart.total_price = (round(sum(
+            [(float(Product.objects.get(id=int(product["id"])).final_price))
+             * int(product["quantity"])
+             for product in products]), 2)
+        )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
