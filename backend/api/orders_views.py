@@ -22,16 +22,12 @@ from users.models import User
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
-    # TODO: если при создании корзины ввести id другого пользователя,
-    # корзина все равно создастся у меня, нужно, чтобы в этом случае была
-    # ошибка типа "detail": "У вас недостаточно прав для выполнения данного действия."
-    # (такую ошибку обычно выдает сработавший permission)
-
-    # TODO: невозможно отредактировать собственную корзину методом PATCH,
-    # ошибка AssertionError: The `.update()` method does not support writable nested
-    # fields by default. Write an explicit `.update()` method for serializer
-    # `api.orders_serializers.ShoppingCartPostUpdateDeleteSerializer`, or set
-    # `read_only=True` on nested serializer fields.
+    # TODO: Теперь корзину можно поменять методом PATCH (django не падает с ошибкой,
+    # а в Response видны обновленные данные корзины),
+    # но если потом запросить данные об этой корзине методом GET, то там старая
+    # информация, без внесенных в корзину изменений. То есть после patch корзина
+    # не сохранила изменения. Если эту корзину удалить, то в Response тоже будут
+    # старые данные корзины (какая она была при создании, без учета внесенных изменений)
 
     queryset = ShoppingCart.objects.all()
     permission_classes = [IsAuthenticated]
@@ -64,6 +60,8 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        if self.kwargs.get("user_id") != str(self.request.user.id):
+            raise PermissionDenied()
         if (
             ShoppingCart.objects.filter(user=self.request.user)
             .filter(status=ShoppingCart.INWORK)
@@ -111,9 +109,11 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
+        print(request.data)
         serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         shopping_cart.save()
+        print(shopping_cart.__dict__)
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
