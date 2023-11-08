@@ -146,9 +146,7 @@ class OrderViewSet(
     """Viewset for Order."""
 
     queryset = Order.objects.all()
-    permission_classes = [
-        IsAuthorOrAdmin,
-    ]
+    permission_classes = [IsAuthenticated, IsAuthorOrAdmin]
     http_method_names = ["get", "post", "delete"]
     pagination_class = None
 

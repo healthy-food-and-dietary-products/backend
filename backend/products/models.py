@@ -280,7 +280,7 @@ class Product(models.Model):
     )
     orders_number = models.PositiveIntegerField(
         "Orders number", default=0, help_text="Number of orders for this product"
-    )  # TODO: make autoincrement after order
+    )
 
     class Meta:
         verbose_name = "Product"
