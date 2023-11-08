@@ -27,7 +27,7 @@ class ShoppingCart(models.Model):
     )
     status = models.CharField(max_length=50, choices=SHOPPINGCART, default=INWORK)
     total_price = models.PositiveIntegerField(default=0)
-    created = models.DateTimeField("Created", auto_now_add=True)
+    created = models.DateTimeField("Created", auto_now_add=True, null=True)
 
     class Meta:
         verbose_name = "Корзина"
