@@ -34,7 +34,7 @@ class ShoppingCart(models.Model):
         verbose_name_plural = "Корзина"
 
     def __str__(self) -> str:
-        moment = self.created.strftime("%m/%d/%Y, %H:%M:%S")
+        moment = self.created #.strftime("%m/%d/%Y, %H:%M:%S")
         return f"Shopping cart of {self.user}, {self.status}, {moment}"
 
 
