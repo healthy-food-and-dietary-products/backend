@@ -108,6 +108,12 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         fields = ("products",)
         model = ShoppingCart
 
+    def validate_products(self, data):
+        products_id = [product["id"] for product in data]
+        if len(products_id) != len(set(products_id)):
+            raise serializers.ValidationError("Продукты не должны повторяться.")
+        return data
+
     def to_representation(self, instance):
         return ShoppingCartGetSerializer(instance, context=self.context).data
 
@@ -157,21 +163,46 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            "order_number",
             "payment_method",
             "delivery_method",
             "delivery_point",
             "package",
-            # "total_price", # TODO: add method
             "comment",
             "address",
         )
+
+    def validate_address(self, data):
+        """Checks that the user has not entered someone else's address."""
+        if data.user != self.context["request"].user:
+            raise serializers.ValidationError(
+                "Данный адрес доставки принадлежит другому пользователю."
+            )
+        return data
+
+    def validate(self, attrs):
+        """Checks that the payment method matches the delivery method."""
+        no_match_error_message = (
+            "Способ получения заказа не соответствует способу оплаты."
+        )
+        if (
+            attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
+            and attrs["delivery_method"] == Order.COURIER
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+        if (
+            attrs["payment_method"] == Order.COURIER_CASH_PAYMENT
+            and attrs["delivery_method"] == Order.DELIVERY_POINT
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+        return super().validate(attrs)
 
     @transaction.atomic
     def create(self, validated_data):
         user = self.context["request"].user
         try:
-            shopping_cart = ShoppingCart.objects.get(user=user, status="In work")
+            shopping_cart = ShoppingCart.objects.get(
+                user=user, status=ShoppingCart.INWORK
+            )
         except Exception:
             raise serializers.ValidationError(
                 "У вас нет продуктов для заказа, наполните корзину."
@@ -181,18 +212,22 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         package = validated_data.pop("package")
         comment = validated_data.pop("comment")
         if delivery_method == "Point of delivery":
-            delivery_point = validated_data.pop("delivery_point")
-            if not delivery_point:
+            if not validated_data.get("delivery_point"):
                 raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
-            delivery_point = Delivery.objects.get(delivery_point=delivery_point)
+            delivery_point = Delivery.objects.get(
+                delivery_point=validated_data.pop("delivery_point")
+            )
             address = None
         else:
-            address = Address.objects.get(address=validated_data.pop("address"))
-            if not address:
+            if not validated_data.get("address"):
                 raise serializers.ValidationError("Нужно указать адрес доставки.")
+            address = Address.objects.get(address=validated_data.pop("address"))
             delivery_point = None
         shopping_cart.status = "Ordered"
         shopping_cart.save()
+        for product in shopping_cart.products.all():
+            product.orders_number += 1
+            product.save()
         return Order.objects.create(
             user=user,
             shopping_cart=shopping_cart,

@@ -1,10 +1,10 @@
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from rest_framework import mixins, permissions, status
+from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
@@ -74,12 +74,17 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            total_price=(round(sum(
-                [
-                    (float(Product.objects.get(id=product["id"]).final_price))
-                    * int(product["quantity"])
-                    for product in products
-                ]), 2)
+            total_price=(
+                round(
+                    sum(
+                        [
+                            (float(Product.objects.get(id=product["id"]).final_price))
+                            * int(product["quantity"])
+                            for product in products
+                        ]
+                    ),
+                    2,
+                )
             ),
         )
         ShoppingCartProduct.objects.bulk_create(
@@ -103,17 +108,24 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         if products is not None:
             shopping_cart.products.clear()
         ShoppingCartProduct.objects.bulk_create(
-            [ShoppingCartProduct(
-                shopping_cart=shopping_cart,
-                quantity=product["quantity"],
-                product=Product.objects.get(id=product["id"]),
-            )
-                for product in products]
+            [
+                ShoppingCartProduct(
+                    shopping_cart=shopping_cart,
+                    quantity=product["quantity"],
+                    product=Product.objects.get(id=product["id"]),
+                )
+                for product in products
+            ]
         )
-        shopping_cart.total_price = (round(sum(
-            [(float(Product.objects.get(id=int(product["id"])).final_price))
-             * int(product["quantity"])
-             for product in products]), 2)
+        shopping_cart.total_price = round(
+            sum(
+                [
+                    (float(Product.objects.get(id=int(product["id"])).final_price))
+                    * int(product["quantity"])
+                    for product in products
+                ]
+            ),
+            2,
         )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
@@ -124,21 +136,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class OrderViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.CreateModelMixin,
-    GenericViewSet,
-):
+class OrderViewSet(ModelViewSet):
     """Viewset for Order."""
 
-    queryset = Order.objects.all()
-    permission_classes = [
-        IsAuthorOrAdmin,
-    ]
     http_method_names = ["get", "post", "delete"]
-    pagination_class = None
+    queryset = Order.objects.all()
+    permission_classes = [IsAuthenticated, IsAuthorOrAdmin]
 
     def get_user(self):
         user_id = self.kwargs.get("user_id")
@@ -149,29 +152,37 @@ class OrderViewSet(
             user = self.request.user
             if user.role == "admin" or user.role == "moderator":
                 return self.get_user().orders.all()
+            if self.get_user() != self.request.user:
+                raise PermissionDenied()
             return self.request.user.orders.all()
-        return Response(
-            {
-                "errorrs": "Создание заказа доступно "
-                "только авторизированному пользователю."
-            },
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+        raise PermissionDenied()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return OrderListSerializer
         return OrderPostDeleteSerializer
 
-    def delete(self, request, *args, **kwargs):
-        order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
-        if order.values("status") in ("In delivering", "Delivered", "Completed"):
-            Response(
-                {"errors": "Отмена заказа невозможна, только отказ при получении."}
-            )
-        if not order:
+    def create(self, request, *args, **kwargs):
+        if self.kwargs.get("user_id") != str(self.request.user.id):
+            raise PermissionDenied()
+        return super().create(request, *args, **kwargs)
+
+    def destroy(self, *args, **kwargs):
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user != self.get_user():
+            raise PermissionDenied()
+        order_restricted_deletion_statuses = [
+            Order.COLLECTING,
+            Order.GATHERED,
+            Order.DELIVERING,
+            Order.DELIVERED,
+            Order.COMPLETED,
+        ]
+        if order.status in order_restricted_deletion_statuses:
             return Response(
-                "У вас нет неисполненных заказов.", status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Отмена заказа после комплектования невозможна."}
             )
+        serializer_data = self.get_serializer(order).data
+        serializer_data["Success"] = "This object was successfully deleted"
         order.delete()
-        return Response("Заказ успешно удален.", status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer_data, status=status.HTTP_200_OK)
