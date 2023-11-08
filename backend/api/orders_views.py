@@ -109,11 +109,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
-        print(request.data)
         serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         shopping_cart.save()
-        print(shopping_cart.__dict__)
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
