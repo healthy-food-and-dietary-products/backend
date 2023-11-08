@@ -1,5 +1,4 @@
 from django.urls import include, path, re_path
-from djoser.views import UserViewSet
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -16,7 +15,7 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet
+from .users_views import AddressViewSet, CustomUserViewSet
 
 app_name = "api"
 
@@ -29,7 +28,7 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorite-products", FavoriteProductViewSet)
-router.register("users", UserViewSet)
+router.register("users", CustomUserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )

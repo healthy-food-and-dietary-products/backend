@@ -76,7 +76,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             user=self.request.user,
             total_price=(round(sum(
                 [
-                    (float(Product.objects.get(id=product["id"]).price))
+                    (float(Product.objects.get(id=product["id"]).final_price))
                     * int(product["quantity"])
                     for product in products
                 ]), 2)
@@ -111,7 +111,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 for product in products]
         )
         shopping_cart.total_price = (round(sum(
-            [(float(Product.objects.get(id=int(product["id"])).price))
+            [(float(Product.objects.get(id=int(product["id"])).final_price))
              * int(product["quantity"])
              for product in products]), 2)
         )

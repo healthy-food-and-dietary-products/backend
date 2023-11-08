@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
+from djoser.serializers import UserDeleteSerializer as DjoserUserDeleteSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -95,3 +96,9 @@ class UserLightSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         fields = ("username", "email")
+
+
+class CustomUserDeleteSerializer(DjoserUserDeleteSerializer):
+    """Serializer to delete users without input of current password."""
+
+    current_password = serializers.ReadOnlyField()
