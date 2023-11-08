@@ -20,6 +20,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source="product.name")
     measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
     amount = serializers.ReadOnlyField(source="product.amount")
+    price = serializers.ReadOnlyField(source="product.price")
     final_price = serializers.ReadOnlyField(source="product.final_price")
     is_favorited_by_user = serializers.SerializerMethodField()
 
@@ -29,6 +30,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "measure_unit",
+            "price",
             "final_price",
             "amount",
             "quantity",
