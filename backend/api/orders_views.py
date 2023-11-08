@@ -170,12 +170,17 @@ class OrderViewSet(
             return OrderListSerializer
         return OrderPostDeleteSerializer
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):  # TODO: check all possible cases
         order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
-        if order.values("status") in ("In delivering", "Delivered", "Completed"):
-            Response(
-                {"errors": "Отмена заказа невозможна, только отказ при получении."}
-            )
+        order_restricted_deletion_statuses = [
+            Order.COMPLETED,
+            Order.GATHERED,
+            Order.DELIVERING,
+            Order.DELIVERED,
+            Order.COMPLETED,
+        ]
+        if order.values("status") in order_restricted_deletion_statuses:
+            Response({"errors": "Отмена заказа после комплектования невозможна."})
         if not order:
             return Response(
                 "У вас нет неисполненных заказов.", status=status.HTTP_400_BAD_REQUEST
