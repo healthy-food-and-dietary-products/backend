@@ -103,7 +103,7 @@ class Order(models.Model):
 
     ORDERED = "Ordered"
     PROCESSED = "In processing"
-    COMPLETED = "Completed"
+    COLLECTING = "Collecting"
     GATHERED = "Gathered"
     DELIVERING = "In delivering"
     DELIVERED = "Delivered"
@@ -112,7 +112,7 @@ class Order(models.Model):
     STATUS = (
         (ORDERED, "Оформлен"),
         (PROCESSED, "В обработке"),
-        (COMPLETED, "Комплектуется"),
+        (COLLECTING, "Комплектуется"),
         (GATHERED, "Собран"),
         (DELIVERING, "Передан в доставку"),
         (DELIVERED, "Доставлен"),
