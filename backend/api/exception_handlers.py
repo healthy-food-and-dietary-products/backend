@@ -6,5 +6,7 @@ def custom_404_exception_handler(exc, context):
     """Custom response for 404 status code."""
     response = exception_handler(exc, context)
     if response and response.status_code == status.HTTP_404_NOT_FOUND:
-        response.data["detail"] = "An object with this ID does not exist"
+        response.data[
+            "detail"
+        ] = "An object or objects combination with this ID does not exist"
     return response
