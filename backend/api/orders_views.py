@@ -1,4 +1,5 @@
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import transaction
 from rest_framework import mixins, permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -50,13 +51,24 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             return ShoppingCartGetSerializer
         return ShoppingCartPostUpdateDeleteSerializer
 
-    def get_shopping_cart(self):
-        return ShoppingCart.objects.filter(user=self.request.user).filter(
-            status=ShoppingCart.INWORK
-        )
+    def get_shopping_cart(self, **kwargs):
+        shopping_cart = get_object_or_404(ShoppingCart, id=self.kwargs.get("pk"))
+        if not shopping_cart:
+            raise ObjectDoesNotExist
+        if (
+            shopping_cart.user == self.request.user
+            and shopping_cart.status == ShoppingCart.INWORK
+        ):
+            return shopping_cart
+        raise PermissionDenied()
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        if self.get_shopping_cart():
+        if (
+            ShoppingCart.objects.filter(user=self.request.user)
+            .filter(status=ShoppingCart.INWORK)
+            .exists()
+        ):
             return Response(
                 {
                     "errors": "Ваша корзина еще не оформлена, "
@@ -71,12 +83,17 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            total_price=sum(
-                [
-                    Product.objects.get(id=product["id"]).final_price
-                    * product["quantity"]
-                    for product in products
-                ]
+            total_price=(
+                round(
+                    sum(
+                        [
+                            Product.objects.get(id=product["id"]).final_price
+                            * product["quantity"]
+                            for product in products
+                        ]
+                    ),
+                    2,
+                )
             ),
         )
         ShoppingCartProduct.objects.bulk_create(
@@ -91,19 +108,16 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         )
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    def patch(self, request, *args, **kwargs):
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
         serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
-        if not shopping_cart:
-            return Response(
-                "В вашей корзине нет товаров.",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
