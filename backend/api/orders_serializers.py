@@ -224,8 +224,10 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             address = Address.objects.get(address=validated_data.pop("address"))
             delivery_point = None
         shopping_cart.status = "Ordered"
-        # TODO: autoincrement orders_number field of products in order after ordering
         shopping_cart.save()
+        for product in shopping_cart.products.all():
+            product.orders_number += 1
+            product.save()
         return Order.objects.create(
             user=user,
             shopping_cart=shopping_cart,
