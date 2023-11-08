@@ -164,12 +164,10 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            "order_number",
             "payment_method",
             "delivery_method",
             "delivery_point",
             "package",
-            # "total_price", # TODO: add method
             "comment",
             "address",
         )
@@ -178,27 +176,33 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         try:
-            shopping_cart = ShoppingCart.objects.get(user=user, status="In work")
+            shopping_cart = ShoppingCart.objects.get(
+                user=user, status=ShoppingCart.INWORK
+            )
         except Exception:
             raise serializers.ValidationError(
                 "У вас нет продуктов для заказа, наполните корзину."
             )
+        # TODO: check that the payment method matches the delivery method
         payment_method = validated_data.pop("payment_method")
         delivery_method = validated_data.pop("delivery_method")
         package = validated_data.pop("package")
         comment = validated_data.pop("comment")
         if delivery_method == "Point of delivery":
-            delivery_point = validated_data.pop("delivery_point")
-            if not delivery_point:
+            if not validated_data.get("delivery_point"):
                 raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
-            delivery_point = Delivery.objects.get(delivery_point=delivery_point)
+            delivery_point = Delivery.objects.get(
+                delivery_point=validated_data.pop("delivery_point")
+            )
             address = None
         else:
-            address = Address.objects.get(address=validated_data.pop("address"))
-            if not address:
+            if not validated_data.get("address"):
                 raise serializers.ValidationError("Нужно указать адрес доставки.")
+            # TODO: prohibit ordering to someone else's address
+            address = Address.objects.get(address=validated_data.pop("address"))
             delivery_point = None
         shopping_cart.status = "Ordered"
+        # TODO: autoincrement orders_number field of products in order after ordering
         shopping_cart.save()
         return Order.objects.create(
             user=user,
