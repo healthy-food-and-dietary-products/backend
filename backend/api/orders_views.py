@@ -171,6 +171,11 @@ class OrderViewSet(
             return OrderListSerializer
         return OrderPostDeleteSerializer
 
+    def create(self, request, *args, **kwargs):
+        if self.kwargs.get("user_id") != str(self.request.user.id):
+            raise PermissionDenied()
+        return super().create(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):  # TODO: check all possible cases
         order = get_object_or_404(Order, id=self.kwargs.get("order_id"))
         order_restricted_deletion_statuses = [
