@@ -108,6 +108,13 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         fields = ("products",)
         model = ShoppingCart
 
+    def validate_products(self, data):
+        products_id = [product["id"] for product in data]
+        if len(products_id) != len(set(products_id)):
+            raise serializers.ValidationError(
+                'Продукты не должны повторяться!')
+        return data
+
     def to_representation(self, instance):
         return ShoppingCartGetSerializer(instance, context=self.context).data
 
