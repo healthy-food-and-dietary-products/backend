@@ -74,12 +74,17 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
             user=self.request.user,
-            total_price=(round(sum(
-                [
-                    (float(Product.objects.get(id=product["id"]).final_price))
-                    * int(product["quantity"])
-                    for product in products
-                ]), 2)
+            total_price=(
+                round(
+                    sum(
+                        [
+                            (float(Product.objects.get(id=product["id"]).final_price))
+                            * int(product["quantity"])
+                            for product in products
+                        ]
+                    ),
+                    2,
+                )
             ),
         )
         ShoppingCartProduct.objects.bulk_create(
@@ -103,17 +108,24 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         if products is not None:
             shopping_cart.products.clear()
         ShoppingCartProduct.objects.bulk_create(
-            [ShoppingCartProduct(
-                shopping_cart=shopping_cart,
-                quantity=product["quantity"],
-                product=Product.objects.get(id=product["id"]),
-            )
-                for product in products]
+            [
+                ShoppingCartProduct(
+                    shopping_cart=shopping_cart,
+                    quantity=product["quantity"],
+                    product=Product.objects.get(id=product["id"]),
+                )
+                for product in products
+            ]
         )
-        shopping_cart.total_price = (round(sum(
-            [(float(Product.objects.get(id=int(product["id"])).final_price))
-             * int(product["quantity"])
-             for product in products]), 2)
+        shopping_cart.total_price = round(
+            sum(
+                [
+                    (float(Product.objects.get(id=int(product["id"])).final_price))
+                    * int(product["quantity"])
+                    for product in products
+                ]
+            ),
+            2,
         )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
@@ -149,14 +161,10 @@ class OrderViewSet(
             user = self.request.user
             if user.role == "admin" or user.role == "moderator":
                 return self.get_user().orders.all()
+            if self.get_user() != self.request.user:
+                raise PermissionDenied()
             return self.request.user.orders.all()
-        return Response(
-            {
-                "errorrs": "Создание заказа доступно "
-                "только авторизированному пользователю."
-            },
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+        raise PermissionDenied()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
