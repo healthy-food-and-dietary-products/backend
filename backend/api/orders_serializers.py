@@ -171,6 +171,14 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
+    def validate_address(self, data):
+        """Checks that the user has not entered someone else's address."""
+        if data.user != self.context["request"].user:
+            raise serializers.ValidationError(
+                "Данный адрес доставки принадлежит другому пользователю."
+            )
+        return data
+
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
@@ -213,7 +221,6 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         else:
             if not validated_data.get("address"):
                 raise serializers.ValidationError("Нужно указать адрес доставки.")
-            # TODO: prohibit ordering to someone else's address
             address = Address.objects.get(address=validated_data.pop("address"))
             delivery_point = None
         shopping_cart.status = "Ordered"
