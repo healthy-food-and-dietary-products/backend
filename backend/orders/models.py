@@ -27,14 +27,14 @@ class ShoppingCart(models.Model):
     )
     status = models.CharField(max_length=50, choices=SHOPPINGCART, default=INWORK)
     total_price = models.PositiveIntegerField(default=0)
-    created = models.DateTimeField("Created", auto_now_add=True, null=True)
+    created = models.DateTimeField("Created", auto_now_add=True)
 
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзина"
 
     def __str__(self) -> str:
-        moment = self.created  # .strftime("%m/%d/%Y, %H:%M:%S")
+        moment = self.created.strftime("%m/%d/%Y, %H:%M:%S")
         return f"Shopping cart of {self.user}, {self.status}, {moment}"
 
 
