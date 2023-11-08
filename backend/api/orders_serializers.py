@@ -111,8 +111,7 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
     def validate_products(self, data):
         products_id = [product["id"] for product in data]
         if len(products_id) != len(set(products_id)):
-            raise serializers.ValidationError(
-                'Продукты не должны повторяться!')
+            raise serializers.ValidationError("Продукты не должны повторяться.")
         return data
 
     def to_representation(self, instance):
@@ -172,6 +171,23 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
+    def validate(self, attrs):
+        """Checks that the payment method matches the delivery method."""
+        no_match_error_message = (
+            "Способ получения заказа не соответствует способу оплаты."
+        )
+        if (
+            attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
+            and attrs["delivery_method"] == Order.COURIER
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+        if (
+            attrs["payment_method"] == Order.COURIER_CASH_PAYMENT
+            and attrs["delivery_method"] == Order.DELIVERY_POINT
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+        return super().validate(attrs)
+
     @transaction.atomic
     def create(self, validated_data):
         user = self.context["request"].user
@@ -183,7 +199,6 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "У вас нет продуктов для заказа, наполните корзину."
             )
-        # TODO: check that the payment method matches the delivery method
         payment_method = validated_data.pop("payment_method")
         delivery_method = validated_data.pop("delivery_method")
         package = validated_data.pop("package")

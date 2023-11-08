@@ -137,6 +137,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
 
 class OrderViewSet(
+    DestroyWithPayloadMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
