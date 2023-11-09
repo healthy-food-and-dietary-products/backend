@@ -26,9 +26,8 @@ services:
   frontend:
     image: healthyfoodapi/good_food_frontend:v.01
     container_name: good_food_frontend
-    command: cp -r /app/dist/. /frontend_static/
     volumes:
-      - frontend_build_value:/frontend_static
+      - frontend_build_value:/app/result_build/
     env_file:
       - ./.env
     depends_on:
