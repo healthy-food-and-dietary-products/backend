@@ -24,7 +24,7 @@ services:
       - ./.env
 
   frontend:
-    image: healthyfoodapi/good_food_frontend:v.01
+    build: ../../frontend/
     container_name: good_food_frontend
     volumes:
       - frontend_build_value:/app/result_build/
@@ -45,6 +45,7 @@ services:
       - media_value:/var/html/media/
     restart: always
     depends_on:
+      - web
       - frontend
 
 volumes:
