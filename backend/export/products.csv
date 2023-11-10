@@ -1,0 +1,4 @@
+id,name,description,creation_time,category,subcategory,discontinued,producer,measure_unit,amount,price,photo,kcal,proteins,fats,carbohydrates,views_number,orders_number
+1,авокадо,Спелое авокадо,2023-11-09 20:26:02.654896+00:00,Овощи,Зеленые овощи,False,Курочкин П. Н.,г.,50,50.0,avocado.jpg,100,10,10,5,0,0
+2,огурцы,Огурцы гладкие,2023-11-09 20:26:02.667117+00:00,Овощи,Зеленые овощи,False,Веселый молочник,г.,200,60.0,cucumbers.jpg,20,2,0,6,0,0
+3,Чай зеленый Молочный Улунг,Зеленый чай,2023-11-09 20:26:02.674031+00:00,Напитки,Чай зеленый,False,Выборжец,г.,150,300.0,green_tea.jpg,0,0,0,0,0,0
