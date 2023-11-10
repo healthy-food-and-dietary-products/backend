@@ -78,7 +78,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            sudo docker compose stop
+            echo ${{ secrets.SSH_HOST_USER_PASSWORD }} | sudo -S docker compose stop
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/good_food:v.01
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} > .env
