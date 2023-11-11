@@ -1,8 +1,0 @@
-id,password,last_login,is_superuser,first_name,last_name,is_staff,is_active,date_joined,username,email,role,city,birth_date,phone_number,photo
-1,pbkdf2_sha256$600000$wxSgMP6doR4iQjJ3UBfRbB$+sV4AhHiNbp10zdtB/EVy/0Ybb/W9Bqgw7G+fskVPpM=,2023-11-10 21:48:13.447707+00:00,True,,,True,True,2023-11-10 21:48:02.610048+00:00,admin,pisets@ya.ru,user,Moscow,,,default.jpg
-2,Qwerty123poiu,,False,Вася,Пупкин,False,True,2023-11-09 20:26:02.486342+00:00,vasya.pupkin,vasya@yandex.ru,user,Moscow,,,default.jpg
-3,mnbvcxz12345,,False,Юля,Колкина,False,True,2023-11-09 20:26:02.496202+00:00,july.kol,kolkinaa@mail.ru,user,Moscow,,,default.jpg
-4,1234Qwerty987,,False,Настя,Васина,False,True,2023-11-09 20:26:02.500340+00:00,nastya.vasina,nastya@yandex.ru,user,Moscow,,,default.jpg
-5,mnjggffdfdf,,False,Кира,Муравьева,False,True,2023-11-09 20:26:02.502962+00:00,kisa.mura,kisa@yandex.ru,user,Moscow,,,default.jpg
-6,smirnuy098876,,False,Константин,Смирнов,False,True,2023-11-09 20:26:02.505665+00:00,Kostya.Smirny,smirnov@yandex.ru,user,Moscow,,,default.jpg
-7,andr0987,,False,Соня,Андреева,False,True,2023-11-09 20:26:02.508316+00:00,sonya.and,andr@mail.ru,user,Moscow,,,default.jpg

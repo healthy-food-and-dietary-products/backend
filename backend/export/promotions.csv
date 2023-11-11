@@ -1,3 +1,0 @@
-id,promotion_type,name,discount,conditions,is_active,is_constant,start_time,end_time
-1,simple,Black Friday,20,,True,False,,
-2,simple,Megasale,15,,True,False,,
