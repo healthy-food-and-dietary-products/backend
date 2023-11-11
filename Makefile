@@ -19,6 +19,9 @@ shell:
 load_data:
 	cd backend; python3 manage.py load_data
 
+dump_data:
+	cd backend; python3 manage.py export_data
+
 dumpdb:
 	cd backend; python3 manage.py dumpdata --output dump.json
 
