@@ -160,8 +160,12 @@ cython_debug/
 
 /media/
 static/
+data/
+export/
 /backend/media/
 backend/static/
+backend/data/
+backend/export/
 
 # VSCode
 .vscode
