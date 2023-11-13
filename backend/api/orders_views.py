@@ -18,6 +18,8 @@ from orders.models import Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
 from users.models import User
 
+DECIMAL_PLACES_NUMBER = 2
+
 
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
@@ -85,7 +87,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                             for product in products
                         ]
                     ),
-                    2,
+                    DECIMAL_PLACES_NUMBER,
                 )
             ),
         )
@@ -127,7 +129,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                     for product in products
                 ]
             ),
-            2,
+            DECIMAL_PLACES_NUMBER,
         )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
