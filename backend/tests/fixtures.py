@@ -1,47 +1,61 @@
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-from products.models import Category, Component, Product, Producer, Subcategory, Tag
-from users.models import Address, User
+
+from backend.orders.models import ShoppingCart, ShoppingCartProduct
+from backend.products.models import (
+    Category,
+    Component,
+    Product,
+    Producer,
+    Subcategory,
+    Tag,
+)
+from backend.users.models import Address, User
 
 
+# @pytest.fixture
+# def user_superuser(django_user_model):
+#     return django_user_model.objects.create_superuser(
+#         username='TestSuperuser',
+#         email='testsuperuser@good_food.fake',
+#         password='1234567',
+#         role='user',
+#         bio='superuser bio'
+#     )
+#
+#
 @pytest.fixture
 def admin(django_user_model):
-    admin = django_user_model.objects.create_superuser(
-        username='TestAdmin',
-        email='testadmin@good_food.fake',
-        password='1234567',
-        role='admin',
+    return django_user_model.objects.create_user(
+        username="TestAdmin",
+        email="testadmin@good_food.fake",
+        password="1234567",
+        role="admin",
+        bio="admin bio",
     )
-    admin = APIClient(admin)
-    admin.force_authenticate(user=admin)
-    return admin
 
 
 @pytest.fixture
 def moderator(django_user_model):
     return django_user_model.objects.create_user(
-        username='TestModerator',
-        email='testmoder@good_food.fake',
-        password='1234567',
-        role='moderator',
+        username="TestModerator",
+        email="testmoder@good_food.fake",
+        password="1234567",
+        role="moderator",
+        bio="moder bio",
     )
-
-
-@pytest.fixture
-def get_or_create_token(db, create_user):
-    user = create_user()
-    token, _ = Token.objects.get_or_create(user=user)
-    return token
 
 
 @pytest.fixture
 def user():
-    return User.objects.create(
+    address = Address.objects.create(address="Saint-Petersburg", user=1)
+    user = User.objects.create(
         username="username",
         email="email@test_mail.ru",
-        password="1234"
+        addrerss=address,
+        password="1234",
     )
+    return user
 
 
 @pytest.fixture
@@ -53,32 +67,23 @@ def auth_client(user):
 
 @pytest.fixture
 def anonimus_client(user):
-    return APIClient()
-
+    anonimus_client = APIClient()
+    return anonimus_client
 
 
 @pytest.fixture
 def categories():
-    Category.objects.create(name="Овощи")
-    Category.objects.create(name="Хлебобулочные изделия")
-    Category.objects.create(name="Сладости")
+    Category.objects.create(category_name="Овощи")
+    Category.objects.create(category_name="Хлебобулочные изделия")
+    Category.objects.create(category_name="Сладости")
     return Category.objects.all()
 
 
 @pytest.fixture
 def subcategories(categories):
-    Subcategory.objects.create(
-        name="Помидоры",
-        parent_category=categories[0]
-    )
-    Subcategory.objects.create(
-        name="Хлеб",
-        parent_category=categories[1]
-    )
-    Subcategory.objects.create(
-        name="Халва",
-        parent_category=categories[2]
-    )
+    Subcategory.objects.create(name="Помидоры", parent_category=categories[0])
+    Subcategory.objects.create(name="Хлеб", parent_category=categories[1])
+    Subcategory.objects.create(name="Халва", parent_category=categories[2])
     return Subcategory.objects.all()
 
 
@@ -102,23 +107,20 @@ def producers():
     Producer.objects.create(
         name="Выборжец",
         producer_type="Юридическое лицо",
-        address="Ленинградская область"
+        address="Ленинградская область",
     )
     Producer.objects.create(
-        name="Хлебный дом",
-        producer_type="Юридическое лицо",
-        address="Тверь"
+        name="Хлебный дом", producer_type="Юридическое лицо", address="Тверь"
     )
     Producer.objects.create(
-        name="Красный Октябрь",
-        producer_type="Юридическое лицо",
-        address="Москва"
+        name="Красный Октябрь", producer_type="Юридическое лицо", address="Москва"
     )
     return Producer.objects.all()
 
 
 @pytest.fixture
-def products(categories, subcategories, components, tags, producers):
+def products(user, subcategories, components, tags, producers):
+    ind = 0
     price = [100, 140, 120]
     measure_unit = ["гр", "шт", "гр"]
     amount = [1000, 1, 1000]
@@ -126,19 +128,22 @@ def products(categories, subcategories, components, tags, producers):
     fats = [0.2, 1.4, 37]
     proteins = [0.88, 7.7, 13]
     kcal = [18.0, 201, 560]
-    for id in range(len(price)):
+    for subcategory in subcategories:
         Product.objects.create(
-            category=categories[id],
-            subcategory=subcategories[id],
-            name=components[id],
-            price=price[id],
-            producer=producers[id],
-            measure_unit=measure_unit[id],
-            amount=amount[id],
-            kcal=kcal[id],
-            proteins=proteins[id],
-            fats=fats[id],
-            carbohydrates=carbohydrates[id]
+            user=user,
+            subategory=subcategory[ind],
+            name=components[ind],
+            components=components[ind],
+            price=price[ind],
+            tags=tags,
+            producer=producers[ind],
+            measure_unit=measure_unit[ind],
+            amount=amount[ind],
+            kcal=kcal[ind],
+            proteins=proteins[ind],
+            fats=fats[ind],
+            carbohydrates=carbohydrates[ind],
         )
+        ind += 1
 
     return Product.objects.all()
