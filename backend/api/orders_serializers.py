@@ -171,13 +171,13 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    def validate_address(self, data):
+    def validate_address(self, address):
         """Checks that the user has not entered someone else's address."""
-        if data.user != self.context["request"].user:
+        if address.user != self.context["request"].user:
             raise serializers.ValidationError(
                 "Данный адрес доставки принадлежит другому пользователю."
             )
-        return data
+        return address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""

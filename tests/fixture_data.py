@@ -2,7 +2,14 @@ import pytest
 from rest_framework.test import APIClient
 
 from backend.orders.models import ShoppingCart, ShoppingCartProduct
-from backend.products.models import Category, Component, Product, Producer, Subcategory, Tag
+from backend.products.models import (
+    Category,
+    Component,
+    Product,
+    Producer,
+    Subcategory,
+    Tag,
+)
 from backend.users.models import Address, User
 
 
@@ -20,36 +27,33 @@ from backend.users.models import Address, User
 @pytest.fixture
 def admin(django_user_model):
     return django_user_model.objects.create_user(
-        username='TestAdmin',
-        email='testadmin@good_food.fake',
-        password='1234567',
-        role='admin',
-        bio='admin bio'
+        username="TestAdmin",
+        email="testadmin@good_food.fake",
+        password="1234567",
+        role="admin",
+        bio="admin bio",
     )
 
 
 @pytest.fixture
 def moderator(django_user_model):
     return django_user_model.objects.create_user(
-        username='TestModerator',
-        email='testmoder@good_food.fake',
-        password='1234567',
-        role='moderator',
-        bio='moder bio'
+        username="TestModerator",
+        email="testmoder@good_food.fake",
+        password="1234567",
+        role="moderator",
+        bio="moder bio",
     )
 
 
 @pytest.fixture
 def user():
-    address = Address.objects.create(
-        address="Saint-Petersburg",
-        user=1
-    )
+    address = Address.objects.create(address="Saint-Petersburg", user=1)
     user = User.objects.create(
         username="username",
         email="email@test_mail.ru",
         addrerss=address,
-        password="1234"
+        password="1234",
     )
     return user
 
@@ -77,18 +81,9 @@ def categories():
 
 @pytest.fixture
 def subcategories(categories):
-    Subcategory.objects.create(
-        name="Помидоры",
-        parent_category=categories[0]
-    )
-    Subcategory.objects.create(
-        name="Хлеб",
-        parent_category=categories[1]
-    )
-    Subcategory.objects.create(
-        name="Халва",
-        parent_category=categories[2]
-    )
+    Subcategory.objects.create(name="Помидоры", parent_category=categories[0])
+    Subcategory.objects.create(name="Хлеб", parent_category=categories[1])
+    Subcategory.objects.create(name="Халва", parent_category=categories[2])
     return Subcategory.objects.all()
 
 
@@ -112,17 +107,13 @@ def producers():
     Producer.objects.create(
         name="Выборжец",
         producer_type="Юридическое лицо",
-        address="Ленинградская область"
+        address="Ленинградская область",
     )
     Producer.objects.create(
-        name="Хлебный дом",
-        producer_type="Юридическое лицо",
-        address="Тверь"
+        name="Хлебный дом", producer_type="Юридическое лицо", address="Тверь"
     )
     Producer.objects.create(
-        name="Красный Октябрь",
-        producer_type="Юридическое лицо",
-        address="Москва"
+        name="Красный Октябрь", producer_type="Юридическое лицо", address="Москва"
     )
     return Producer.objects.all()
 
@@ -151,8 +142,7 @@ def products(user, subcategories, components, tags, producers):
             kcal=kcal[ind],
             proteins=proteins[ind],
             fats=fats[ind],
-            carbohydrates=carbohydrates[ind]
-
+            carbohydrates=carbohydrates[ind],
         )
         ind += 1
 

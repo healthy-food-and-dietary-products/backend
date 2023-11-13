@@ -32,8 +32,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         if user.is_authenticated and user.is_admin:
             return ShoppingCart.objects.filter(user=user_id)
         if user.is_authenticated and user.id == int(user_id):
-            return ShoppingCart.objects.filter(
-                user=user).filter(status=ShoppingCart.INWORK)
+            return ShoppingCart.objects.filter(user=user).filter(
+                status=ShoppingCart.INWORK
+            )
         raise PermissionDenied()
 
     def get_serializer_class(self):
@@ -185,5 +186,5 @@ class OrderViewSet(ModelViewSet):
             )
         serializer_data = self.get_serializer(order).data
         serializer_data["Success"] = "This object was successfully deleted"
-        order.delete()
+        order.shopping_cart.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
