@@ -33,25 +33,13 @@ if os.getenv("MODE") == "dev":
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-    "[::1]",
-    "web",
-    "https://goodfood.acceleratorpracticum.ru",
-    "goodfood.acceleratorpracticum.ru",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split()
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost/*",
-    "https://goodfood.acceleratorpracticum.ru/*",
-]
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split()
 
 # For django-debug-toolbar
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+if os.getenv("MODE") == "dev":
+    INTERNAL_IPS = os.getenv("INTERNAL_IPS").split()
 
 # Application definition
 

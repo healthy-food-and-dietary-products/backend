@@ -242,6 +242,7 @@ class Product(models.Model):
     measure_unit = models.CharField(
         "Measure unit", max_length=11, choices=CHOISES, default=ITEMS
     )
+    # TODO: add MinValueValidator(1)
     amount = models.PositiveSmallIntegerField(
         "Amount", default=1, help_text="Number of grams, milliliters or items"
     )
