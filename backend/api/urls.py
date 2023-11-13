@@ -4,7 +4,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
-from .orders_views import ShoppingCartViewSet
+from .orders_views import OrderViewSet, ShoppingCartViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
@@ -15,13 +15,12 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet
+from .users_views import AddressViewSet, CustomUserViewSet
 
 app_name = "api"
 
 router = DefaultRouter()
 router.register("categories", CategoryViewSet)
-router.register("shopping_cart", ShoppingCartViewSet),
 router.register("subcategories", SubcategoryViewSet)
 router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
@@ -29,9 +28,16 @@ router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
 router.register("favorite-products", FavoriteProductViewSet)
+router.register("users", CustomUserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
+router.register(
+    r"users/(?P<user_id>\d+)/shopping_cart",
+    ShoppingCartViewSet,
+    basename="shopping_carts",
+)
+router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet, basename="orders")
 
 urlpatterns = [
     path("", include(router.urls)),

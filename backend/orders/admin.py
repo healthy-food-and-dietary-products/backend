@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.models import Delivery, Order, ShoppingCart, ShoppingCartProduct
+
+
+@admin.register(Delivery)
+class DeliveryAdmin(admin.ModelAdmin):
+    list_display = ("id", "delivery_point")
+    list_editable = ("delivery_point",)
 
 
 class ShoppingCartProductInline(admin.TabularInline):
@@ -12,30 +18,27 @@ class ShoppingCartProductInline(admin.TabularInline):
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     inlines = (ShoppingCartProductInline,)
-    list_display = ("id", "user", "status", "total_price")
+    list_display = ("id", "user", "status", "total_price", "created")
     list_editable = ("status", "total_price")
-    list_filter = ("user", "status")
+    list_filter = ("user", "status", "created")
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "shopping_cart",
+        "order_number",
+        "user",
         "ordering_date",
         "status",
         "payment_method",
         "is_paid",
         "delivery_method",
-        "comment",
         "address",
-        "package",
     )
     list_editable = (
         "payment_method",
-        "comment",
         "delivery_method",
         "address",
-        "package",
     )
-    list_filter = ("ordering_date",)
+    list_filter = ("status", "ordering_date")
