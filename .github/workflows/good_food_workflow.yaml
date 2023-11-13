@@ -89,8 +89,10 @@ jobs:
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }} >> .env
             echo EMAIL_HOST_APP_PASSWORD=${{ secrets.EMAIL_HOST_APP_PASSWORD }} >> .env
-            echo MODE=prod >> .env
-            echo DOCKER=yes >> .env
+            echo MODE=${{ secrets.MODE }} >> .env
+            echo DOCKER=${{ secrets.DOCKER }} >> .env
+            echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+            echo CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} >> .env
             sudo docker compose up -d
             sudo docker image prune -f
             sudo docker compose exec -T web python manage.py collectstatic --no-input
