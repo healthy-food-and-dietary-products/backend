@@ -7,10 +7,10 @@ from products.models import Product
 class ProductFilter(rf_filters.FilterSet):
     """Class for filtering products."""
 
-    name = rf_filters.CharFilter(method="startswith_contains_union_method")
-    category = rf_filters.CharFilter(field_name="category__slug")
-    subcategory = rf_filters.CharFilter(field_name="subcategory__slug")
-    producer = rf_filters.CharFilter(field_name="producer__slug")
+    name = rf_filters.AllValuesMultipleFilter(method="startswith_contains_union_method")
+    category = rf_filters.AllValuesMultipleFilter(field_name="category__slug")
+    subcategory = rf_filters.AllValuesMultipleFilter(field_name="subcategory__slug")
+    producer = rf_filters.AllValuesMultipleFilter(field_name="producer__slug")
     components = rf_filters.AllValuesMultipleFilter(field_name="components__slug")
     tags = rf_filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = rf_filters.NumberFilter(method="product_boolean_methods")
