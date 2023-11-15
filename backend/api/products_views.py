@@ -302,6 +302,61 @@ class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all producers",
+        operation_description="This endpoint returns a list of all the producers",
+        responses={200: ProducerSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get producer by id",
+        operation_description="This endpoint retrieves a producer by its id",
+        responses={200: ProducerSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create producer",
+        operation_description="This endpoint creates a producer",
+        responses={
+            201: ProducerSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit producer",
+        operation_description="This endpoint edits a producer by its id",
+        responses={
+            200: ProducerSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete producer",
+        operation_description="This endpoint deletes a producer by its id",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for producers."""
 
