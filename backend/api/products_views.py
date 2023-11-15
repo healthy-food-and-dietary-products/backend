@@ -2,7 +2,12 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
-from drf_standardized_errors.openapi_serializers import ErrorResponse404Serializer
+from drf_standardized_errors.openapi_serializers import (
+    ErrorResponse401Serializer,
+    ErrorResponse403Serializer,
+    ErrorResponse404Serializer,
+    ValidationErrorResponseSerializer,
+)
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators, permissions, response, status, viewsets
 
@@ -52,6 +57,45 @@ from products.models import (
         responses={200: CategorySerializer, 404: ErrorResponse404Serializer},
     ),
 )
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create category",
+        operation_description="This endpoint creates a category",
+        responses={
+            201: CategoryCreateSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit category",
+        operation_description="This endpoint edits a category by its id",
+        responses={
+            200: CategoryCreateSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete category",
+        operation_description="This endpoint deletes a category by its id",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
@@ -61,13 +105,66 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == "create":
-            return CategoryCreateSerializer
-        if self.action == "partial_update":
+        if self.action in ["create", "partial_update"]:
             return CategoryCreateSerializer
         return CategorySerializer
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all subcategories",
+        operation_description="This endpoint returns a list of all the subcategories",
+        responses={200: SubcategorySerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get subcategory by id",
+        operation_description="This endpoint retrieves a subcategory by its id",
+        responses={200: SubcategorySerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create subcategory",
+        operation_description="This endpoint creates a subcategory",
+        responses={
+            201: SubcategorySerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit subcategory",
+        operation_description="This endpoint edits a subcategory by its id",
+        responses={
+            200: SubcategorySerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete subcategory",
+        operation_description="This endpoint deletes a subcategory by its id",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for subcategories."""
 
