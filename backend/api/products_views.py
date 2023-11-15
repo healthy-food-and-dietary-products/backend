@@ -366,6 +366,61 @@ class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all promotions",
+        operation_description="This endpoint returns a list of all the promotions",
+        responses={200: PromotionSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get promotion by id",
+        operation_description="This endpoint retrieves a promotion by its id",
+        responses={200: PromotionSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create promotion",
+        operation_description="This endpoint creates a promotion",
+        responses={
+            201: PromotionSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit promotion",
+        operation_description="This endpoint edits a promotion by its id",
+        responses={
+            200: PromotionSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete promotion",
+        operation_description="This endpoint deletes a promotion by its id",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for promotions."""
 
