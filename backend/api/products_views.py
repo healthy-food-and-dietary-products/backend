@@ -2,6 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
+from drf_standardized_errors.openapi_serializers import ErrorResponse404Serializer
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators, permissions, response, status, viewsets
 
@@ -35,16 +36,22 @@ from products.models import (
 )
 
 
-@method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_summary="List all categories",
-    operation_description="This endpoint returns a list of all the categories",
-    responses={200: CategorySerializer, 302: 'something', '400': 'bad'}
-))
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(
-    operation_summary="List all categories",
-    operation_description="This endpoint returns a list of all the categories",
-    responses={200: 'good', 302: 'something', '404': 'not found'}
-))
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all categories",
+        operation_description="This endpoint returns a list of all the categories",
+        responses={200: CategorySerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get category by id",
+        operation_description="This endpoint retrieves a category by its id",
+        responses={200: CategorySerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
