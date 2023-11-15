@@ -69,26 +69,26 @@ class UserSerializer(DjoserUserSerializer):
     def get_address_quantity(self, obj):
         return obj.addresses.count()
 
-    def update(self, instance, validated_data):
-        if validated_data.get("addresses") is None:
-            return instance
-        addresses = validated_data.pop("addresses")
-        priority_count = 0
-        for existing_address in instance.addresses.all():
-            existing_address.delete()
-        for address_dict in addresses:
-            if not instance.addresses.filter(address=address_dict["address"]):
-                Address.objects.create(
-                    address=address_dict["address"],
-                    user=instance,
-                    priority_address=address_dict["priority_address"],
-                )
-                priority_count += address_dict["priority_address"]
-                if priority_count > 1:
-                    raise serializers.ValidationError(
-                        "Разрешен только один приоритетный адрес."
-                    )
-        return instance
+    # def update(self, instance, validated_data):
+    #     if validated_data.get("addresses") is None:
+    #         return instance
+    #     addresses = validated_data.pop("addresses")
+    #     priority_count = 0
+    #     for existing_address in instance.addresses.all():
+    #         existing_address.delete()
+    #     for address_dict in addresses:
+    #         if not instance.addresses.filter(address=address_dict["address"]):
+    #             Address.objects.create(
+    #                 address=address_dict["address"],
+    #                 user=instance,
+    #                 priority_address=address_dict["priority_address"],
+    #             )
+    #             priority_count += address_dict["priority_address"]
+    #             if priority_count > 1:
+    #                 raise serializers.ValidationError(
+    #                     "Разрешен только один приоритетный адрес."
+    #                 )
+    #     return instance
 
 
 class UserLightSerializer(UserSerializer):

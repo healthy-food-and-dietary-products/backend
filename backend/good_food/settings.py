@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "[::1]",
     "web",
+    "testserver",
     "https://goodfood.acceleratorpracticum.ru",
     "goodfood.acceleratorpracticum.ru",
 ]
