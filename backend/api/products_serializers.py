@@ -51,14 +51,21 @@ class CategoryCreateSerializer(CategoryLightSerializer):
         fields = ("id", "category_name", "slug")
 
 
-# TODO: add top 3 products in each category
 class CategorySerializer(CategoryLightSerializer):
     """Serializer for displaying categories."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
+    top_three_products = serializers.SerializerMethodField()
 
     class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "subcategories")
+        fields = ("id", "name", "slug", "subcategories", "top_three_products")
+
+    def get_top_three_products(self, obj):
+        """Shows three most popular products of a particular category."""
+        top_three_products_queryset = Product.objects.filter(category=obj).order_by(
+            "-orders_number"
+        )[:3]
+        return ProductSerializer(top_three_products_queryset, many=True).data
 
 
 class TagLightSerializer(serializers.ModelSerializer):
