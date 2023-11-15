@@ -1,6 +1,8 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from .filters import ProductFilter
@@ -33,6 +35,16 @@ from products.models import (
 )
 
 
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary="List all categories",
+    operation_description="This endpoint returns a list of all the categories",
+    responses={200: CategorySerializer, 302: 'something', '400': 'bad'}
+))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(
+    operation_summary="List all categories",
+    operation_description="This endpoint returns a list of all the categories",
+    responses={200: 'good', 302: 'something', '404': 'not found'}
+))
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 

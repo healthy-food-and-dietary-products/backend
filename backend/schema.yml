@@ -47,6 +47,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/CategoryCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/categories/{id}/:
     get:
       operationId: categories_retrieve
@@ -101,6 +103,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/CategoryCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: categories_destroy
       description: Viewset for categories.
@@ -116,8 +120,14 @@ paths:
       security:
       - tokenAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
   /api/components/:
     get:
       operationId: components_list
@@ -161,6 +171,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Component'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/components/{id}/:
     get:
       operationId: components_retrieve
@@ -215,6 +227,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Component'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: components_destroy
       description: Viewset for components.
@@ -314,6 +328,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Producer'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/producers/{id}/:
     get:
       operationId: producers_retrieve
@@ -368,6 +384,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Producer'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: producers_destroy
       description: Viewset for producers.
@@ -515,6 +533,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '400':
+          $ref: '#/components/responses/NestedValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/products/{id}/:
     get:
       operationId: products_retrieve
@@ -3470,6 +3498,46 @@ components:
           maxLength: 254
       required:
       - new_email
+
+  responses:
+    ValidationError:
+      description: 'Ошибки валидации в стандартном формате DRF'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    NestedValidationError:
+      description: 'Ошибки валидации в стандартном формате DRF, в том числе с внутренними элементами.'
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/NestedValidationError'
+              - $ref: '#/components/schemas/ValidationError'
+
+    AuthenticationError:
+      description: Пользователь не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticationError'
+
+    PermissionDenied:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PermissionDenied'
+
+    NotFound:
+      description: Объект не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFound'
+
+
   securitySchemes:
     tokenAuth:
       type: apiKey
