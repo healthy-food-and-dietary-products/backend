@@ -1,4 +1,5 @@
 from django.db import transaction
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .users_serializers import UserSerializer
@@ -21,7 +22,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
     amount = serializers.ReadOnlyField(source="product.amount")
     price = serializers.ReadOnlyField(source="product.price")
-    final_price = serializers.ReadOnlyField(source="product.final_price")
+    final_price = serializers.SerializerMethodField()
     is_favorited_by_user = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,9 +38,14 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
             "is_favorited_by_user",
         )
 
+    @extend_schema_field(bool)
     def get_is_favorited_by_user(self, obj):
         """Checks if this product is in the buyer's favorites."""
         return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.product.final_price
 
 
 class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
@@ -130,9 +136,11 @@ class OrderListSerializer(serializers.ModelSerializer):
     delivery_point = serializers.StringRelatedField()
     order_number = serializers.SerializerMethodField()
 
+    @extend_schema_field(int)
     def get_order_number(self, obj):
         return obj.shopping_cart.id
 
+    @extend_schema_field(float)
     def get_total_price(self, obj):
         return obj.shopping_cart.total_price + obj.package
 

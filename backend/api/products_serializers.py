@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -155,6 +156,7 @@ class ProductSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
     photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -185,14 +187,20 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_favorited",
         )
 
+    @extend_schema_field(bool)
     def get_is_favorited(self, obj):
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
         return obj.is_favorited(request.user)
 
+    @extend_schema_field(int)
     def get_promotion_quantity(self, obj):
         return obj.promotions.count()
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
 
 
 class ProductCreateSerializer(ProductSerializer):

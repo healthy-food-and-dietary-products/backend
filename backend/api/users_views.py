@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -9,6 +10,7 @@ from .users_serializers import AddressSerializer, CustomUserDeleteSerializer
 from users.models import User
 
 
+@extend_schema(parameters=[OpenApiParameter("id", int, OpenApiParameter.PATH)])
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for addresses."""
 

@@ -181,6 +181,13 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "api.exception_handlers.custom_404_exception_handler",
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Good Food API",
+    "DESCRIPTION": "API documentation for the GoodFood project",
+    "VERSION": "v1",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 587
