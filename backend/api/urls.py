@@ -1,4 +1,9 @@
 from django.urls import include, path, re_path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -39,6 +44,17 @@ urlpatterns = [
     path("", include(router.urls)),
     path("", include("djoser.urls")),
     path("", include("djoser.urls.authtoken")),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "schema/swagger/",
+        SpectacularSwaggerView.as_view(url_name="api:schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "schema/redoc/",
+        SpectacularRedocView.as_view(url_name="api:schema"),
+        name="redoc",
+    ),
 ]
 
 schema_view = get_schema_view(
