@@ -30,13 +30,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -85,13 +85,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
       security:
       - tokenAuth: []
       responses:
@@ -144,13 +144,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
         required: true
       security:
       - tokenAuth: []
@@ -199,13 +199,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
       security:
       - tokenAuth: []
       responses:
@@ -297,13 +297,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
         required: true
       security:
       - tokenAuth: []
@@ -352,13 +352,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
       security:
       - tokenAuth: []
       responses:
@@ -498,13 +498,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -553,13 +553,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
       security:
       - tokenAuth: []
       responses:
@@ -599,17 +599,6 @@ paths:
         required: true
       tags:
       - products
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FavoriteProductCreate'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/FavoriteProductCreate'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FavoriteProductCreate'
       security:
       - tokenAuth: []
       responses:
@@ -662,13 +651,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
         required: true
       security:
       - tokenAuth: []
@@ -717,13 +706,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
       security:
       - tokenAuth: []
       responses:
@@ -776,13 +765,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
         required: true
       security:
       - tokenAuth: []
@@ -831,13 +820,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
       security:
       - tokenAuth: []
       responses:
@@ -890,13 +879,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
         required: true
       security:
       - tokenAuth: []
@@ -945,13 +934,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
       security:
       - tokenAuth: []
       responses:
@@ -988,13 +977,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
       security:
       - tokenAuth: []
       - {}
@@ -1044,13 +1033,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1102,13 +1091,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1136,13 +1125,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1266,13 +1255,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderPostDelete'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/OrderPostDelete'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OrderPostDelete'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1373,13 +1362,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1440,13 +1429,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1490,13 +1479,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1534,13 +1523,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1561,13 +1550,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1599,13 +1588,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1628,13 +1617,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1657,13 +1646,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1686,13 +1675,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1715,13 +1704,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1744,13 +1733,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1772,13 +1761,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1801,6 +1790,18 @@ components:
       required:
       - token
       - uid
+    ActivationRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+          minLength: 1
+        token:
+          type: string
+          minLength: 1
+      required:
+      - token
+      - uid
     Address:
       type: object
       description: Serializer for addresses representation.
@@ -1816,6 +1817,18 @@ components:
       required:
       - address
       - id
+    AddressRequest:
+      type: object
+      description: Serializer for addresses representation.
+      properties:
+        address:
+          type: string
+          minLength: 1
+        priority_address:
+          type: boolean
+          title: Priority
+      required:
+      - address
     Category:
       type: object
       description: Serializer for displaying categories.
@@ -1853,6 +1866,19 @@ components:
       required:
       - category_name
       - id
+    CategoryCreateRequest:
+      type: object
+      description: Serializer for creating categories.
+      properties:
+        category_name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - category_name
     CategoryLight:
       type: object
       description: Serializer for categories representation in product serializer.
@@ -1865,7 +1891,6 @@ components:
       enum:
       - Moscow
       type: string
-      description: '* `Moscow` - Москва'
     Component:
       type: object
       description: Serializer for components representation.
@@ -1893,14 +1918,27 @@ components:
           type: string
       required:
       - component_name
+    ComponentRequest:
+      type: object
+      description: Serializer for components representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Component name
+          maxLength: 100
+        slug:
+          type: string
+          description: Component slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
     DeliveryMethodEnum:
       enum:
       - Point of delivery
       - By courier
       type: string
-      description: |-
-        * `Point of delivery` - Пункт выдачи
-        * `By courier` - Курьер
     FavoriteProduct:
       type: object
       description: Serializer for favorite products list representation.
@@ -1931,10 +1969,6 @@ components:
       - milliliters
       - items
       type: string
-      description: |-
-        * `grams` - г.
-        * `milliliters` - мл.
-        * `items` - шт.
     OrderList:
       type: object
       description: Serializer for order representation.
@@ -1959,13 +1993,30 @@ components:
           readOnly: true
           title: DateTime
         status:
-          $ref: '#/components/schemas/OrderListStatusEnum'
+          allOf:
+          - $ref: '#/components/schemas/OrderListStatusEnum'
+          description: |-
+            * `Ordered` - Оформлен
+            * `In processing` - В обработке
+            * `Collecting` - Комплектуется
+            * `Gathered` - Собран
+            * `In delivering` - Передан в доставку
+            * `Delivered` - Доставлен
+            * `Completed` - Завершен
         payment_method:
-          $ref: '#/components/schemas/PaymentMethodEnum'
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
         is_paid:
           type: boolean
         delivery_method:
-          $ref: '#/components/schemas/DeliveryMethodEnum'
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
         address:
           type: string
           readOnly: true
@@ -2004,22 +2055,54 @@ components:
       - Delivered
       - Completed
       type: string
-      description: |-
-        * `Ordered` - Оформлен
-        * `In processing` - В обработке
-        * `Collecting` - Комплектуется
-        * `Gathered` - Собран
-        * `In delivering` - Передан в доставку
-        * `Delivered` - Доставлен
-        * `Completed` - Завершен
     OrderPostDelete:
       type: object
       description: Serializer for create/update/delete order.
       properties:
         payment_method:
-          $ref: '#/components/schemas/PaymentMethodEnum'
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
         delivery_method:
-          $ref: '#/components/schemas/DeliveryMethodEnum'
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
+        delivery_point:
+          type: integer
+          nullable: true
+        package:
+          type: number
+          format: double
+          minimum: 0
+          title: Package price
+          description: Price per order packaging
+        comment:
+          type: string
+          nullable: true
+        address:
+          type: integer
+          nullable: true
+          title: User's address
+    OrderPostDeleteRequest:
+      type: object
+      description: Serializer for create/update/delete order.
+      properties:
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
+        delivery_method:
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
         delivery_point:
           type: integer
           nullable: true
@@ -2069,28 +2152,40 @@ components:
       - new_password
       - token
       - uid
-    PatchedCategoryCreate:
+    PasswordResetConfirmRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+          minLength: 1
+        token:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          minLength: 1
+      required:
+      - new_password
+      - token
+      - uid
+    PatchedCategoryCreateRequest:
       type: object
       description: Serializer for creating categories.
       properties:
-        id:
-          type: integer
-          readOnly: true
         category_name:
           type: string
+          minLength: 1
         slug:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedComponent:
+    PatchedComponentRequest:
       type: object
       description: Serializer for components representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Component name
           maxLength: 100
         slug:
@@ -2098,15 +2193,13 @@ components:
           description: Component slug
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedProducer:
+    PatchedProducerRequest:
       type: object
       description: Serializer for produsers representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Producer name
           maxLength: 100
         slug:
@@ -2115,35 +2208,30 @@ components:
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         producer_type:
-          $ref: '#/components/schemas/ProducerTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
         description:
           type: string
           description: Brief information about the company or entrepreneur
         address:
           type: string
+          minLength: 1
           description: Legal address of the producers
-    PatchedProductUpdate:
+    PatchedProductUpdateRequest:
       type: object
       description: Serializer for updating products.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Product name
           maxLength: 100
         description:
           type: string
           description: Product description
-        creation_time:
-          type: string
-          format: date-time
-          readOnly: true
-          description: Date of inclusion of the product in the database
-        category:
-          type: integer
-          readOnly: true
         subcategory:
           type: integer
         tags:
@@ -2156,7 +2244,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2165,17 +2258,13 @@ components:
           format: double
           minimum: 0
           description: Price per one product unit
-        final_price:
-          type: number
-          format: double
-          readOnly: true
         promotions:
           type: array
           items:
             type: integer
         photo:
           type: string
-          format: uri
+          format: binary
         components:
           type: array
           items:
@@ -2192,17 +2281,24 @@ components:
         carbohydrates:
           type: integer
           description: Number of carbohydrates per 100 g of product
-    PatchedPromotion:
+    PatchedPromotionRequest:
       type: object
       description: Serializer for promotions representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         promotion_type:
-          $ref: '#/components/schemas/PromotionTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
         name:
           type: string
+          minLength: 1
           description: Promotion name
           maxLength: 100
         discount:
@@ -2230,40 +2326,36 @@ components:
           format: date-time
           nullable: true
           title: Promotion end time
-    PatchedShoppingCartPostUpdateDelete:
+    PatchedShoppingCartPostUpdateDeleteRequest:
       type: object
       description: Serializer for create/update/delete shopping_cart.
       properties:
         products:
           type: array
           items:
-            $ref: '#/components/schemas/ShoppingCartProductCreateUpdate'
-    PatchedSubcategory:
+            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
+    PatchedSubcategoryRequest:
       type: object
       description: Serializer for subcategories representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         parent_category:
           type: integer
           title: Category
         name:
           type: string
+          minLength: 1
           maxLength: 100
         slug:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedTag:
+    PatchedTagRequest:
       type: object
       description: Serializer for tags representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Tag name
           maxLength: 100
         slug:
@@ -2271,19 +2363,18 @@ components:
           description: Tag slug
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedUser:
+    PatchedUserRequest:
       type: object
       description: Serializer for displaying and updating users.
       properties:
-        id:
-          type: integer
-          readOnly: true
         username:
           type: string
+          minLength: 1
           maxLength: 150
         email:
           type: string
           format: email
+          minLength: 1
           title: E-mail address
           maxLength: 254
         first_name:
@@ -2295,9 +2386,16 @@ components:
           title: Фамилия
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
         city:
-          $ref: '#/components/schemas/CityEnum'
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
         birth_date:
           type: string
           format: date
@@ -2305,24 +2403,18 @@ components:
         addresses:
           type: array
           items:
-            $ref: '#/components/schemas/Address'
-        address_quantity:
-          type: integer
-          readOnly: true
+            $ref: '#/components/schemas/AddressRequest'
         phone_number:
           type: string
           maxLength: 128
         photo:
           type: string
-          format: uri
+          format: binary
     PaymentMethodEnum:
       enum:
       - Payment at the point of delivery
       - In getting by cash
       type: string
-      description: |-
-        * `Payment at the point of delivery` - Оплата в пункте самовывоза
-        * `In getting by cash` - Оплата наличными курьеру
     Producer:
       type: object
       description: Serializer for produsers representation.
@@ -2340,7 +2432,11 @@ components:
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         producer_type:
-          $ref: '#/components/schemas/ProducerTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
         description:
           type: string
           description: Brief information about the company or entrepreneur
@@ -2359,14 +2455,41 @@ components:
           type: string
       required:
       - producer_name
+    ProducerRequest:
+      type: object
+      description: Serializer for produsers representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Producer name
+          maxLength: 100
+        slug:
+          type: string
+          description: Producer slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        producer_type:
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
+        description:
+          type: string
+          description: Brief information about the company or entrepreneur
+        address:
+          type: string
+          minLength: 1
+          description: Legal address of the producers
+      required:
+      - address
+      - name
     ProducerTypeEnum:
       enum:
       - company
       - entrepreneur
       type: string
-      description: |-
-        * `company` - Юридическое лицо
-        * `entrepreneur` - Индивидуальный предприниматель
     Product:
       type: object
       description: Serializer for displaying products.
@@ -2402,7 +2525,12 @@ components:
         producer:
           $ref: '#/components/schemas/ProducerLight'
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2500,7 +2628,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2540,6 +2673,73 @@ components:
       - fats
       - final_price
       - id
+      - kcal
+      - name
+      - price
+      - producer
+      - proteins
+      - subcategory
+    ProductCreateRequest:
+      type: object
+      description: Serializer for creating products.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Product name
+          maxLength: 100
+        description:
+          type: string
+          description: Product description
+        subcategory:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: integer
+        discontinued:
+          type: boolean
+          description: Is this product discontinued from sale
+        producer:
+          type: integer
+        measure_unit:
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
+        amount:
+          type: integer
+          description: Number of grams, milliliters or items
+        price:
+          type: number
+          format: double
+          minimum: 0
+          description: Price per one product unit
+        photo:
+          type: string
+          format: binary
+        components:
+          type: array
+          items:
+            type: integer
+        kcal:
+          type: integer
+          description: Number of kcal per 100 g of product
+        proteins:
+          type: integer
+          description: Number of proteins per 100 g of product
+        fats:
+          type: integer
+          description: Number of fats per 100 g of product
+        carbohydrates:
+          type: integer
+          description: Number of carbohydrates per 100 g of product
+      required:
+      - carbohydrates
+      - components
+      - fats
       - kcal
       - name
       - price
@@ -2593,7 +2793,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2652,7 +2857,16 @@ components:
           type: integer
           readOnly: true
         promotion_type:
-          $ref: '#/components/schemas/PromotionTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
         name:
           type: string
           description: Promotion name
@@ -2697,6 +2911,53 @@ components:
           description: Percentage of a product price
       required:
       - promotion_name
+    PromotionRequest:
+      type: object
+      description: Serializer for promotions representation.
+      properties:
+        promotion_type:
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
+        name:
+          type: string
+          minLength: 1
+          description: Promotion name
+          maxLength: 100
+        discount:
+          type: integer
+          maximum: 100
+          description: Percentage of a product price
+        conditions:
+          type: string
+          description: Conditions of the promotion
+        is_active:
+          type: boolean
+          title: Active or not
+          description: Is this promotion valid now
+        is_constant:
+          type: boolean
+          title: Constant or not
+          description: Does this promotion have a time limits
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+          title: Promotion start time
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+          title: Promotion end time
+      required:
+      - name
     PromotionTypeEnum:
       enum:
       - simple
@@ -2707,30 +2968,27 @@ components:
       - two_for_one
       - multiple_items
       type: string
-      description: |-
-        * `simple` - Простая скидка
-        * `birthday` - Скидка именинникам
-        * `loyalty_card` - Скидка по карте покупателя
-        * `expired_soon` - Скидка на товары с истекающим сроком годности
-        * `present` - Товар в подарок
-        * `two_for_one` - Два по цене одного
-        * `multiple_items` - Скидка при покупке нескольких штук
     RoleEnum:
       enum:
       - user
       - moderator
       - admin
       type: string
-      description: |-
-        * `user` - Аутентифицированный пользователь
-        * `moderator` - Модератор
-        * `admin` - Администратор
     SendEmailReset:
       type: object
       properties:
         email:
           type: string
           format: email
+      required:
+      - email
+    SendEmailResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
       required:
       - email
     SetPassword:
@@ -2743,6 +3001,18 @@ components:
       required:
       - current_password
       - new_password
+    SetPasswordRequest:
+      type: object
+      properties:
+        new_password:
+          type: string
+          minLength: 1
+        current_password:
+          type: string
+          minLength: 1
+      required:
+      - current_password
+      - new_password
     SetUsername:
       type: object
       properties:
@@ -2751,6 +3021,21 @@ components:
         new_email:
           type: string
           format: email
+          title: E-mail address
+          maxLength: 254
+      required:
+      - current_password
+      - new_email
+    SetUsernameRequest:
+      type: object
+      properties:
+        current_password:
+          type: string
+          minLength: 1
+        new_email:
+          type: string
+          format: email
+          minLength: 1
           title: E-mail address
           maxLength: 254
       required:
@@ -2775,7 +3060,11 @@ components:
         total_price:
           type: integer
         status:
-          $ref: '#/components/schemas/ShoppingCartGetStatusEnum'
+          allOf:
+          - $ref: '#/components/schemas/ShoppingCartGetStatusEnum'
+          description: |-
+            * `Ordered` - Передано в заказ
+            * `In Work` - В работе
       required:
       - id
       - products
@@ -2785,9 +3074,6 @@ components:
       - Ordered
       - In Work
       type: string
-      description: |-
-        * `Ordered` - Передано в заказ
-        * `In Work` - В работе
     ShoppingCartPostUpdateDelete:
       type: object
       description: Serializer for create/update/delete shopping_cart.
@@ -2798,7 +3084,28 @@ components:
             $ref: '#/components/schemas/ShoppingCartProductCreateUpdate'
       required:
       - products
+    ShoppingCartPostUpdateDeleteRequest:
+      type: object
+      description: Serializer for create/update/delete shopping_cart.
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
+      required:
+      - products
     ShoppingCartProductCreateUpdate:
+      type: object
+      description: Serializer for add/update/delete products into shopping_cart.
+      properties:
+        id:
+          type: integer
+        quantity:
+          type: integer
+          default: 1
+      required:
+      - id
+    ShoppingCartProductCreateUpdateRequest:
       type: object
       description: Serializer for add/update/delete products into shopping_cart.
       properties:
@@ -2823,6 +3130,10 @@ components:
         measure_unit:
           allOf:
           - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
           readOnly: true
         price:
           type: number
@@ -2884,6 +3195,24 @@ components:
           type: string
       required:
       - subcategory_name
+    SubcategoryRequest:
+      type: object
+      description: Serializer for subcategories representation.
+      properties:
+        parent_category:
+          type: integer
+          title: Category
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+      - parent_category
     Tag:
       type: object
       description: Serializer for tags representation.
@@ -2911,6 +3240,22 @@ components:
           type: string
       required:
       - tag_name
+    TagRequest:
+      type: object
+      description: Serializer for tags representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Tag name
+          maxLength: 100
+        slug:
+          type: string
+          description: Tag slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
     TokenCreate:
       type: object
       properties:
@@ -2918,6 +3263,15 @@ components:
           type: string
         email:
           type: string
+    TokenCreateRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          minLength: 1
     User:
       type: object
       description: Serializer for displaying and updating users.
@@ -2942,9 +3296,16 @@ components:
           title: Фамилия
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
         city:
-          $ref: '#/components/schemas/CityEnum'
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
         birth_date:
           type: string
           format: date
@@ -2979,9 +3340,6 @@ components:
           readOnly: true
         username:
           type: string
-        password:
-          type: string
-          writeOnly: true
         city:
           type: string
           readOnly: true
@@ -2989,6 +3347,24 @@ components:
       - city
       - email
       - id
+      - username
+    UserCreateRequest:
+      type: object
+      description: Serializer for creating users.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
       - password
       - username
     UserLight:
@@ -3023,12 +3399,73 @@ components:
           maxLength: 150
       required:
       - username
+    UserRequest:
+      type: object
+      description: Serializer for displaying and updating users.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: E-mail address
+          maxLength: 254
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 150
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
+        city:
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressRequest'
+        phone_number:
+          type: string
+          maxLength: 128
+        photo:
+          type: string
+          format: binary
+      required:
+      - email
+      - username
     UsernameResetConfirm:
       type: object
       properties:
         new_email:
           type: string
           format: email
+          title: E-mail address
+          maxLength: 254
+      required:
+      - new_email
+    UsernameResetConfirmRequest:
+      type: object
+      properties:
+        new_email:
+          type: string
+          format: email
+          minLength: 1
           title: E-mail address
           maxLength: 254
       required:
