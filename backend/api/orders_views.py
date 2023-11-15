@@ -170,7 +170,7 @@ class OrderViewSet(ModelViewSet):
 
     def destroy(self, *args, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if order.user != self.get_user():
+        if order.user != self.get_user() or order.user != self.request.user:
             raise PermissionDenied()
         order_restricted_deletion_statuses = [
             Order.COLLECTING,
