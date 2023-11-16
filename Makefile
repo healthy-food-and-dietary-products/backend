@@ -34,6 +34,9 @@ collectstatic:
 schema:
 	cd backend; python3 manage.py spectacular --color --file schema.yml
 
+pytest:
+	cd backend; pytest
+
 up-compose:
 	cd infra; sudo docker compose -f docker-compose.local.yml up -d
 
