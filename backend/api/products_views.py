@@ -602,6 +602,35 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return self.create_delete_or_scold(FavoriteProduct, product, request)
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all favorite products",
+        operation_description=(
+            "Returns a list of all the favorite products of all users (admin only)"
+        ),
+        responses={
+            200: FavoriteProductSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get favorite product by id",
+        operation_description=(
+            "Retrieves a record about the user and his or her favorite product "
+            "by id of this record (admin only)"
+        ),
+        responses={
+            200: FavoriteProductSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
 class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for viewing useres' favorite products by admins."""
 

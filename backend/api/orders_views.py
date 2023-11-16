@@ -136,12 +136,6 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    # TODO: this method should be called destroy, not delete, and it is never triggered
-    def delete(self, request, *args, **kwargs):
-        shopping_cart = self.get_shopping_cart()
-        shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class OrderViewSet(ModelViewSet):
     """Viewset for Order."""
