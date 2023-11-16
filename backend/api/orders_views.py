@@ -1,5 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
+from django.utils.decorators import method_decorator
+from drf_standardized_errors.openapi_serializers import (
+    ErrorResponse401Serializer,
+    ErrorResponse403Serializer,
+    ErrorResponse404Serializer,
+    ValidationErrorResponseSerializer,
+)
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -21,6 +29,76 @@ from users.models import User
 DECIMAL_PLACES_NUMBER = 2
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all shopping carts",
+        operation_description=(
+            "Returns a list of all the shopping carts of a user "
+            "(admin or authorized user)"
+        ),
+        responses={
+            200: ShoppingCartGetSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get shopping cart by id",
+        operation_description=(
+            "Retrieves a shopping cart of a user by its id (admin or authorized user)"
+        ),
+        responses={
+            200: ShoppingCartGetSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create shopping cart",
+        operation_description="Creates a shopping cart of a user (authorized only)",
+        responses={
+            201: ShoppingCartPostUpdateDeleteSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit shopping cart",
+        operation_description="Edits a shopping cart by its id (authorized only)",
+        responses={
+            200: ShoppingCartPostUpdateDeleteSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete shopping cart",
+        operation_description="Deletes a shopping cart by its id (authorized only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
@@ -37,7 +115,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             return ShoppingCart.objects.filter(user=user).filter(
                 status=ShoppingCart.INWORK
             )
-        raise PermissionDenied()
+        if user.is_authenticated and user.id != int(user_id):
+            raise PermissionDenied()
+        return ShoppingCart.objects.none()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -134,12 +214,62 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, *args, **kwargs):
-        shopping_cart = self.get_shopping_cart()
-        shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all orders",
+        operation_description=(
+            "Returns a list of all the orders of a user (admin or authorized user)"
+        ),
+        responses={
+            200: OrderListSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get order by id",
+        operation_description=(
+            "Retrieves an order of a user by its id (admin or authorized user)"
+        ),
+        responses={
+            200: OrderListSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create order",
+        operation_description="Creates an order of a user (authorized only)",
+        responses={
+            201: OrderPostDeleteSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete order",
+        operation_description="Deletes an order by its id (authorized only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class OrderViewSet(ModelViewSet):
     """Viewset for Order."""
 
@@ -154,12 +284,12 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             user = self.request.user
-            if user.role == "admin" or user.role == "moderator":
+            if user.is_admin or user.is_moderator:
                 return self.get_user().orders.all()
             if self.get_user() != self.request.user:
                 raise PermissionDenied()
             return self.request.user.orders.all()
-        raise PermissionDenied()
+        return Order.objects.none()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:

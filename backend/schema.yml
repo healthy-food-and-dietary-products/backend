@@ -1,14 +1,15 @@
 openapi: 3.0.3
 info:
-  title: 'Good Food'
-  version: ''
+  title: Good Food API
+  version: v1
+  description: API documentation for the GoodFood project
 paths:
   /api/categories/:
     get:
       operationId: categories_list
-      description: Список категорий.
+      description: Viewset for categories.
       tags:
-      - Категории
+      - categories
       security:
       - tokenAuth: []
       responses:
@@ -19,23 +20,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
-          description: 'Доступно всем.'
+          description: ''
     post:
       operationId: categories_create
       description: Viewset for categories.
       tags:
-      - Категории
+      - categories
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CategoryCreate'
+              $ref: '#/components/schemas/CategoryCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -46,6 +47,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/CategoryCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/categories/{id}/:
     get:
       operationId: categories_retrieve
@@ -55,10 +58,10 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Category.
         required: true
       tags:
-      - Категории
+      - categories
       security:
       - tokenAuth: []
       responses:
@@ -76,21 +79,21 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Category.
         required: true
       tags:
-      - Категории
+      - categories
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedCategoryCreate'
+              $ref: '#/components/schemas/PatchedCategoryCreateRequest'
       security:
       - tokenAuth: []
       responses:
@@ -100,6 +103,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/CategoryCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: categories_destroy
       description: Viewset for categories.
@@ -108,21 +113,27 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Category.
         required: true
       tags:
-      - Категории
+      - categories
       security:
       - tokenAuth: []
       responses:
-        '204':
-          description: No response body
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
   /api/components/:
     get:
       operationId: components_list
       description: Viewset for components.
       tags:
-      - Компоненты
+      - components
       security:
       - tokenAuth: []
       responses:
@@ -138,18 +149,18 @@ paths:
       operationId: components_create
       description: Viewset for components.
       tags:
-      - Компоненты
+      - components
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Component'
+              $ref: '#/components/schemas/ComponentRequest'
         required: true
       security:
       - tokenAuth: []
@@ -160,6 +171,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Component'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/components/{id}/:
     get:
       operationId: components_retrieve
@@ -169,10 +182,10 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Component.
         required: true
       tags:
-      - Компоненты
+      - components
       security:
       - tokenAuth: []
       responses:
@@ -190,21 +203,21 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Component.
         required: true
       tags:
-      - Компоненты
+      - components
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedComponent'
+              $ref: '#/components/schemas/PatchedComponentRequest'
       security:
       - tokenAuth: []
       responses:
@@ -214,6 +227,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Component'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: components_destroy
       description: Viewset for components.
@@ -222,10 +237,10 @@ paths:
         name: id
         schema:
           type: integer
-        description: Уникальный идентификатор этого Тега.
+        description: A unique integer value identifying this Component.
         required: true
       tags:
-      - Компоненты
+      - components
       security:
       - tokenAuth: []
       responses:
@@ -236,7 +251,7 @@ paths:
       operationId: favorite_products_list
       description: Viewset for viewing useres' favorite products by admins.
       tags:
-      - Избранные продукты
+      - favorite-products
       security:
       - tokenAuth: []
       responses:
@@ -260,7 +275,7 @@ paths:
         description: A unique integer value identifying this Favorite Product.
         required: true
       tags:
-      - Избранные продукты
+      - favorite-products
       security:
       - tokenAuth: []
       responses:
@@ -275,7 +290,7 @@ paths:
       operationId: producers_list
       description: Viewset for producers.
       tags:
-      - Производители
+      - producers
       security:
       - tokenAuth: []
       responses:
@@ -291,18 +306,18 @@ paths:
       operationId: producers_create
       description: Viewset for producers.
       tags:
-      - Производители
+      - producers
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Producer'
+              $ref: '#/components/schemas/ProducerRequest'
         required: true
       security:
       - tokenAuth: []
@@ -313,6 +328,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Producer'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
   /api/producers/{id}/:
     get:
       operationId: producers_retrieve
@@ -325,7 +342,7 @@ paths:
         description: A unique integer value identifying this Producer.
         required: true
       tags:
-      - Производители
+      - producers
       security:
       - tokenAuth: []
       responses:
@@ -346,18 +363,18 @@ paths:
         description: A unique integer value identifying this Producer.
         required: true
       tags:
-      - Производители
+      - producers
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProducer'
+              $ref: '#/components/schemas/PatchedProducerRequest'
       security:
       - tokenAuth: []
       responses:
@@ -367,6 +384,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Producer'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
     delete:
       operationId: producers_destroy
       description: Viewset for producers.
@@ -378,7 +397,7 @@ paths:
         description: A unique integer value identifying this Producer.
         required: true
       tags:
-      - Производители
+      - producers
       security:
       - tokenAuth: []
       responses:
@@ -392,7 +411,11 @@ paths:
       - in: query
         name: category
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        explode: true
+        style: form
       - in: query
         name: components
         schema:
@@ -417,9 +440,22 @@ paths:
         schema:
           type: integer
       - in: query
+        name: max_price
+        schema:
+          type: number
+      - in: query
+        name: min_price
+        schema:
+          type: number
+      - in: query
         name: name
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        description: Product name
+        explode: true
+        style: form
       - name: page
         required: false
         in: query
@@ -429,7 +465,12 @@ paths:
       - in: query
         name: producer
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        description: Producer slug
+        explode: true
+        style: form
       - in: query
         name: promotions
         schema:
@@ -441,7 +482,11 @@ paths:
       - in: query
         name: subcategory
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        explode: true
+        style: form
       - in: query
         name: tags
         schema:
@@ -452,7 +497,7 @@ paths:
         explode: true
         style: form
       tags:
-      - Продукты
+      - products
       security:
       - tokenAuth: []
       responses:
@@ -466,18 +511,18 @@ paths:
       operationId: products_create
       description: Viewset for products.
       tags:
-      - Продукты
+      - products
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ProductCreate'
+              $ref: '#/components/schemas/ProductCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -488,6 +533,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductCreate'
           description: ''
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '400':
+          $ref: '#/components/responses/NestedValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/products/{id}/:
     get:
       operationId: products_retrieve
@@ -500,7 +555,7 @@ paths:
         description: A unique integer value identifying this Product.
         required: true
       tags:
-      - Продукты
+      - products
       security:
       - tokenAuth: []
       responses:
@@ -521,18 +576,18 @@ paths:
         description: A unique integer value identifying this Product.
         required: true
       tags:
-      - Продукты
+      - products
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProductUpdate'
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
       security:
       - tokenAuth: []
       responses:
@@ -553,7 +608,7 @@ paths:
         description: A unique integer value identifying this Product.
         required: true
       tags:
-      - Продукты
+      - products
       security:
       - tokenAuth: []
       responses:
@@ -571,19 +626,7 @@ paths:
         description: A unique integer value identifying this Product.
         required: true
       tags:
-      - Продукты
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Product'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Product'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Product'
-        required: true
+      - products
       security:
       - tokenAuth: []
       responses:
@@ -591,7 +634,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/FavoriteProductCreate'
           description: ''
     delete:
       operationId: products_favorite_destroy
@@ -604,7 +647,7 @@ paths:
         description: A unique integer value identifying this Product.
         required: true
       tags:
-      - Продукты
+      - products
       security:
       - tokenAuth: []
       responses:
@@ -615,7 +658,7 @@ paths:
       operationId: promotions_list
       description: Viewset for promotions.
       tags:
-      - Промоакции
+      - promotions
       security:
       - tokenAuth: []
       responses:
@@ -631,18 +674,18 @@ paths:
       operationId: promotions_create
       description: Viewset for promotions.
       tags:
-      - Промоакции
+      - promotions
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Promotion'
+              $ref: '#/components/schemas/PromotionRequest'
         required: true
       security:
       - tokenAuth: []
@@ -665,7 +708,7 @@ paths:
         description: A unique integer value identifying this Promotion.
         required: true
       tags:
-      - Промоакции
+      - promotions
       security:
       - tokenAuth: []
       responses:
@@ -686,18 +729,18 @@ paths:
         description: A unique integer value identifying this Promotion.
         required: true
       tags:
-      - Промоакции
+      - promotions
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPromotion'
+              $ref: '#/components/schemas/PatchedPromotionRequest'
       security:
       - tokenAuth: []
       responses:
@@ -718,132 +761,7 @@ paths:
         description: A unique integer value identifying this Promotion.
         required: true
       tags:
-      - Промоакции
-      security:
-      - tokenAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/shopping_cart/:
-    get:
-      operationId: shopping_cart_list
-      description: Viewset for ShoppingCart.
-      parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      tags:
-      - Корзина
-      security:
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedShoppingCartGetList'
-          description: ''
-    post:
-      operationId: shopping_cart_create
-      description: Viewset for ShoppingCart.
-      tags:
-      - Корзина
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-        required: true
-      security:
-      - tokenAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-          description: ''
-  /api/shopping_cart/{id}/:
-    get:
-      operationId: shopping_cart_retrieve
-      description: Viewset for ShoppingCart.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Корзина.
-        required: true
-      tags:
-      - Корзина
-      security:
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartGet'
-          description: ''
-    patch:
-      operationId: shopping_cart_partial_update
-      description: Viewset for ShoppingCart.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Корзина.
-        required: true
-      tags:
-      - Корзина
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDelete'
-      security:
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-          description: ''
-    delete:
-      operationId: shopping_cart_destroy
-      description: Viewset for ShoppingCart.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Корзина.
-        required: true
-      tags:
-      - Корзина
+      - promotions
       security:
       - tokenAuth: []
       responses:
@@ -854,7 +772,7 @@ paths:
       operationId: subcategories_list
       description: Viewset for subcategories.
       tags:
-      - Подкатегории
+      - subcategories
       security:
       - tokenAuth: []
       responses:
@@ -870,18 +788,18 @@ paths:
       operationId: subcategories_create
       description: Viewset for subcategories.
       tags:
-      - Подкатегории
+      - subcategories
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Subcategory'
+              $ref: '#/components/schemas/SubcategoryRequest'
         required: true
       security:
       - tokenAuth: []
@@ -904,7 +822,7 @@ paths:
         description: A unique integer value identifying this Subcategory.
         required: true
       tags:
-      - Подкатегории
+      - subcategories
       security:
       - tokenAuth: []
       responses:
@@ -925,18 +843,18 @@ paths:
         description: A unique integer value identifying this Subcategory.
         required: true
       tags:
-      - Подкатегории
+      - subcategories
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedSubcategory'
+              $ref: '#/components/schemas/PatchedSubcategoryRequest'
       security:
       - tokenAuth: []
       responses:
@@ -957,7 +875,7 @@ paths:
         description: A unique integer value identifying this Subcategory.
         required: true
       tags:
-      - Подкатегории
+      - subcategories
       security:
       - tokenAuth: []
       responses:
@@ -989,13 +907,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/TagRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1044,13 +962,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedTag'
+              $ref: '#/components/schemas/PatchedTagRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1087,13 +1005,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenCreate'
+              $ref: '#/components/schemas/TokenCreateRequest'
       security:
       - tokenAuth: []
       - {}
@@ -1118,19 +1036,8 @@ paths:
   /api/users/:
     get:
       operationId: users_list
-      parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       security:
@@ -1140,23 +1047,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUserList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
           description: ''
     post:
       operationId: users_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreateRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1171,6 +1082,8 @@ paths:
   /api/users/{id}/:
     get:
       operationId: users_retrieve
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       parameters:
       - in: path
         name: id
@@ -1191,6 +1104,8 @@ paths:
           description: ''
     put:
       operationId: users_update
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       parameters:
       - in: path
         name: id
@@ -1204,13 +1119,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1223,6 +1138,8 @@ paths:
           description: ''
     patch:
       operationId: users_partial_update
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       parameters:
       - in: path
         name: id
@@ -1236,13 +1153,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1254,6 +1171,8 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       parameters:
       - in: path
         name: id
@@ -1273,18 +1192,11 @@ paths:
       operationId: users_addresses_list
       description: Viewset for addresses.
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
+      - in: path
+        name: id
         schema:
           type: integer
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
+        required: true
       - in: path
         name: user_id
         schema:
@@ -1300,40 +1212,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAddressList'
-          description: ''
-    post:
-      operationId: users_addresses_create
-      description: Viewset for addresses.
-      parameters:
-      - in: path
-        name: user_id
-        schema:
-          type: string
-          pattern: ^\d+$
-        required: true
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Address'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Address'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Address'
-        required: true
-      security:
-      - tokenAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Address'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
           description: ''
   /api/users/{user_id}/addresses/{id}/:
     get:
@@ -1343,7 +1224,7 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
         required: true
       - in: path
         name: user_id
@@ -1362,15 +1243,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Address'
           description: ''
-    put:
-      operationId: users_addresses_update
-      description: Viewset for addresses.
+  /api/users/{user_id}/order/:
+    get:
+      operationId: users_order_list
+      description: Viewset for Order.
       parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
       - in: path
         name: user_id
         schema:
@@ -1379,18 +1256,6 @@ paths:
         required: true
       tags:
       - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Address'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Address'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Address'
-        required: true
       security:
       - tokenAuth: []
       responses:
@@ -1398,17 +1263,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Address'
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderList'
           description: ''
-    patch:
-      operationId: users_addresses_partial_update
-      description: Viewset for addresses.
+    post:
+      operationId: users_order_create
+      description: Viewset for Order.
       parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
       - in: path
         name: user_id
         schema:
@@ -1421,13 +1283,41 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedAddress'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedAddress'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedAddress'
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPostDelete'
+          description: ''
+  /api/users/{user_id}/order/{id}/:
+    get:
+      operationId: users_order_retrieve
+      description: Viewset for Order.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
       security:
       - tokenAuth: []
       responses:
@@ -1435,16 +1325,163 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Address'
+                $ref: '#/components/schemas/OrderList'
           description: ''
     delete:
-      operationId: users_addresses_destroy
-      description: Viewset for addresses.
+      operationId: users_order_destroy
+      description: Viewset for Order.
       parameters:
       - in: path
         name: id
         schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      - in: path
+        name: user_id
+        schema:
           type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/{user_id}/shopping_cart/:
+    get:
+      operationId: users_shopping_cart_list
+      description: Viewset for ShoppingCart.
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingCartGet'
+          description: ''
+    post:
+      operationId: users_shopping_cart_create
+      description: Viewset for ShoppingCart.
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+          description: ''
+  /api/users/{user_id}/shopping_cart/{id}/:
+    get:
+      operationId: users_shopping_cart_retrieve
+      description: Viewset for ShoppingCart.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Корзина.
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartGet'
+          description: ''
+    patch:
+      operationId: users_shopping_cart_partial_update
+      description: Viewset for ShoppingCart.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Корзина.
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+          description: ''
+    delete:
+      operationId: users_shopping_cart_destroy
+      description: Viewset for ShoppingCart.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Корзина.
         required: true
       - in: path
         name: user_id
@@ -1462,19 +1499,21 @@ paths:
   /api/users/activation/:
     post:
       operationId: users_activation_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Activation'
+              $ref: '#/components/schemas/ActivationRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1489,6 +1528,8 @@ paths:
   /api/users/me/:
     get:
       operationId: users_me_retrieve
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       security:
@@ -1502,19 +1543,21 @@ paths:
           description: ''
     put:
       operationId: users_me_update
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1527,19 +1570,21 @@ paths:
           description: ''
     patch:
       operationId: users_me_partial_update
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - tokenAuth: []
       responses:
@@ -1551,6 +1596,8 @@ paths:
           description: ''
     delete:
       operationId: users_me_destroy
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       security:
@@ -1561,19 +1608,21 @@ paths:
   /api/users/resend_activation/:
     post:
       operationId: users_resend_activation_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1588,19 +1637,21 @@ paths:
   /api/users/reset_password/:
     post:
       operationId: users_reset_password_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1615,19 +1666,21 @@ paths:
   /api/users/reset_password_confirm/:
     post:
       operationId: users_reset_password_confirm_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1642,19 +1695,21 @@ paths:
   /api/users/reset_username/:
     post:
       operationId: users_reset_username_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SendEmailReset'
+              $ref: '#/components/schemas/SendEmailResetRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1669,19 +1724,21 @@ paths:
   /api/users/reset_username_confirm/:
     post:
       operationId: users_reset_username_confirm_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UsernameResetConfirm'
+              $ref: '#/components/schemas/UsernameResetConfirmRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1696,19 +1753,21 @@ paths:
   /api/users/set_password/:
     post:
       operationId: users_set_password_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SetPassword'
+              $ref: '#/components/schemas/SetPasswordRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1722,19 +1781,21 @@ paths:
   /api/users/set_username/:
     post:
       operationId: users_set_username_create
+      description: Overrides DjoserUserViewSet serializer to delete a user without
+        password.
       tags:
       - users
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SetUsername'
+              $ref: '#/components/schemas/SetUsernameRequest'
         required: true
       security:
       - tokenAuth: []
@@ -1757,8 +1818,21 @@ components:
       required:
       - token
       - uid
+    ActivationRequest:
+      type: object
+      properties:
+        uid:
+          type: string
+          minLength: 1
+        token:
+          type: string
+          minLength: 1
+      required:
+      - token
+      - uid
     Address:
       type: object
+      description: Serializer for addresses representation.
       properties:
         id:
           type: integer
@@ -1767,9 +1841,22 @@ components:
           type: string
         priority_address:
           type: boolean
+          title: Priority
       required:
       - address
       - id
+    AddressRequest:
+      type: object
+      description: Serializer for addresses representation.
+      properties:
+        address:
+          type: string
+          minLength: 1
+        priority_address:
+          type: boolean
+          title: Priority
+      required:
+      - address
     Category:
       type: object
       description: Serializer for displaying categories.
@@ -1795,8 +1882,25 @@ components:
       type: object
       description: Serializer for creating categories.
       properties:
+        id:
+          type: integer
+          readOnly: true
         category_name:
           type: string
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - category_name
+      - id
+    CategoryCreateRequest:
+      type: object
+      description: Serializer for creating categories.
+      properties:
+        category_name:
+          type: string
+          minLength: 1
         slug:
           type: string
           maxLength: 100
@@ -1815,7 +1919,6 @@ components:
       enum:
       - Moscow
       type: string
-      description: '* `Moscow` - Москва'
     Component:
       type: object
       description: Serializer for components representation.
@@ -1843,51 +1946,207 @@ components:
           type: string
       required:
       - component_name
+    ComponentRequest:
+      type: object
+      description: Serializer for components representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Component name
+          maxLength: 100
+        slug:
+          type: string
+          description: Component slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+    DeliveryMethodEnum:
+      enum:
+      - Point of delivery
+      - By courier
+      type: string
     FavoriteProduct:
       type: object
-      description: Serializer for favorite products representation.
+      description: Serializer for favorite products list representation.
       properties:
         id:
           type: integer
           readOnly: true
         user:
-          $ref: '#/components/schemas/User'
+          $ref: '#/components/schemas/UserLight'
         product:
           $ref: '#/components/schemas/ProductLight'
       required:
       - id
       - product
       - user
+    FavoriteProductCreate:
+      type: object
+      description: Serializer for creation favorite products.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+      required:
+      - id
     MeasureUnitEnum:
       enum:
       - grams
       - milliliters
       - items
       type: string
-      description: |-
-        * `grams` - г.
-        * `milliliters` - мл.
-        * `items` - шт.
-    PaginatedAddressList:
+    OrderList:
       type: object
+      description: Serializer for order representation.
       properties:
-        count:
+        id:
           type: integer
-          example: 123
-        next:
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/UserPresent'
+          readOnly: true
+        shopping_cart:
+          allOf:
+          - $ref: '#/components/schemas/ShoppingCartGet'
+          readOnly: true
+        order_number:
+          type: integer
+          readOnly: true
+        ordering_date:
+          type: string
+          format: date-time
+          readOnly: true
+          title: DateTime
+        status:
+          allOf:
+          - $ref: '#/components/schemas/OrderListStatusEnum'
+          description: |-
+            * `Ordered` - Оформлен
+            * `In processing` - В обработке
+            * `Collecting` - Комплектуется
+            * `Gathered` - Собран
+            * `In delivering` - Передан в доставку
+            * `Delivered` - Доставлен
+            * `Completed` - Завершен
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
+        is_paid:
+          type: boolean
+        delivery_method:
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
+        address:
+          type: string
+          readOnly: true
+        delivery_point:
+          type: string
+          readOnly: true
+        package:
+          type: number
+          format: double
+          minimum: 0
+          title: Package price
+          description: Price per order packaging
+        comment:
           type: string
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
+        total_price:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - address
+      - delivery_point
+      - id
+      - order_number
+      - ordering_date
+      - shopping_cart
+      - total_price
+      - user
+    OrderListStatusEnum:
+      enum:
+      - Ordered
+      - In processing
+      - Collecting
+      - Gathered
+      - In delivering
+      - Delivered
+      - Completed
+      type: string
+    OrderPostDelete:
+      type: object
+      description: Serializer for create/update/delete order.
+      properties:
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
+        delivery_method:
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
+        delivery_point:
+          type: integer
+          nullable: true
+        package:
+          type: number
+          format: double
+          minimum: 0
+          title: Package price
+          description: Price per order packaging
+        comment:
           type: string
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Address'
+        address:
+          type: integer
+          nullable: true
+          title: User's address
+    OrderPostDeleteRequest:
+      type: object
+      description: Serializer for create/update/delete order.
+      properties:
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          description: |-
+            * `Payment at the point of delivery` - Оплата в пункте самовывоза
+            * `In getting by cash` - Оплата наличными курьеру
+        delivery_method:
+          allOf:
+          - $ref: '#/components/schemas/DeliveryMethodEnum'
+          description: |-
+            * `Point of delivery` - Пункт выдачи
+            * `By courier` - Курьер
+        delivery_point:
+          type: integer
+          nullable: true
+        package:
+          type: number
+          format: double
+          minimum: 0
+          title: Package price
+          description: Price per order packaging
+        comment:
+          type: string
+          nullable: true
+        address:
+          type: integer
+          nullable: true
+          title: User's address
     PaginatedProductList:
       type: object
       properties:
@@ -1908,46 +2167,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Product'
-    PaginatedShoppingCartGetList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingCartGet'
-    PaginatedUserList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
     PasswordResetConfirm:
       type: object
       properties:
@@ -1961,35 +2180,40 @@ components:
       - new_password
       - token
       - uid
-    PatchedAddress:
+    PasswordResetConfirmRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        address:
+        uid:
           type: string
-        priority_address:
-          type: boolean
-    PatchedCategoryCreate:
+          minLength: 1
+        token:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          minLength: 1
+      required:
+      - new_password
+      - token
+      - uid
+    PatchedCategoryCreateRequest:
       type: object
       description: Serializer for creating categories.
       properties:
         category_name:
           type: string
+          minLength: 1
         slug:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedComponent:
+    PatchedComponentRequest:
       type: object
       description: Serializer for components representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Component name
           maxLength: 100
         slug:
@@ -1997,15 +2221,13 @@ components:
           description: Component slug
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedProducer:
+    PatchedProducerRequest:
       type: object
       description: Serializer for produsers representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Producer name
           maxLength: 100
         slug:
@@ -2014,35 +2236,30 @@ components:
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         producer_type:
-          $ref: '#/components/schemas/ProducerTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
         description:
           type: string
           description: Brief information about the company or entrepreneur
         address:
           type: string
+          minLength: 1
           description: Legal address of the producers
-    PatchedProductUpdate:
+    PatchedProductUpdateRequest:
       type: object
       description: Serializer for updating products.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Product name
           maxLength: 100
         description:
           type: string
           description: Product description
-        creation_time:
-          type: string
-          format: date-time
-          readOnly: true
-          description: Date of inclusion of the product in the database
-        category:
-          type: integer
-          readOnly: true
         subcategory:
           type: integer
         tags:
@@ -2055,7 +2272,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2064,19 +2286,13 @@ components:
           format: double
           minimum: 0
           description: Price per one product unit
-        final_price:
-          type: string
-          readOnly: true
         promotions:
           type: array
           items:
             type: integer
-        promotion_quantity:
-          type: string
-          readOnly: true
         photo:
           type: string
-          format: uri
+          format: binary
         components:
           type: array
           items:
@@ -2093,28 +2309,24 @@ components:
         carbohydrates:
           type: integer
           description: Number of carbohydrates per 100 g of product
-        views_number:
-          type: integer
-          description: Number of product page views
-          readOnly: true
-        orders_number:
-          type: integer
-          description: Number of orders for this product
-          readOnly: true
-        is_favorited:
-          type: string
-          readOnly: true
-    PatchedPromotion:
+    PatchedPromotionRequest:
       type: object
       description: Serializer for promotions representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         promotion_type:
-          $ref: '#/components/schemas/PromotionTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
         name:
           type: string
+          minLength: 1
           description: Promotion name
           maxLength: 100
         discount:
@@ -2142,47 +2354,36 @@ components:
           format: date-time
           nullable: true
           title: Promotion end time
-    PatchedShoppingCartPostUpdateDelete:
+    PatchedShoppingCartPostUpdateDeleteRequest:
       type: object
       description: Serializer for create/update/delete shopping_cart.
       properties:
-        user:
-          type: integer
-          title: Покупатель
         products:
           type: array
           items:
-            $ref: '#/components/schemas/ShoppingCartProductCreateUpdate'
-        total_price:
-          type: integer
-        status:
-          $ref: '#/components/schemas/StatusEnum'
-    PatchedSubcategory:
+            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
+    PatchedSubcategoryRequest:
       type: object
       description: Serializer for subcategories representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         parent_category:
           type: integer
           title: Category
         name:
           type: string
+          minLength: 1
           maxLength: 100
         slug:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedTag:
+    PatchedTagRequest:
       type: object
       description: Serializer for tags representation.
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           description: Tag name
           maxLength: 100
         slug:
@@ -2190,43 +2391,58 @@ components:
           description: Tag slug
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-    PatchedUser:
+    PatchedUserRequest:
       type: object
+      description: Serializer for displaying and updating users.
       properties:
-        id:
-          type: integer
-          readOnly: true
         username:
           type: string
+          minLength: 1
           maxLength: 150
         email:
           type: string
           format: email
+          minLength: 1
           title: E-mail address
           maxLength: 254
         first_name:
           type: string
+          title: Имя
           maxLength: 150
         last_name:
           type: string
+          title: Фамилия
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
         city:
-          $ref: '#/components/schemas/CityEnum'
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
         birth_date:
           type: string
           format: date
           nullable: true
-        address_quantity:
-          type: string
-          readOnly: true
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressRequest'
         phone_number:
           type: string
           maxLength: 128
         photo:
           type: string
-          format: uri
+          format: binary
+    PaymentMethodEnum:
+      enum:
+      - Payment at the point of delivery
+      - In getting by cash
+      type: string
     Producer:
       type: object
       description: Serializer for produsers representation.
@@ -2244,7 +2460,11 @@ components:
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         producer_type:
-          $ref: '#/components/schemas/ProducerTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
         description:
           type: string
           description: Brief information about the company or entrepreneur
@@ -2263,14 +2483,41 @@ components:
           type: string
       required:
       - producer_name
+    ProducerRequest:
+      type: object
+      description: Serializer for produsers representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Producer name
+          maxLength: 100
+        slug:
+          type: string
+          description: Producer slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        producer_type:
+          allOf:
+          - $ref: '#/components/schemas/ProducerTypeEnum'
+          description: |-
+            * `company` - Юридическое лицо
+            * `entrepreneur` - Индивидуальный предприниматель
+        description:
+          type: string
+          description: Brief information about the company or entrepreneur
+        address:
+          type: string
+          minLength: 1
+          description: Legal address of the producers
+      required:
+      - address
+      - name
     ProducerTypeEnum:
       enum:
       - company
       - entrepreneur
       type: string
-      description: |-
-        * `company` - Юридическое лицо
-        * `entrepreneur` - Индивидуальный предприниматель
     Product:
       type: object
       description: Serializer for displaying products.
@@ -2306,7 +2553,12 @@ components:
         producer:
           $ref: '#/components/schemas/ProducerLight'
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2316,14 +2568,15 @@ components:
           minimum: 0
           description: Price per one product unit
         final_price:
-          type: string
+          type: number
+          format: double
           readOnly: true
         promotions:
           type: array
           items:
             $ref: '#/components/schemas/PromotionLight'
         promotion_quantity:
-          type: string
+          type: integer
           readOnly: true
         photo:
           type: string
@@ -2351,7 +2604,7 @@ components:
           type: integer
           description: Number of orders for this product
         is_favorited:
-          type: string
+          type: boolean
           readOnly: true
       required:
       - carbohydrates
@@ -2403,7 +2656,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2413,13 +2671,8 @@ components:
           minimum: 0
           description: Price per one product unit
         final_price:
-          type: string
-          readOnly: true
-        promotions:
-          type: integer
-          readOnly: true
-        promotion_quantity:
-          type: string
+          type: number
+          format: double
           readOnly: true
         photo:
           type: string
@@ -2440,17 +2693,6 @@ components:
         carbohydrates:
           type: integer
           description: Number of carbohydrates per 100 g of product
-        views_number:
-          type: integer
-          description: Number of product page views
-          readOnly: true
-        orders_number:
-          type: integer
-          description: Number of orders for this product
-          readOnly: true
-        is_favorited:
-          type: string
-          readOnly: true
       required:
       - carbohydrates
       - category
@@ -2459,18 +2701,79 @@ components:
       - fats
       - final_price
       - id
-      - is_favorited
       - kcal
       - name
-      - orders_number
       - price
       - producer
-      - promotion_quantity
-      - promotions
       - proteins
       - subcategory
-      - tags
-      - views_number
+    ProductCreateRequest:
+      type: object
+      description: Serializer for creating products.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Product name
+          maxLength: 100
+        description:
+          type: string
+          description: Product description
+        subcategory:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: integer
+        discontinued:
+          type: boolean
+          description: Is this product discontinued from sale
+        producer:
+          type: integer
+        measure_unit:
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
+        amount:
+          type: integer
+          description: Number of grams, milliliters or items
+        price:
+          type: number
+          format: double
+          minimum: 0
+          description: Price per one product unit
+        photo:
+          type: string
+          format: binary
+        components:
+          type: array
+          items:
+            type: integer
+        kcal:
+          type: integer
+          description: Number of kcal per 100 g of product
+        proteins:
+          type: integer
+          description: Number of proteins per 100 g of product
+        fats:
+          type: integer
+          description: Number of fats per 100 g of product
+        carbohydrates:
+          type: integer
+          description: Number of carbohydrates per 100 g of product
+      required:
+      - carbohydrates
+      - components
+      - fats
+      - kcal
+      - name
+      - price
+      - producer
+      - proteins
+      - subcategory
     ProductLight:
       type: object
       description: Serializer for products representation in favorite product serializer.
@@ -2518,7 +2821,12 @@ components:
         producer:
           type: integer
         measure_unit:
-          $ref: '#/components/schemas/MeasureUnitEnum'
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
         amount:
           type: integer
           description: Number of grams, milliliters or items
@@ -2528,15 +2836,13 @@ components:
           minimum: 0
           description: Price per one product unit
         final_price:
-          type: string
+          type: number
+          format: double
           readOnly: true
         promotions:
           type: array
           items:
             type: integer
-        promotion_quantity:
-          type: string
-          readOnly: true
         photo:
           type: string
           format: uri
@@ -2556,17 +2862,6 @@ components:
         carbohydrates:
           type: integer
           description: Number of carbohydrates per 100 g of product
-        views_number:
-          type: integer
-          description: Number of product page views
-          readOnly: true
-        orders_number:
-          type: integer
-          description: Number of orders for this product
-          readOnly: true
-        is_favorited:
-          type: string
-          readOnly: true
       required:
       - carbohydrates
       - category
@@ -2575,18 +2870,13 @@ components:
       - fats
       - final_price
       - id
-      - is_favorited
       - kcal
       - name
-      - orders_number
       - price
       - producer
-      - promotion_quantity
       - promotions
       - proteins
       - subcategory
-      - tags
-      - views_number
     Promotion:
       type: object
       description: Serializer for promotions representation.
@@ -2595,7 +2885,16 @@ components:
           type: integer
           readOnly: true
         promotion_type:
-          $ref: '#/components/schemas/PromotionTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
         name:
           type: string
           description: Promotion name
@@ -2640,6 +2939,53 @@ components:
           description: Percentage of a product price
       required:
       - promotion_name
+    PromotionRequest:
+      type: object
+      description: Serializer for promotions representation.
+      properties:
+        promotion_type:
+          allOf:
+          - $ref: '#/components/schemas/PromotionTypeEnum'
+          description: |-
+            * `simple` - Простая скидка
+            * `birthday` - Скидка именинникам
+            * `loyalty_card` - Скидка по карте покупателя
+            * `expired_soon` - Скидка на товары с истекающим сроком годности
+            * `present` - Товар в подарок
+            * `two_for_one` - Два по цене одного
+            * `multiple_items` - Скидка при покупке нескольких штук
+        name:
+          type: string
+          minLength: 1
+          description: Promotion name
+          maxLength: 100
+        discount:
+          type: integer
+          maximum: 100
+          description: Percentage of a product price
+        conditions:
+          type: string
+          description: Conditions of the promotion
+        is_active:
+          type: boolean
+          title: Active or not
+          description: Is this promotion valid now
+        is_constant:
+          type: boolean
+          title: Constant or not
+          description: Does this promotion have a time limits
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+          title: Promotion start time
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+          title: Promotion end time
+      required:
+      - name
     PromotionTypeEnum:
       enum:
       - simple
@@ -2650,30 +2996,27 @@ components:
       - two_for_one
       - multiple_items
       type: string
-      description: |-
-        * `simple` - Простая скидка
-        * `birthday` - Скидка именинникам
-        * `loyalty_card` - Скидка по карте покупателя
-        * `expired_soon` - Скидка на товары с истекающим сроком годности
-        * `present` - Товар в подарок
-        * `two_for_one` - Два по цене одного
-        * `multiple_items` - Скидка при покупке нескольких штук
     RoleEnum:
       enum:
       - user
       - moderator
       - admin
       type: string
-      description: |-
-        * `user` - Аутентифицированный пользователь
-        * `moderator` - Модератор
-        * `admin` - Администратор
     SendEmailReset:
       type: object
       properties:
         email:
           type: string
           format: email
+      required:
+      - email
+    SendEmailResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
       required:
       - email
     SetPassword:
@@ -2686,6 +3029,18 @@ components:
       required:
       - current_password
       - new_password
+    SetPasswordRequest:
+      type: object
+      properties:
+        new_password:
+          type: string
+          minLength: 1
+        current_password:
+          type: string
+          minLength: 1
+      required:
+      - current_password
+      - new_password
     SetUsername:
       type: object
       properties:
@@ -2694,6 +3049,21 @@ components:
         new_email:
           type: string
           format: email
+          title: E-mail address
+          maxLength: 254
+      required:
+      - current_password
+      - new_email
+    SetUsernameRequest:
+      type: object
+      properties:
+        current_password:
+          type: string
+          minLength: 1
+        new_email:
+          type: string
+          format: email
+          minLength: 1
           title: E-mail address
           maxLength: 254
       required:
@@ -2718,30 +3088,52 @@ components:
         total_price:
           type: integer
         status:
-          $ref: '#/components/schemas/StatusEnum'
+          allOf:
+          - $ref: '#/components/schemas/ShoppingCartGetStatusEnum'
+          description: |-
+            * `Ordered` - Передано в заказ
+            * `In Work` - В работе
       required:
       - id
       - products
       - user
+    ShoppingCartGetStatusEnum:
+      enum:
+      - Ordered
+      - In Work
+      type: string
     ShoppingCartPostUpdateDelete:
       type: object
       description: Serializer for create/update/delete shopping_cart.
       properties:
-        user:
-          type: integer
-          title: Покупатель
         products:
           type: array
           items:
             $ref: '#/components/schemas/ShoppingCartProductCreateUpdate'
-        total_price:
-          type: integer
-        status:
-          $ref: '#/components/schemas/StatusEnum'
       required:
       - products
-      - user
+    ShoppingCartPostUpdateDeleteRequest:
+      type: object
+      description: Serializer for create/update/delete shopping_cart.
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
+      required:
+      - products
     ShoppingCartProductCreateUpdate:
+      type: object
+      description: Serializer for add/update/delete products into shopping_cart.
+      properties:
+        id:
+          type: integer
+        quantity:
+          type: integer
+          default: 1
+      required:
+      - id
+    ShoppingCartProductCreateUpdateRequest:
       type: object
       description: Serializer for add/update/delete products into shopping_cart.
       properties:
@@ -2763,14 +3155,23 @@ components:
           type: string
           description: Product name
           readOnly: true
-        measurement_unit:
-          type: string
+        measure_unit:
+          allOf:
+          - $ref: '#/components/schemas/MeasureUnitEnum'
+          description: |-
+            * `grams` - г.
+            * `milliliters` - мл.
+            * `items` - шт.
           readOnly: true
         price:
           type: number
           format: double
           minimum: 0
           description: Price per one product unit
+          readOnly: true
+        final_price:
+          type: number
+          format: double
           readOnly: true
         amount:
           type: integer
@@ -2781,20 +3182,18 @@ components:
           maximum: 10000
           minimum: 1
           title: Количество
+        is_favorited_by_user:
+          type: boolean
+          description: Checks if this product is in the buyer's favorites.
+          readOnly: true
       required:
       - amount
+      - final_price
       - id
-      - measurement_unit
+      - is_favorited_by_user
+      - measure_unit
       - name
       - price
-    StatusEnum:
-      enum:
-      - Ordered
-      - In work
-      type: string
-      description: |-
-        * `Ordered` - Передано в заказ
-        * `In work` - В работе
     Subcategory:
       type: object
       description: Serializer for subcategories representation.
@@ -2824,6 +3223,24 @@ components:
           type: string
       required:
       - subcategory_name
+    SubcategoryRequest:
+      type: object
+      description: Serializer for subcategories representation.
+      properties:
+        parent_category:
+          type: integer
+          title: Category
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
+      - parent_category
     Tag:
       type: object
       description: Serializer for tags representation.
@@ -2851,6 +3268,22 @@ components:
           type: string
       required:
       - tag_name
+    TagRequest:
+      type: object
+      description: Serializer for tags representation.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Tag name
+          maxLength: 100
+        slug:
+          type: string
+          description: Tag slug
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - name
     TokenCreate:
       type: object
       properties:
@@ -2858,8 +3291,18 @@ components:
           type: string
         email:
           type: string
+    TokenCreateRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          minLength: 1
     User:
       type: object
+      description: Serializer for displaying and updating users.
       properties:
         id:
           type: integer
@@ -2874,20 +3317,33 @@ components:
           maxLength: 254
         first_name:
           type: string
+          title: Имя
           maxLength: 150
         last_name:
           type: string
+          title: Фамилия
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
         city:
-          $ref: '#/components/schemas/CityEnum'
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
         birth_date:
           type: string
           format: date
           nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
         address_quantity:
-          type: string
+          type: integer
           readOnly: true
         phone_number:
           type: string
@@ -2902,6 +3358,7 @@ components:
       - username
     UserCreate:
       type: object
+      description: Serializer for creating users.
       properties:
         email:
           type: string
@@ -2911,9 +3368,6 @@ components:
           readOnly: true
         username:
           type: string
-        password:
-          type: string
-          writeOnly: true
         city:
           type: string
           readOnly: true
@@ -2921,21 +3375,107 @@ components:
       - city
       - email
       - id
+      - username
+    UserCreateRequest:
+      type: object
+      description: Serializer for creating users.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
       - password
+      - username
+    UserLight:
+      type: object
+      description: Serializer to represent user in favorite products serializers.
+      properties:
+        username:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: E-mail address
+          maxLength: 254
+      required:
+      - email
       - username
     UserPresent:
       type: object
+      description: Serializer for displaying and updating users.
       properties:
         username:
           type: string
           maxLength: 150
         first_name:
           type: string
+          title: Имя
           maxLength: 150
         last_name:
           type: string
+          title: Фамилия
           maxLength: 150
       required:
+      - username
+    UserRequest:
+      type: object
+      description: Serializer for displaying and updating users.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          title: E-mail address
+          maxLength: 254
+        first_name:
+          type: string
+          title: Имя
+          maxLength: 150
+        last_name:
+          type: string
+          title: Фамилия
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            * `user` - Аутентифицированный пользователь
+            * `moderator` - Модератор
+            * `admin` - Администратор
+        city:
+          allOf:
+          - $ref: '#/components/schemas/CityEnum'
+          description: '* `Moscow` - Москва'
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressRequest'
+        phone_number:
+          type: string
+          maxLength: 128
+        photo:
+          type: string
+          format: binary
+      required:
+      - email
       - username
     UsernameResetConfirm:
       type: object
@@ -2947,6 +3487,57 @@ components:
           maxLength: 254
       required:
       - new_email
+    UsernameResetConfirmRequest:
+      type: object
+      properties:
+        new_email:
+          type: string
+          format: email
+          minLength: 1
+          title: E-mail address
+          maxLength: 254
+      required:
+      - new_email
+
+  responses:
+    ValidationError:
+      description: 'Ошибки валидации в стандартном формате DRF'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    NestedValidationError:
+      description: 'Ошибки валидации в стандартном формате DRF, в том числе с внутренними элементами.'
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/NestedValidationError'
+              - $ref: '#/components/schemas/ValidationError'
+
+    AuthenticationError:
+      description: Пользователь не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticationError'
+
+    PermissionDenied:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PermissionDenied'
+
+    NotFound:
+      description: Объект не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFound'
+
+
   securitySchemes:
     tokenAuth:
       type: apiKey
