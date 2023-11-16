@@ -37,7 +37,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             return ShoppingCart.objects.filter(user=user).filter(
                 status=ShoppingCart.INWORK
             )
-        raise PermissionDenied()
+        if user.is_authenticated and user.id != int(user_id):
+            raise PermissionDenied()
+        return ShoppingCart.objects.none()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -134,6 +136,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
+    # TODO: this method should be called destroy, not delete, and it is never triggered
     def delete(self, request, *args, **kwargs):
         shopping_cart = self.get_shopping_cart()
         shopping_cart.delete()
@@ -154,12 +157,12 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             user = self.request.user
-            if user.role == "admin" or user.role == "moderator":
+            if user.is_admin or user.is_moderator:
                 return self.get_user().orders.all()
             if self.get_user() != self.request.user:
                 raise PermissionDenied()
             return self.request.user.orders.all()
-        raise PermissionDenied()
+        return ShoppingCart.objects.none()
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
