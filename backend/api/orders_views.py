@@ -17,24 +17,22 @@ from .permissions import IsAuthorOrAdmin
 from orders.models import Order, ShoppingCart, ShoppingCartProduct
 from products.models import Product
 from users.models import User
-
+from orders.shopping_carts import ShopCart
 DECIMAL_PLACES_NUMBER = 2
+
 
 
 class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
     queryset = ShoppingCart.objects.all()
-    permission_classes = [IsAuthenticated]
     http_method_names = ("get", "post", "delete", "patch")
 
     def get_queryset(self, **kwargs):
-        user_id = self.kwargs.get("user_id")
-        user = self.request.user
-        if user.is_authenticated and user.is_admin:
-            return ShoppingCart.objects.filter(user=user_id)
-        if user.is_authenticated and user.id == int(user_id):
-            return ShoppingCart.objects.filter(user=user).filter(
+        if self.request.user.is_authenticated and self.request.user.is_admin:
+            return ShoppingCart.objects.filter(user=self.kwargs.get("user_id"))
+        if self.request.is_authenticated and self.request.user.id == int(self.kwargs.get("user_id")):
+            return ShoppingCart.objects.filter(user=self.request.user).filter(
                 status=ShoppingCart.INWORK
             )
         raise PermissionDenied()
@@ -57,10 +55,20 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            shopping_cart = ShopCart(request)
+            products = request.data["products"]
+            for product in products:
+                product = get_object_or_404(Product, id=product["id"])
+                shopping_cart.add(product=product, quantity=product['quantity'])
+            return Response(
+                status=status.HTTP_201_CREATED)
+
+        user = self.request.user
         if self.kwargs.get("user_id") != str(self.request.user.id):
             raise PermissionDenied()
         if (
-            ShoppingCart.objects.filter(user=self.request.user)
+            ShoppingCart.objects.filter(user=user)
             .filter(status=ShoppingCart.INWORK)
             .exists()
         ):
@@ -72,12 +80,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             )
         products = request.data["products"]
         serializer = self.get_serializer(
-            data={"products": products, "user": self.request.user.id},
-            context={"request": request.data, "user": self.request.user},
+            data={"products": products, "user": user.id},
+            context={"request": request.data, "user": user},
         )
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
-            user=self.request.user,
+            user=user,
             total_price=(
                 round(
                     sum(
@@ -105,9 +113,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        shopping_cart = self.get_shopping_cart()
-        products = request.data["products"]
-        serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
+        if not self.request.user.is_authenticated:
+            shopping_cart = self.get_shopping_cart()
+            products = request.data["products"]
+
+        serializer = self.get_serializer(
+            shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         if products is not None:
             shopping_cart.products.clear()
@@ -135,6 +146,11 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            shopping_cart = ShopCart(request)
+            product = get_object_or_404(Product, id=product_id)
+            shopping_cart.remove(product)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         shopping_cart = self.get_shopping_cart()
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -32,11 +32,7 @@ router.register("users", CustomUserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
-router.register(
-    r"users/(?P<user_id>\d+)/shopping_cart",
-    ShoppingCartViewSet,
-    basename="shopping_carts",
-)
+router.register(r"shopping_cart", ShoppingCartViewSet, basename="shopping_carts"),
 router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet, basename="orders")
 
 urlpatterns = [
