@@ -16,7 +16,7 @@ class ShopCart(object):
             shopping_cart = self.session[settings.SHOPPING_CART_SESSION_ID] = {}
         self.shopping_cart = shopping_cart
 
-    def add(self, product, quantity=1, update_quantity=False):
+    def add(self, product, quantity, update_quantity=False):
         """
         Add a product to the cart or update its quantity.
         """
@@ -24,11 +24,11 @@ class ShopCart(object):
         if product["id"] not in self.shopping_cart.keys():
             self.shopping_cart[product["id"]] = {
                 "name": p.name,
-                "quantity": product["quantity"],
+                "quantity": int(product["quantity"]),
                 "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
             }
-        if update_quantity:
+        elif update_quantity:
             self.shopping_cart[product["id"]]["quantity"] = int(quantity)
         else:
             self.shopping_cart[product["id"]]['quantity'] += int(quantity)
@@ -76,7 +76,6 @@ class ShopCart(object):
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
-        print(self.shopping_cart.values())
         return sum(
             int(item["quantity"]) * item["final_price"]
             for item in self.shopping_cart.values()
