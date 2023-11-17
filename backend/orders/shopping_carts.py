@@ -25,7 +25,7 @@ class ShopCart(object):
             self.shopping_cart[product["id"]] = {
                 "name": p.name,
                 "quantity": product["quantity"],
-                "price": p.final_price,
+                "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
             }
         if update_quantity:
@@ -58,12 +58,12 @@ class ShopCart(object):
         cart = self.shopping_cart.copy()
         for product in products:
             cart[product.id]["name"] = product.name
-            cart[product.id]["price"] = product.final_price
+            cart[product.id]["final_price"] = product.final_price
 
         for item in cart.values():
             item["name"] = item["name"]
             item["quantity"] = int(item["quantity"])
-            item["total_price"] = item["quantity"] * item["price"]
+            item["total_price"] = item["quantity"] * item["final_price"]
 
             yield item
 
@@ -74,8 +74,9 @@ class ShopCart(object):
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
+        print(self.shopping_cart.values())
         return sum(
-            item["quantity"] * item["price"] for item in self.shopping_cart.values()
+            float(item["quantity"]) * item["final_price"] for item in self.shopping_cart.values()
         )
 
     def clear(self):
