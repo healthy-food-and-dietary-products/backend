@@ -50,33 +50,6 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
         return obj.product.final_price
 
 
-class ShoppingCartProductListAnonSerializer(serializers.ModelSerializer):
-    """Serializer products in shopping_cart."""
-
-    id = serializers.ReadOnlyField(source="product.id")
-    name = serializers.ReadOnlyField(source="product.name")
-    measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
-    amount = serializers.ReadOnlyField(source="product.amount")
-    price = serializers.ReadOnlyField(source="product.price")
-    final_price = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ShoppingCartProduct
-        fields = (
-            "id",
-            "name",
-            "measure_unit",
-            "price",
-            "final_price",
-            "amount",
-            "quantity",
-        )
-
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
-        return obj.final_price
-
-
 class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for add/update/delete products into shopping_cart."""
 
