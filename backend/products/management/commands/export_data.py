@@ -255,15 +255,10 @@ def export_orders():
             row = [getattr(obj, field) for field in field_names]
             writer.writerow(row)
 
+
 def export_shopping_cart():
     data = apps.get_model("orders", "ShoppingCart")
-    field_names = [
-        "id",
-        "status",
-        "total_price",
-        "created",
-        "user_id"
-    ]
+    field_names = ["id", "status", "total_price", "created", "user_id"]
     with open(
         os.path.join(DATA_DIR, "shopping_cart.csv"),
         "w",
@@ -279,12 +274,7 @@ def export_shopping_cart():
 
 def export_shopping_cart_products():
     data = apps.get_model("orders", "ShoppingCartProduct")
-    field_names = [
-        "id",
-        "quantity",
-        "product_id",
-        "shopping_cart_id"
-    ]
+    field_names = ["id", "quantity", "product_id", "shopping_cart_id"]
     with open(
         os.path.join(DATA_DIR, "shopping_cart_products.csv"),
         "w",
@@ -368,5 +358,7 @@ class Command(BaseCommand):
         )
         export_shopping_cart_products()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели ShoppingCartProduct прошёл успешно!")
+            self.style.SUCCESS(
+                "Экспорт даных модели ShoppingCartProduct прошёл успешно!"
+            )
         )
