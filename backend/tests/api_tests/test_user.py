@@ -47,7 +47,7 @@ def test_get_me(user, auth_client):
 def test_patch_me(user, auth_client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
     response = auth_client.patch("/api/users/me/", payload)
-    # user.refresh_from_db()
+    # user.refresh_from_db() seems it is not necessary
 
     assert response.status_code == 200
     assert response.data["id"] == user.id
@@ -59,6 +59,25 @@ def test_patch_me(user, auth_client):
 def test_patch_me_anonymous_fail(client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
     response = client.patch("/api/users/me/", payload)
+
+    assert response.status_code == 401
+    assert response.data["type"] == "client_error"
+    assert response.data["errors"][0]["code"] == "not_authenticated"
+
+
+@pytest.mark.django_db
+def test_delete_me(auth_client, user):
+    response = auth_client.delete("/api/users/me/")
+
+    assert response.status_code == 200
+    assert response.data["username"] == user.username
+    assert response.data["email"] == user.email
+    assert response.data["Success"] == "This object was successfully deleted"
+
+
+@pytest.mark.django_db
+def test_delete_me_anonymous_fail(client):
+    response = client.delete("/api/users/me/")
 
     assert response.status_code == 401
     assert response.data["type"] == "client_error"
