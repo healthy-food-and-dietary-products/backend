@@ -1,15 +1,11 @@
-from decimal import Decimal
+from datetime import datetime, timezone
 
 from django.conf import settings
 
 from products.models import Product
-from orders.models import ShoppingCartProduct, ShoppingCart
-
-DECIMAL_PLACES_NUMBER = 2
 
 
 class ShopCart(object):
-
     def __init__(self, request):
         """
         Initialize the shopping_cart.
@@ -24,14 +20,16 @@ class ShopCart(object):
         """
         Add a product to the cart or update its quantity.
         """
-        product_id = str(product.id)
-        if product_id not in self.shopping_cart:
-            self.shopping_cart[product_id] = {'quantity': 0,
-                                     'price': str(product.price)}
+        p = Product.objects.get(id=product["id"])
+        if product["id"] not in self.shopping_cart.keys():
+            self.shopping_cart[product["id"]] = {
+                "name": p.name,
+                "quantity": product["quantity"],
+                "price": p.price,
+                "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
+            }
         if update_quantity:
-            self.shopping_cart[product_id]['quantity'] = quantity
-        else:
-            self.shopping_cart[product_id]['quantity'] += quantity
+            self.shopping_cart[product["id"]]["quantity"] = quantity
 
         self.save()
 
@@ -56,25 +54,30 @@ class ShopCart(object):
         from the database.
         """
         product_ids = self.shopping_cart.keys()
-        # get the product objects and add them to the cart
         products = Product.objects.filter(id__in=product_ids)
+        cart = self.shopping_cart.copy()
         for product in products:
-            self.shopping_cart[str(product.id)]['product'] = product
+            cart[str(product.id)]["name"] = product.name
+            cart[str(product.id)]["price"] = product.final_price
 
-        for item in self.shopping_cart.values():
-            item['price'] = Decimal(item['price'])
-            item['total_price'] = item['price'] * item['quantity']
+        for item in cart.values():
+            item["name"] = item["name"]
+            item["quantity"] = int(item["quantity"])
+            item["price"] = item["price"]
+            item["total_price"] = item["quantity"] * item["price"]
+
             yield item
 
     def __len__(self):
         """
         Count all items in the cart.
         """
-        return sum(item['quantity'] for item in self.shopping_cart.values())
+        return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
-        return sum(Decimal(item['price']) * item['quantity'] for item in
-                   self.shopping_cart.values())
+        return sum(
+            item["quantity"] * item["price"] for item in self.shopping_cart.values()
+        )
 
     def clear(self):
         """
