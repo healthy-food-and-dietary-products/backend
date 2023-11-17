@@ -262,7 +262,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
             shopping_cart = ShopCart(request)
             if not shopping_cart:
