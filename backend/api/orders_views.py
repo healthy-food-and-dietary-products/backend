@@ -10,7 +10,7 @@ from drf_standardized_errors.openapi_serializers import (
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -23,6 +23,7 @@ from .orders_serializers import (
 )
 from .permissions import IsAuthorOrAdmin
 from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.shopping_carts import ShopCart
 from products.models import Product
 from users.models import User
 
@@ -103,7 +104,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     """Viewset for ShoppingCart."""
 
     queryset = ShoppingCart.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     http_method_names = ("get", "post", "delete", "patch")
 
     def get_queryset(self, **kwargs):
@@ -125,7 +126,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return ShoppingCartPostUpdateDeleteSerializer
 
     def get_shopping_cart(self, **kwargs):
-        shopping_cart = get_object_or_404(ShoppingCart, id=self.kwargs.get("pk"))
+        shopping_cart = get_object_or_404(ShoppingCart, user=self.request.user)
         if not shopping_cart:
             raise ObjectDoesNotExist
         if (
@@ -135,12 +136,45 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             return shopping_cart
         raise PermissionDenied()
 
+    def list(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous:
+            shopping_cart = ShopCart(request)
+            return Response(
+                {
+                    "products": shopping_cart.__iter__(),
+                    "count_of_products": shopping_cart.__len__(),
+                    "total_price": shopping_cart.get_total_price(),
+                },
+                status=status.HTTP_200_OK,
+            )
+        shopping_cart = self.get_shopping_cart()
+        print(shopping_cart)
+        serializer = self.get_serializer(
+            shopping_cart, data={"user": self.request.user}
+        )
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        if self.kwargs.get("user_id") != str(self.request.user.id):
-            raise PermissionDenied()
+        if self.request.user.is_anonymous:
+            shopping_cart = ShopCart(request)
+            products = request.data["products"]
+            for product in products:
+                shopping_cart.add(product=product, quantity=product["quantity"])
+            return Response(
+                {
+                    "products": shopping_cart.__iter__(),
+                    "count_of_products": shopping_cart.__len__(),
+                    "total_price": shopping_cart.get_total_price(),
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        user = self.request.user
+
         if (
-            ShoppingCart.objects.filter(user=self.request.user)
+            ShoppingCart.objects.filter(user=user.id)
             .filter(status=ShoppingCart.INWORK)
             .exists()
         ):
@@ -152,8 +186,8 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             )
         products = request.data["products"]
         serializer = self.get_serializer(
-            data={"products": products, "user": self.request.user.id},
-            context={"request": request.data, "user": self.request.user},
+            data={"products": products, "user": user.id},
+            context={"request": request.data, "user": user},
         )
         serializer.is_valid(raise_exception=True)
         shopping_cart = ShoppingCart.objects.create(
@@ -185,6 +219,20 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous:
+            shopping_cart = ShopCart(request)
+            products = request.data["products"]
+            for product in products:
+                shopping_cart.add(product=product, quantity=product["quantity"])
+            return Response(
+                {
+                    "products": shopping_cart.__iter__(),
+                    "count_of_products": shopping_cart.__len__(),
+                    "total_price": shopping_cart.get_total_price(),
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
         shopping_cart = self.get_shopping_cart()
         products = request.data["products"]
         serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
@@ -213,6 +261,20 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous:
+            shopping_cart = ShopCart(request)
+            if not shopping_cart:
+                return Response(
+                    {"errors": "no shopping_cart available"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            shopping_cart.clear()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        shopping_cart = self.get_shopping_cart()
+        shopping_cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @method_decorator(
