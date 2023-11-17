@@ -76,7 +76,7 @@ class ShopCart(object):
     def get_total_price(self):
         print(self.shopping_cart.values())
         return sum(
-            float(item["quantity"]) * item["final_price"] for item in self.shopping_cart.values()
+            item["quantity"] * item["final_price"] for item in self.shopping_cart.values()
         )
 
     def clear(self):
