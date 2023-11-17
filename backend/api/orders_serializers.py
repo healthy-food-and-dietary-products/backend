@@ -115,7 +115,6 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         model = ShoppingCart
 
     def validate_products(self, data):
-        print(data)
         products_id = [product["id"] for product in data]
         if len(products_id) != len(set(products_id)):
             raise serializers.ValidationError(
