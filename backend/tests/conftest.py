@@ -6,6 +6,9 @@ from users.models import User
 USERNAME = "test_user"
 EMAIL = "test_user@test.com"
 PASSWORD = "test_password"
+CITY = "Moscow"
+FIRST_NAME = "First"
+LAST_NAME = "Last"
 
 
 @pytest.fixture

@@ -1,7 +1,5 @@
 import pytest
-from tests.conftest import EMAIL, PASSWORD, USERNAME
-
-CITY = "Moscow"
+from tests.conftest import CITY, EMAIL, FIRST_NAME, LAST_NAME, PASSWORD, USERNAME
 
 
 @pytest.mark.django_db
@@ -43,6 +41,28 @@ def test_get_me(user, auth_client):
     assert response.data["email"] == user.email
     assert response.data["city"] == user.city
     assert "password" not in response.data
+
+
+@pytest.mark.django_db
+def test_patch_me(user, auth_client):
+    payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
+    response = auth_client.patch("/api/users/me/", payload)
+    # user.refresh_from_db()
+
+    assert response.status_code == 200
+    assert response.data["id"] == user.id
+    assert response.data["first_name"] == user.first_name == FIRST_NAME
+    assert response.data["last_name"] == user.last_name == LAST_NAME
+
+
+@pytest.mark.django_db
+def test_patch_me_anonymous_fail(client):
+    payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
+    response = client.patch("/api/users/me/", payload)
+
+    assert response.status_code == 401
+    assert response.data["type"] == "client_error"
+    assert response.data["errors"][0]["code"] == "not_authenticated"
 
 
 @pytest.mark.django_db
