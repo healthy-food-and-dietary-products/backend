@@ -43,3 +43,10 @@ def test_get_me(user, auth_client):
     assert response.data["email"] == user.email
     assert response.data["city"] == user.city
     assert "password" not in response.data
+
+
+@pytest.mark.django_db
+def test_logout_user(auth_client):
+    response = auth_client.post("/api/token/logout/")
+
+    assert response.status_code == 204
