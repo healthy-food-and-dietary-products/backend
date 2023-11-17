@@ -1,12 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
 
-from backend.orders.models import ShoppingCart, ShoppingCartProduct
 from backend.products.models import (
     Category,
     Component,
-    Product,
     Producer,
+    Product,
     Subcategory,
     Tag,
 )
@@ -49,13 +48,12 @@ def moderator(django_user_model):
 @pytest.fixture
 def user():
     address = Address.objects.create(address="Saint-Petersburg", user=1)
-    user = User.objects.create(
+    return User.objects.create(
         username="username",
         email="email@test_mail.ru",
         addrerss=address,
         password="1234",
     )
-    return user
 
 
 @pytest.fixture
@@ -67,8 +65,7 @@ def auth_client(user):
 
 @pytest.fixture
 def anonimus_client(user):
-    anonimus_client = APIClient()
-    return anonimus_client
+    return APIClient()
 
 
 @pytest.fixture
