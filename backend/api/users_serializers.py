@@ -85,9 +85,9 @@ class UserSerializer(DjoserUserSerializer):
                     Address.objects.create(
                         address=address_dict["address"],
                         user=instance,
-                        priority_address=address_dict["priority_address"],
+                        priority_address=address_dict.get("priority_address", False),
                     )
-                    priority_count += address_dict["priority_address"]
+                    priority_count += address_dict.get("priority_address", False)
                     if priority_count > 1:
                         raise serializers.ValidationError(
                             "Разрешен только один приоритетный адрес."
