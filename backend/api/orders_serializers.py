@@ -41,11 +41,40 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     @extend_schema_field(bool)
     def get_is_favorited_by_user(self, obj):
         """Checks if this product is in the buyer's favorites."""
-        return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
+        if self.context["user"].is_authenticated:
+            return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
+        return False
 
     @extend_schema_field(float)
     def get_final_price(self, obj):
         return obj.product.final_price
+
+
+class ShoppingCartProductListAnonSerializer(serializers.ModelSerializer):
+    """Serializer products in shopping_cart."""
+
+    id = serializers.ReadOnlyField(source="product.id")
+    name = serializers.ReadOnlyField(source="product.name")
+    measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
+    amount = serializers.ReadOnlyField(source="product.amount")
+    price = serializers.ReadOnlyField(source="product.price")
+    final_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShoppingCartProduct
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "price",
+            "final_price",
+            "amount",
+            "quantity",
+        )
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
 
 
 class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
@@ -123,7 +152,8 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return ShoppingCartGetSerializer(instance, context=self.context).data
+        instance = instance["products"]
+        return ShoppingCartGetSerializer(instance, self.context["user"]).data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
