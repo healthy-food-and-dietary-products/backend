@@ -3,6 +3,15 @@ from tests.conftest import CITY, EMAIL, FIRST_NAME, LAST_NAME, PASSWORD, USERNAM
 
 
 @pytest.mark.django_db
+def test_get_user_anonymous_fail(client):
+    response = client.get("/api/users/")
+
+    assert response.status_code == 401
+    assert response.data["type"] == "client_error"
+    assert response.data["errors"][0]["code"] == "not_authenticated"
+
+
+@pytest.mark.django_db
 def test_register_user(client):
     payload = {"username": USERNAME, "email": EMAIL, "password": PASSWORD}
     response = client.post("/api/users/", payload)
@@ -24,7 +33,7 @@ def test_register_user_validation_fail(client):
     for field in payload:
         response = client.post("/api/users/", field)
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         assert response.data["type"] == "validation_error"
         assert response.data["errors"][0]["code"] == "required"
 
