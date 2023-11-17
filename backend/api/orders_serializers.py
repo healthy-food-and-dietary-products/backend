@@ -41,9 +41,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     @extend_schema_field(bool)
     def get_is_favorited_by_user(self, obj):
         """Checks if this product is in the buyer's favorites."""
-        if self.context["user"].is_authenticated:
-            return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
-        return False
+        return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
 
     @extend_schema_field(float)
     def get_final_price(self, obj):
@@ -117,6 +115,7 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         model = ShoppingCart
 
     def validate_products(self, data):
+        print(data)
         products_id = [product["id"] for product in data]
         if len(products_id) != len(set(products_id)):
             raise serializers.ValidationError(
