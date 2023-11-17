@@ -80,7 +80,7 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-SHOPPING_CART_SESSION_ID = 'shopping_cart'
+SHOPPING_CART_SESSION_ID = "shopping_cart"
 
 ROOT_URLCONF = "good_food.urls"
 
