@@ -9,6 +9,8 @@ PASSWORD = "test_password"
 CITY = "Moscow"
 FIRST_NAME = "First"
 LAST_NAME = "Last"
+ADDRESS1 = "Test address 1"
+ADDRESS2 = "Test address 2"
 
 
 @pytest.fixture

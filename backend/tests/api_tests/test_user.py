@@ -79,7 +79,6 @@ def test_get_me(user, auth_client):
 def test_patch_me(user, auth_client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
     response = auth_client.patch("/api/users/me/", payload)
-    # user.refresh_from_db() seems it is not necessary
 
     assert response.status_code == 200
     assert response.data["id"] == user.id
