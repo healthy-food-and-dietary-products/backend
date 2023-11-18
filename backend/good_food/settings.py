@@ -28,10 +28,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("MODE") == "dev":
-    DEBUG = True
-else:
-    DEBUG = False
+# if os.getenv("MODE") == "dev":
+#     DEBUG = True
+# else:
+#     DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split()
 
@@ -79,6 +80,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+SHOPPING_CART_SESSION_ID = "shopping_cart"
 
 ROOT_URLCONF = "good_food.urls"
 
