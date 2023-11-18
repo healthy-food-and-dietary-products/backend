@@ -31,7 +31,6 @@ class UserAdmin(admin.ModelAdmin):
         "username",
         "is_staff",
         "is_active",
-        "role",
         "first_name",
         "last_name",
         "email",
@@ -45,7 +44,6 @@ class UserAdmin(admin.ModelAdmin):
         "id",
         "username",
         "is_active",
-        "role",
         "email",
         "birth_date",
         "date_joined",
@@ -54,7 +52,7 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = ["preview"]
     search_fields = ["username", "email"]
     ordering = ["id"]
-    list_filter = ["role", "is_active", "city"]
+    list_filter = ["is_active", "city"]
     inlines = [UserFavoritesInline, AddressInline]
 
     def preview(self, obj):
