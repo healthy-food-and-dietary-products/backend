@@ -12,23 +12,12 @@ from users import utils
 class User(AbstractUser):
     """Extending the Built-in Model User."""
 
-    USER = "user"
-    MODERATOR = "moderator"
-    ADMIN = "admin"
-
-    CHOISES = [
-        (USER, "Аутентифицированный пользователь"),
-        (MODERATOR, "Модератор"),
-        (ADMIN, "Администратор"),
-    ]
-
     def user_directory_path(self, filename):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
     username = models.CharField("Username", unique=True, max_length=150)
     email = models.EmailField("E-mail address", unique=True, max_length=254)
-    role = models.CharField(max_length=9, choices=CHOISES, default="user")
     city = models.CharField(
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
@@ -57,18 +46,6 @@ class User(AbstractUser):
                 or (now.year - self.birth_date.year) > 120
             ):
                 raise ValidationError("Указана неверная дата рождения.")
-
-    @property
-    def is_moderator(self):
-        return self.role == User.MODERATOR
-
-    @property
-    def is_admin(self):
-        return self.role == User.ADMIN
-
-    @property
-    def is_user(self):
-        return self.role == User.USER
 
 
 class Address(models.Model):
