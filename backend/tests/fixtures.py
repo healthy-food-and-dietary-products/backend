@@ -1,34 +1,27 @@
 import pytest
 from rest_framework.test import APIClient
 
-from backend.products.models import (
-    Category,
-    Component,
-    Producer,
-    Product,
-    Subcategory,
-    Tag,
-)
-from backend.users.models import Address, User
+from products.models import Category, Component, Producer, Product, Subcategory, Tag
+from users.models import User
+
+USER = "test_user"
+USER_EMAIL = "test_user@test.com"
+ADMIN = "TestAdmin"
+ADMIN_EMAIL = "testadmin@good_food.fake"
+PASSWORD = "test_password"
+CITY = "Moscow"
+FIRST_NAME = "First"
+LAST_NAME = "Last"
+ADDRESS1 = "Test address 1"
+ADDRESS2 = "Test address 2"
 
 
-# @pytest.fixture
-# def user_superuser(django_user_model):
-#     return django_user_model.objects.create_superuser(
-#         username='TestSuperuser',
-#         email='testsuperuser@good_food.fake',
-#         password='1234567',
-#         role='user',
-#         bio='superuser bio'
-#     )
-#
-#
 @pytest.fixture
 def admin(django_user_model):
     return django_user_model.objects.create_user(
-        username="TestAdmin",
-        email="testadmin@good_food.fake",
-        password="1234567",
+        username=ADMIN,
+        email=ADMIN_EMAIL,
+        password=PASSWORD,
         role="admin",
         bio="admin bio",
     )
@@ -47,25 +40,18 @@ def moderator(django_user_model):
 
 @pytest.fixture
 def user():
-    address = Address.objects.create(address="Saint-Petersburg", user=1)
-    return User.objects.create(
-        username="username",
-        email="email@test_mail.ru",
-        addrerss=address,
-        password="1234",
-    )
+    return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
 
 
 @pytest.fixture
-def auth_client(user):
-    client = APIClient()
+def client():
+    return APIClient()
+
+
+@pytest.fixture
+def auth_client(client, user):
     client.force_authenticate(user=user)
     return client
-
-
-@pytest.fixture
-def anonimus_client(user):
-    return APIClient()
 
 
 @pytest.fixture

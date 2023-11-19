@@ -34,13 +34,13 @@ SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 #     DEBUG = False
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split()
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
 
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split()
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="").split()
 
 # For django-debug-toolbar
 if os.getenv("MODE") == "dev":
-    INTERNAL_IPS = os.getenv("INTERNAL_IPS").split()
+    INTERNAL_IPS = os.getenv("INTERNAL_IPS", default="").split()
 
 # Application definition
 

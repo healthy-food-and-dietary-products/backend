@@ -111,9 +111,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         user = self.request.user
         if user.is_authenticated and user.is_admin:
             return ShoppingCart.objects.filter(user=user.id)
-        return ShoppingCart.objects.filter(user=user).filter(
-            status=ShoppingCart.INWORK
-        )
+        return ShoppingCart.objects.filter(user=user).filter(status=ShoppingCart.INWORK)
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -156,8 +154,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             shopping_cart = ShopCart(request)
             products = request.data["products"]
             for product in products:
-                shopping_cart.add(product=product,
-                                  quantity=product["quantity"])
+                shopping_cart.add(product=product, quantity=product["quantity"])
             return Response(
                 {
                     "products": shopping_cart.__iter__(),
@@ -170,9 +167,9 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         user = self.request.user
 
         if (
-                ShoppingCart.objects.filter(user=user.id)
-                .filter(status=ShoppingCart.INWORK)
-                .exists()
+            ShoppingCart.objects.filter(user=user.id)
+            .filter(status=ShoppingCart.INWORK)
+            .exists()
         ):
             return Response(
                 {
@@ -192,8 +189,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 round(
                     sum(
                         [
-                            (float(Product.objects.get(
-                                id=product["id"]).final_price))
+                            (float(Product.objects.get(id=product["id"]).final_price))
                             * int(product["quantity"])
                             for product in products
                         ]
@@ -212,8 +208,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 for product in products
             ]
         )
-        return Response(serializer.validated_data,
-                        status=status.HTTP_201_CREATED)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     @transaction.atomic
     def patch(self, request, *args, **kwargs):
@@ -222,9 +217,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             products = request.data["products"]
             for product in products:
                 shopping_cart.add(
-                    product=product,
-                    quantity=product["quantity"],
-                    update_quantity=True
+                    product=product, quantity=product["quantity"], update_quantity=True
                 )
             return Response(
                 {
@@ -237,8 +230,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
         shopping_cart = self.get_shopping_cart()
         products = request.data["products"]
-        serializer = self.get_serializer(shopping_cart, data=request.data,
-                                         partial=True)
+        serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         if products is not None:
             shopping_cart.products.clear()
@@ -255,8 +247,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         shopping_cart.total_price = round(
             sum(
                 [
-                    (float(Product.objects.get(
-                        id=int(product["id"])).final_price))
+                    (float(Product.objects.get(id=int(product["id"])).final_price))
                     * int(product["quantity"])
                     for product in products
                 ]
@@ -264,8 +255,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
             2,
         )
         shopping_cart.save()
-        return Response(serializer.validated_data,
-                        status=status.HTTP_201_CREATED)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
@@ -330,8 +320,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         operation_summary="Delete order",
         operation_description="Deletes an order by its id (authorized only)",
         responses={
-            200: "Detailed information about the deleted object "
-                 "and a success message",
+            200: "Detailed information about the deleted object and a success message",
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,

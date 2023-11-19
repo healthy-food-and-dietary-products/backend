@@ -13,7 +13,7 @@ class ShopCart(object):
         self.session = request.session
         shopping_cart = self.session.get(settings.SHOPPING_CART_SESSION_ID)
         if not shopping_cart:
-            shopping_cart = self.session[settings.SHOPPING_CART_SESSION_ID] = {}
+            shopping_cart = {}
         self.shopping_cart = shopping_cart
 
     def add(self, product, quantity, update_quantity=False):
@@ -31,7 +31,7 @@ class ShopCart(object):
         elif update_quantity:
             self.shopping_cart[product["id"]]["quantity"] = int(quantity)
         else:
-            self.shopping_cart[product["id"]]['quantity'] += int(quantity)
+            self.shopping_cart[product["id"]]["quantity"] += int(quantity)
 
         self.save()
 
