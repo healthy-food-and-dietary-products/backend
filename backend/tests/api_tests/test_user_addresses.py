@@ -1,5 +1,5 @@
 import pytest
-from tests.conftest import ADDRESS1, ADDRESS2
+from tests.fixtures import ADDRESS1, ADDRESS2
 
 
 @pytest.mark.django_db

@@ -1,5 +1,5 @@
 import pytest
-from tests.conftest import CITY, EMAIL, FIRST_NAME, LAST_NAME, PASSWORD, USERNAME
+from tests.fixtures import CITY, FIRST_NAME, LAST_NAME, PASSWORD, USER, USER_EMAIL
 
 
 @pytest.mark.django_db
@@ -13,7 +13,7 @@ def test_get_user_anonymous_fail(client):
 
 @pytest.mark.django_db
 def test_register_user(client):
-    payload = {"username": USERNAME, "email": EMAIL, "password": PASSWORD}
+    payload = {"username": USER, "email": USER_EMAIL, "password": PASSWORD}
     response = client.post("/api/users/", payload)
 
     assert response.status_code == 201
@@ -26,9 +26,9 @@ def test_register_user(client):
 @pytest.mark.django_db
 def test_register_user_validation_fail(client):
     payload = [
-        {"username": USERNAME, "email": EMAIL},
-        {"username": USERNAME, "password": PASSWORD},
-        {"email": EMAIL, "password": PASSWORD},
+        {"username": USER, "email": USER_EMAIL},
+        {"username": USER, "password": PASSWORD},
+        {"email": USER_EMAIL, "password": PASSWORD},
     ]
     for field in payload:
         response = client.post("/api/users/", field)
@@ -40,7 +40,9 @@ def test_register_user_validation_fail(client):
 
 @pytest.mark.django_db
 def test_login_user(user, client):
-    response = client.post("/api/token/login/", dict(email=EMAIL, password=PASSWORD))
+    response = client.post(
+        "/api/token/login/", dict(email=USER_EMAIL, password=PASSWORD)
+    )
 
     assert response.status_code == 200
     assert "auth_token" in response.data
@@ -49,7 +51,9 @@ def test_login_user(user, client):
 
 @pytest.mark.django_db
 def test_login_user_fail(client):
-    response = client.post("/api/token/login/", dict(email=EMAIL, password=PASSWORD))
+    response = client.post(
+        "/api/token/login/", dict(email=USER_EMAIL, password=PASSWORD)
+    )
 
     assert response.status_code == 400
     assert response.data["type"] == "validation_error"

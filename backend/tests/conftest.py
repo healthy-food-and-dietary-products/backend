@@ -1,29 +1,5 @@
-import pytest
-from rest_framework.test import APIClient
+from django.utils.version import get_version
 
-from users.models import User
+assert get_version() <= "4.2.7", "Пожалуйста, используйте версию Django < 4.2.7"
 
-USERNAME = "test_user"
-EMAIL = "test_user@test.com"
-PASSWORD = "test_password"
-CITY = "Moscow"
-FIRST_NAME = "First"
-LAST_NAME = "Last"
-ADDRESS1 = "Test address 1"
-ADDRESS2 = "Test address 2"
-
-
-@pytest.fixture
-def user():
-    return User.objects.create_user(username=USERNAME, email=EMAIL, password=PASSWORD)
-
-
-@pytest.fixture
-def client():
-    return APIClient()
-
-
-@pytest.fixture
-def auth_client(client, user):
-    client.force_authenticate(user=user)
-    return client
+pytest_plugins = ["tests.fixtures"]

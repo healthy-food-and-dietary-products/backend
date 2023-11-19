@@ -123,7 +123,8 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return ShoppingCartGetSerializer(instance, context=self.context).data
+        instance = instance["products"]
+        return ShoppingCartGetSerializer(instance, self.context["user"]).data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
