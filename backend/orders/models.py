@@ -151,7 +151,7 @@ class Order(models.Model):
         "Payment Method",
         max_length=50,
         choices=PAYMENT_METHODS,
-        default="Оплата наличными курьеру",
+        default=COURIER_CASH_PAYMENT,
     )
     is_paid = models.BooleanField("Is paid", default=False)
     comment = models.TextField("Comment", null=True, blank=True)
