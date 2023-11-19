@@ -1,4 +1,0 @@
-id,name,measure_unit,amount,description,photo,producer_id,category_id,subcategory_id,price,kcal,proteins,fats,carbohydrates
-1,авокадо,г.,50,Спелое авокадо,avocado.jpg,1,2,8,50,100,10,10,5
-2,огурцы,г.,200,Огурцы гладкие,cucumbers.jpg,2,2,8,60,20,2,0,6
-3,Чай зеленый Молочный Улунг,г.,150,Зеленый чай,green_tea.jpg,3,4,4,300,0,0,0,0

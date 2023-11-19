@@ -19,6 +19,9 @@ shell:
 load_data:
 	cd backend; python3 manage.py load_data
 
+dump_data:
+	cd backend; python3 manage.py export_data
+
 dumpdb:
 	cd backend; python3 manage.py dumpdata --output dump.json
 
@@ -27,6 +30,9 @@ loaddb:
 
 collectstatic:
 	cd backend; python3 manage.py collectstatic --no-input
+
+schema:
+	cd backend; python3 manage.py spectacular --color --file schema.yml
 
 up-compose:
 	cd infra; sudo docker compose -f docker-compose.local.yml up -d

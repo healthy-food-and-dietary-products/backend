@@ -71,6 +71,7 @@ def read_producer():
             producer = Producer(
                 id=row["id"],
                 name=row["name"],
+                slug=row["slug"],
                 producer_type=row["producer_type"],
                 description=row["description"],
                 address=row["address"],
@@ -82,7 +83,7 @@ def read_components():
     with open(os.path.join(DATA_DIR, "components.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
-            component = Component(id=row["id"], name=row["name"])
+            component = Component(id=row["id"], name=row["name"], slug=row["slug"])
             component.save()
 
 

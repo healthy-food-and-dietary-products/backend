@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import UserDeleteSerializer as DjoserUserDeleteSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -39,6 +41,7 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
             "password": {"required": True},
         }
 
+    @extend_schema_field(str)
     def get_city(self, obj):
         return city_choices[0][0]
 
@@ -66,28 +69,32 @@ class UserSerializer(DjoserUserSerializer):
             "photo",
         )
 
+    @extend_schema_field(int)
     def get_address_quantity(self, obj):
         return obj.addresses.count()
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        if validated_data.get("addresses") is None:
-            return instance
-        addresses = validated_data.pop("addresses")
-        priority_count = 0
-        for existing_address in instance.addresses.all():
-            existing_address.delete()
-        for address_dict in addresses:
-            if not instance.addresses.filter(address=address_dict["address"]):
-                Address.objects.create(
-                    address=address_dict["address"],
-                    user=instance,
-                    priority_address=address_dict["priority_address"],
-                )
-                priority_count += address_dict["priority_address"]
-                if priority_count > 1:
-                    raise serializers.ValidationError(
-                        "Разрешен только один приоритетный адрес."
+        if validated_data.get("addresses") is not None:
+            addresses = validated_data.pop("addresses")
+            priority_count = 0
+            for existing_address in instance.addresses.all():
+                existing_address.delete()
+            for address_dict in addresses:
+                if not instance.addresses.filter(address=address_dict["address"]):
+                    Address.objects.create(
+                        address=address_dict["address"],
+                        user=instance,
+                        priority_address=address_dict.get("priority_address", False),
                     )
+                    priority_count += address_dict.get("priority_address", False)
+                    if priority_count > 1:
+                        raise serializers.ValidationError(
+                            "Разрешен только один приоритетный адрес."
+                        )
+        for field in validated_data:
+            setattr(instance, field, validated_data[field])
+        instance.save()
         return instance
 
 

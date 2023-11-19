@@ -95,9 +95,9 @@ class TagAdmin(admin.ModelAdmin):
 class ProducerAdmin(admin.ModelAdmin):
     """Class to display product producers in admin panel."""
 
-    list_display = ["pk", "producer_type", "name", "address", "description"]
+    list_display = ["pk", "producer_type", "name", "slug", "address", "description"]
     fields = ["producer_type", "name", "slug", "address", "description"]
-    search_fields = ["name", "address", "description"]
+    search_fields = ["name", "slug", "address", "description"]
     ordering = ["pk"]
     list_filter = ["producer_type"]
     empty_value_display = "-empty-"

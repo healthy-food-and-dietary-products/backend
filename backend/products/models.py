@@ -242,6 +242,7 @@ class Product(models.Model):
     measure_unit = models.CharField(
         "Measure unit", max_length=11, choices=CHOISES, default=ITEMS
     )
+    # TODO: add MinValueValidator(1)
     amount = models.PositiveSmallIntegerField(
         "Amount", default=1, help_text="Number of grams, milliliters or items"
     )
@@ -266,12 +267,15 @@ class Product(models.Model):
     kcal = models.PositiveSmallIntegerField(
         "Kcal", help_text="Number of kcal per 100 g of product"
     )
+    # TODO: make them float
     proteins = models.PositiveSmallIntegerField(
         "Proteins", help_text="Number of proteins per 100 g of product"
     )
+    # TODO: make them float
     fats = models.PositiveSmallIntegerField(
         "Fats", help_text="Number of fats per 100 g of product"
     )
+    # TODO: make them float
     carbohydrates = models.PositiveSmallIntegerField(
         "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
     )
