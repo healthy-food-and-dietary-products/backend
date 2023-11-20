@@ -1,8 +1,11 @@
+import logging
 from datetime import datetime, timezone
 
 from django.conf import settings
 
 from products.models import Product
+
+logging.basicConfig()
 
 
 class ShopCart(object):
@@ -20,20 +23,26 @@ class ShopCart(object):
         """
         Add a product to the cart or update its quantity.
         """
-        p = Product.objects.get(id=product["id"])
-        if product["id"] not in self.shopping_cart.keys():
-            self.shopping_cart[product["id"]] = {
-                "name": p.name,
-                "quantity": int(product["quantity"]),
-                "final_price": p.final_price,
-                "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
-            }
-        elif update_quantity:
-            self.shopping_cart[product["id"]]["quantity"] = int(quantity)
-        else:
-            self.shopping_cart[product["id"]]["quantity"] += int(quantity)
+        try:
+            p = Product.objects.get(id=product["id"])
+            if product["id"] not in self.shopping_cart.keys():
+                self.shopping_cart[product["id"]] = {
+                    "name": p.name,
+                    "quantity": int(product["quantity"]),
+                    "final_price": p.final_price,
+                    "created_at": int(
+                        datetime.now(timezone.utc).timestamp() * 1000),
+                }
+            elif update_quantity:
+                self.shopping_cart[product["id"]]["quantity"] = int(quantity)
+            else:
+                self.shopping_cart[product["id"]]["quantity"] += int(quantity)
+            self.save()
 
-        self.save()
+        except Exception as e:
+            logging.error(
+                "У нас нет такого продукта, выберете из представленных!",
+                exc_info=e)
 
     def save(self):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
@@ -59,8 +68,8 @@ class ShopCart(object):
         products = Product.objects.filter(id__in=product_ids)
         cart = self.shopping_cart.copy()
         for product in products:
-            cart[str(product.id)]["name"] = product.name
-            cart[str(product.id)]["final_price"] = product.final_price
+            cart[product.id]["name"] = product.name
+            cart[product.id]["final_price"] = product.final_price
 
         for item in cart.values():
             item["name"] = item["name"]
@@ -73,7 +82,8 @@ class ShopCart(object):
         """
         Count all items in the cart.
         """
-        return sum(int(item["quantity"]) for item in self.shopping_cart.values())
+        return sum(
+            int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
         return sum(
