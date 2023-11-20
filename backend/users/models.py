@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -16,7 +17,13 @@ class User(AbstractUser):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
-    username = models.CharField("Username", unique=True, max_length=150)
+    username = models.CharField(
+        "Username",
+        unique=True,
+        max_length=150,
+        validators=[UnicodeUsernameValidator()],
+        help_text="150 characters or fewer. Letters, digits and @/./+/-/_ only.",
+    )
     email = models.EmailField("E-mail address", unique=True, max_length=254)
     city = models.CharField(
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
