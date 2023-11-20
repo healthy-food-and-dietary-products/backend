@@ -20,7 +20,12 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet, CustomUserViewSet
+from .users_views import (
+    AddressViewSet,
+    CustomTokenCreateView,
+    CustomTokenDestroyView,
+    CustomUserViewSet,
+)
 
 app_name = "api"
 
@@ -43,7 +48,8 @@ router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet, basename="orders"
 urlpatterns = [
     path("", include(router.urls)),
     path("", include("djoser.urls")),
-    path("", include("djoser.urls.authtoken")),
+    path("token/login/", CustomTokenCreateView.as_view(), name="login"),
+    path("token/logout/", CustomTokenDestroyView.as_view(), name="logout"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "schema/swagger/",

@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
@@ -108,17 +108,10 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
     http_method_names = ("get", "post", "delete", "patch")
 
     def get_queryset(self, **kwargs):
-        user_id = self.kwargs.get("user_id")
         user = self.request.user
         if user.is_authenticated and user.is_admin:
-            return ShoppingCart.objects.filter(user=user_id)
-        if user.is_authenticated and user.id == int(user_id):
-            return ShoppingCart.objects.filter(user=user).filter(
-                status=ShoppingCart.INWORK
-            )
-        if user.is_authenticated and user.id != int(user_id):
-            raise PermissionDenied()
-        return ShoppingCart.objects.none()
+            return ShoppingCart.objects.filter(user=user.id)
+        return ShoppingCart.objects.filter(user=user).filter(status=ShoppingCart.INWORK)
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -126,15 +119,16 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return ShoppingCartPostUpdateDeleteSerializer
 
     def get_shopping_cart(self, **kwargs):
-        shopping_cart = get_object_or_404(ShoppingCart, user=self.request.user)
-        if not shopping_cart:
-            raise ObjectDoesNotExist
-        if (
-            shopping_cart.user == self.request.user
-            and shopping_cart.status == ShoppingCart.INWORK
-        ):
-            return shopping_cart
-        raise PermissionDenied()
+        try:
+            shopping_cart = ShoppingCart.objects.get(user=self.request.user.id)
+            if (
+                shopping_cart.user == self.request.user
+                and shopping_cart.status == ShoppingCart.INWORK
+            ):
+                return shopping_cart
+            raise PermissionDenied()
+        finally:
+            ErrorResponse404Serializer("Корзина пуста")
 
     def list(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
@@ -148,7 +142,6 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                 status=status.HTTP_200_OK,
             )
         shopping_cart = self.get_shopping_cart()
-        print(shopping_cart)
         serializer = self.get_serializer(
             shopping_cart, data={"user": self.request.user}
         )
@@ -218,12 +211,14 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
     @transaction.atomic
-    def update(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
             shopping_cart = ShopCart(request)
             products = request.data["products"]
             for product in products:
-                shopping_cart.add(product=product, quantity=product["quantity"])
+                shopping_cart.add(
+                    product=product, quantity=product["quantity"], update_quantity=True
+                )
             return Response(
                 {
                     "products": shopping_cart.__iter__(),
@@ -257,12 +252,12 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
                     for product in products
                 ]
             ),
-            DECIMAL_PLACES_NUMBER,
+            2,
         )
         shopping_cart.save()
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
             shopping_cart = ShopCart(request)
             if not shopping_cart:
@@ -365,7 +360,7 @@ class OrderViewSet(ModelViewSet):
 
     def destroy(self, *args, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if order.user != self.get_user():
+        if order.user != self.get_user() or order.user != self.request.user:
             raise PermissionDenied()
         order_restricted_deletion_statuses = [
             Order.COLLECTING,

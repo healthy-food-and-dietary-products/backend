@@ -1,10 +1,14 @@
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from djoser.serializers import TokenSerializer
+from djoser.views import TokenCreateView as DjoserTokenCreateView
+from djoser.views import TokenDestroyView as DjoserTokenDestroyView
 from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
+    ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
@@ -65,3 +69,37 @@ class CustomUserViewSet(DestroyWithPayloadMixin, DjoserUserViewSet):
         ):
             return CustomUserDeleteSerializer
         return super().get_serializer_class()
+
+
+@method_decorator(
+    name="post",
+    decorator=swagger_auto_schema(
+        operation_summary="Obtain auth token",
+        operation_description="Allows to obtain a user authentication token",
+        responses={
+            201: TokenSerializer,
+            400: ValidationErrorResponseSerializer,
+        },
+    ),
+)
+class CustomTokenCreateView(DjoserTokenCreateView):
+    """Corrects /token/login/ response display in dynamic API docs."""
+
+    pass
+
+
+@method_decorator(
+    name="post",
+    decorator=swagger_auto_schema(
+        operation_summary="Remove auth token",
+        operation_description="Allows to remove a user authentication token",
+        responses={
+            204: "",
+            401: ErrorResponse401Serializer,
+        },
+    ),
+)
+class CustomTokenDestroyView(DjoserTokenDestroyView):
+    """Corrects /token/logout/ response display in dynamic API docs."""
+
+    pass

@@ -13,10 +13,10 @@ class ShopCart(object):
         self.session = request.session
         shopping_cart = self.session.get(settings.SHOPPING_CART_SESSION_ID)
         if not shopping_cart:
-            shopping_cart = self.session[settings.SHOPPING_CART_SESSION_ID] = {}
+            shopping_cart = {}
         self.shopping_cart = shopping_cart
 
-    def add(self, product, quantity=1, update_quantity=False):
+    def add(self, product, quantity, update_quantity=False):
         """
         Add a product to the cart or update its quantity.
         """
@@ -24,12 +24,14 @@ class ShopCart(object):
         if product["id"] not in self.shopping_cart.keys():
             self.shopping_cart[product["id"]] = {
                 "name": p.name,
-                "quantity": product["quantity"],
-                "price": p.final_price,
+                "quantity": int(product["quantity"]),
+                "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
             }
-        if update_quantity:
-            self.shopping_cart[product["id"]]["quantity"] = quantity
+        elif update_quantity:
+            self.shopping_cart[product["id"]]["quantity"] = int(quantity)
+        else:
+            self.shopping_cart[product["id"]]["quantity"] += int(quantity)
 
         self.save()
 
@@ -57,13 +59,13 @@ class ShopCart(object):
         products = Product.objects.filter(id__in=product_ids)
         cart = self.shopping_cart.copy()
         for product in products:
-            cart[product.id]["name"] = product.name
-            cart[product.id]["price"] = product.final_price
+            cart[str(product.id)]["name"] = product.name
+            cart[str(product.id)]["final_price"] = product.final_price
 
         for item in cart.values():
             item["name"] = item["name"]
             item["quantity"] = int(item["quantity"])
-            item["total_price"] = item["quantity"] * item["price"]
+            item["total_price"] = item["quantity"] * item["final_price"]
 
             yield item
 
@@ -75,7 +77,8 @@ class ShopCart(object):
 
     def get_total_price(self):
         return sum(
-            item["quantity"] * item["price"] for item in self.shopping_cart.values()
+            int(item["quantity"]) * item["final_price"]
+            for item in self.shopping_cart.values()
         )
 
     def clear(self):

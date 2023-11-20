@@ -1,34 +1,29 @@
 import pytest
 from rest_framework.test import APIClient
 
-from backend.products.models import (
-    Category,
-    Component,
-    Producer,
-    Product,
-    Subcategory,
-    Tag,
-)
-from backend.users.models import Address, User
+import users
+from orders.models import Delivery, ShoppingCart
+from products.models import Category, Component, Producer, Product, Subcategory, Tag
+from users.models import Address, User
+
+USER = "test_user"
+USER_EMAIL = "test_user@test.com"
+ADMIN = "TestAdmin"
+ADMIN_EMAIL = "testadmin@good_food.fake"
+PASSWORD = "test_password"
+CITY = "Moscow"
+FIRST_NAME = "First"
+LAST_NAME = "Last"
+ADDRESS1 = "Test address 1"
+ADDRESS2 = "Test address 2"
 
 
-# @pytest.fixture
-# def user_superuser(django_user_model):
-#     return django_user_model.objects.create_superuser(
-#         username='TestSuperuser',
-#         email='testsuperuser@good_food.fake',
-#         password='1234567',
-#         role='user',
-#         bio='superuser bio'
-#     )
-#
-#
 @pytest.fixture
 def admin(django_user_model):
     return django_user_model.objects.create_user(
-        username="TestAdmin",
-        email="testadmin@good_food.fake",
-        password="1234567",
+        username=ADMIN,
+        email=ADMIN_EMAIL,
+        password=PASSWORD,
         role="admin",
         bio="admin bio",
     )
@@ -47,25 +42,28 @@ def moderator(django_user_model):
 
 @pytest.fixture
 def user():
-    address = Address.objects.create(address="Saint-Petersburg", user=1)
-    return User.objects.create(
-        username="username",
-        email="email@test_mail.ru",
-        addrerss=address,
-        password="1234",
+    return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
+
+
+@pytest.fixture
+def user1(django_user_model):
+    return django_user_model.objects.create_user(
+        username="Testuser1",
+        email="testuser1@good_food.fake",
+        password="1234567",
+        role="user",
     )
 
 
 @pytest.fixture
-def auth_client(user):
-    client = APIClient()
-    client.force_authenticate(user=user)
-    return client
+def client():
+    return APIClient()
 
 
 @pytest.fixture
-def anonimus_client(user):
-    return APIClient()
+def auth_client(client, user):
+    client.force_authenticate(user=user)
+    return client
 
 
 @pytest.fixture
@@ -144,3 +142,37 @@ def products(user, subcategories, components, tags, producers):
         ind += 1
 
     return Product.objects.all()
+
+
+@pytest.fixture
+def shopping_carts(user, admin, products):
+    shopping_cart = ShoppingCart.objects.create(user=user)
+    shopping_cart.products.set(products)
+    shopping_cart = ShoppingCart.objects.create(user=admin)
+    shopping_cart.products.set(products)
+    return ShoppingCart.objects.all()
+
+
+@pytest.fixture(scope="session")
+def users_db_session(tmpdir_factory):
+    """Connect to db before tests, disconnect after."""
+    temp_dir = tmpdir_factory.mktemp("temp")
+    users.start_tasks_db(str(temp_dir), "tiny")
+    yield
+    users.stop_tasks_db()
+
+
+@pytest.fixture()
+def tasks_db(tasks_db_session):
+    """An empty tasks db."""
+    users.delete_all()
+
+
+@pytest.fixture
+def address(user):
+    return Address.objects.create(address="Saint-Petersburg", user=user)
+
+
+@pytest.fixture
+def delivery_points(user):
+    return Delivery.objects.create(delivery_point="Test delivery_point")
