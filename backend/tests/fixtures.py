@@ -24,19 +24,7 @@ def admin(django_user_model):
         username=ADMIN,
         email=ADMIN_EMAIL,
         password=PASSWORD,
-        role="admin",
         bio="admin bio",
-    )
-
-
-@pytest.fixture
-def moderator(django_user_model):
-    return django_user_model.objects.create_user(
-        username="TestModerator",
-        email="testmoder@good_food.fake",
-        password="1234567",
-        role="moderator",
-        bio="moder bio",
     )
 
 
@@ -51,7 +39,6 @@ def user1(django_user_model):
         username="Testuser1",
         email="testuser1@good_food.fake",
         password="1234567",
-        role="user",
     )
 
 

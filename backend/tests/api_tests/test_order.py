@@ -43,26 +43,6 @@ class TestOrder:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_create_order_moderator(self, admin, user, shopping_carts, delivery_points):
-        order_data = {
-            "payment_method": "Payment at the point of delivery",
-            "delivery_method": "Point of delivery",
-            "package": 0,
-            "comment": "",
-            "delivery_point": delivery_points.id,
-        }
-        client = APIClient()
-        client.force_authenticate(user=admin)
-        response = client.post(
-            f"/api/users/{admin.id}/order/", order_data, format="json"
-        )
-        data = response.json()
-        assert response.status_code == status.HTTP_201_CREATED
-        order = Order.objects.get()
-        assert admin.id == order.user.id
-        assert order.status == "Ordered"
-        assert data["shopping_cart"]["id"] == order.shopping_cart.id
-
     def test_create_order_anonimus_client(
         self, anonimus_client, user, shopping_carts, delivery_points
     ):
