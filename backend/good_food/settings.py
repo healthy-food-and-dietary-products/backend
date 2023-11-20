@@ -28,30 +28,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if os.getenv("MODE") == "dev":
-    DEBUG = True
-else:
-    DEBUG = False
+# if os.getenv("MODE") == "dev":
+#     DEBUG = True
+# else:
+#     DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-    "[::1]",
-    "web",
-    "https://goodfood.acceleratorpracticum.ru",
-    "goodfood.acceleratorpracticum.ru",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost/*",
-    "https://goodfood.acceleratorpracticum.ru/*",
-]
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="").split()
 
 # For django-debug-toolbar
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+if os.getenv("MODE") == "dev":
+    INTERNAL_IPS = os.getenv("INTERNAL_IPS", default="").split()
 
 # Application definition
 
@@ -75,6 +64,7 @@ INSTALLED_APPS = [
     "django_cleanup.apps.CleanupSelectedConfig",
     "corsheaders",
     "drf_spectacular",
+    "drf_standardized_errors",
     "django_filters",
     "drf_yasg",
 ]
@@ -90,6 +80,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+SHOPPING_CART_SESSION_ID = "shopping_cart"
 
 ROOT_URLCONF = "good_food.urls"
 
@@ -189,8 +181,32 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "EXCEPTION_HANDLER": "api.exception_handlers.custom_404_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_standardized_errors.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Good Food API",
+    "DESCRIPTION": "API documentation for the GoodFood project",
+    "VERSION": "v1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "ValidationErrorEnum": "drf_standardized_errors.openapi_serializers.ValidationErrorEnum.values",
+        "ClientErrorEnum": "drf_standardized_errors.openapi_serializers.ClientErrorEnum.values",
+        "ServerErrorEnum": "drf_standardized_errors.openapi_serializers.ServerErrorEnum.values",
+        "ErrorCode401Enum": "drf_standardized_errors.openapi_serializers.ErrorCode401Enum.values",
+        "ErrorCode403Enum": "drf_standardized_errors.openapi_serializers.ErrorCode403Enum.values",
+        "ErrorCode404Enum": "drf_standardized_errors.openapi_serializers.ErrorCode404Enum.values",
+        "ErrorCode405Enum": "drf_standardized_errors.openapi_serializers.ErrorCode405Enum.values",
+        "ErrorCode406Enum": "drf_standardized_errors.openapi_serializers.ErrorCode406Enum.values",
+        "ErrorCode415Enum": "drf_standardized_errors.openapi_serializers.ErrorCode415Enum.values",
+        "ErrorCode429Enum": "drf_standardized_errors.openapi_serializers.ErrorCode429Enum.values",
+        "ErrorCode500Enum": "drf_standardized_errors.openapi_serializers.ErrorCode500Enum.values",
+    },
+    "POSTPROCESSING_HOOKS": [
+        "drf_standardized_errors.openapi_hooks.postprocess_schema_enums"
+    ],
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

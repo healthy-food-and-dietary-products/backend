@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -18,10 +19,11 @@ class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
     subcategory_name = serializers.CharField(source="name")
+    subcategory_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Subcategory
-        fields = ("subcategory_name",)
+        fields = ("subcategory_name", "subcategory_slug")
 
 
 class SubcategorySerializer(SubcategoryLightSerializer):
@@ -35,10 +37,11 @@ class CategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for categories representation in product serializer."""
 
     category_name = serializers.CharField(source="name")
+    category_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Category
-        fields = ("category_name",)
+        fields = ("category_name", "category_slug")
 
 
 class CategoryCreateSerializer(CategoryLightSerializer):
@@ -53,19 +56,28 @@ class CategorySerializer(CategoryLightSerializer):
     """Serializer for displaying categories."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
+    top_three_products = serializers.SerializerMethodField()
 
     class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "subcategories")
+        fields = ("id", "name", "slug", "subcategories", "top_three_products")
+
+    def get_top_three_products(self, obj):
+        """Shows three most popular products of a particular category."""
+        top_three_products_queryset = Product.objects.filter(category=obj).order_by(
+            "-orders_number"
+        )[:3]
+        return ProductSerializer(top_three_products_queryset, many=True).data
 
 
 class TagLightSerializer(serializers.ModelSerializer):
     """Serializer for tags representation in product serializer."""
 
     tag_name = serializers.CharField(source="name")
+    tag_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Tag
-        fields = ("tag_name",)
+        fields = ("tag_name", "tag_slug")
 
 
 class TagSerializer(TagLightSerializer):
@@ -79,10 +91,11 @@ class ComponentLightSerializer(serializers.ModelSerializer):
     """Serializer for components representation in product serializer."""
 
     component_name = serializers.CharField(source="name")
+    component_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Component
-        fields = ("component_name",)
+        fields = ("component_name", "component_slug")
 
 
 class ComponentSerializer(ComponentLightSerializer):
@@ -96,10 +109,11 @@ class ProducerLightSerializer(serializers.ModelSerializer):
     """Serializer for produsers representation in product serializer."""
 
     producer_name = serializers.CharField(source="name")
+    producer_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Producer
-        fields = ("producer_name",)
+        fields = ("producer_name", "producer_slug")
 
 
 class ProducerSerializer(ProducerLightSerializer):
@@ -155,6 +169,7 @@ class ProductSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     promotion_quantity = serializers.SerializerMethodField()
     photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -185,14 +200,20 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_favorited",
         )
 
+    @extend_schema_field(bool)
     def get_is_favorited(self, obj):
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
         return obj.is_favorited(request.user)
 
+    @extend_schema_field(int)
     def get_promotion_quantity(self, obj):
         return obj.promotions.count()
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
 
 
 class ProductCreateSerializer(ProductSerializer):

@@ -1,4 +1,9 @@
 from django.urls import include, path, re_path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -15,7 +20,12 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
-from .users_views import AddressViewSet, CustomUserViewSet
+from .users_views import (
+    AddressViewSet,
+    CustomTokenCreateView,
+    CustomTokenDestroyView,
+    CustomUserViewSet,
+)
 
 app_name = "api"
 
@@ -32,17 +42,25 @@ router.register("users", CustomUserViewSet)
 router.register(
     r"users/(?P<user_id>\d+)/addresses", AddressViewSet, basename="addresses"
 )
-router.register(
-    r"users/(?P<user_id>\d+)/shopping_cart",
-    ShoppingCartViewSet,
-    basename="shopping_carts",
-)
+router.register(r"shopping_cart", ShoppingCartViewSet, basename="shopping_carts"),
 router.register(r"users/(?P<user_id>\d+)/order", OrderViewSet, basename="orders")
 
 urlpatterns = [
     path("", include(router.urls)),
     path("", include("djoser.urls")),
-    path("", include("djoser.urls.authtoken")),
+    path("token/login/", CustomTokenCreateView.as_view(), name="login"),
+    path("token/logout/", CustomTokenDestroyView.as_view(), name="logout"),
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "schema/swagger/",
+        SpectacularSwaggerView.as_view(url_name="api:schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "schema/redoc/",
+        SpectacularRedocView.as_view(url_name="api:schema"),
+        name="redoc",
+    ),
 ]
 
 schema_view = get_schema_view(

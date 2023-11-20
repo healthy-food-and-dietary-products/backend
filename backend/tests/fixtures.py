@@ -1,70 +1,57 @@
 import pytest
 from rest_framework.test import APIClient
 
-from backend.orders.models import ShoppingCart, ShoppingCartProduct
-from backend.products.models import Category, Component, Product, Producer, Subcategory, Tag
-from backend.users.models import Address, User
+from products.models import Category, Component, Producer, Product, Subcategory, Tag
+from users.models import User
+
+USER = "test_user"
+USER_EMAIL = "test_user@test.com"
+ADMIN = "TestAdmin"
+ADMIN_EMAIL = "testadmin@good_food.fake"
+PASSWORD = "test_password"
+CITY = "Moscow"
+FIRST_NAME = "First"
+LAST_NAME = "Last"
+ADDRESS1 = "Test address 1"
+ADDRESS2 = "Test address 2"
 
 
-# @pytest.fixture
-# def user_superuser(django_user_model):
-#     return django_user_model.objects.create_superuser(
-#         username='TestSuperuser',
-#         email='testsuperuser@good_food.fake',
-#         password='1234567',
-#         role='user',
-#         bio='superuser bio'
-#     )
-#
-#
 @pytest.fixture
 def admin(django_user_model):
     return django_user_model.objects.create_user(
-        username='TestAdmin',
-        email='testadmin@good_food.fake',
-        password='1234567',
-        role='admin',
-        bio='admin bio'
+        username=ADMIN,
+        email=ADMIN_EMAIL,
+        password=PASSWORD,
+        role="admin",
+        bio="admin bio",
     )
 
 
 @pytest.fixture
 def moderator(django_user_model):
     return django_user_model.objects.create_user(
-        username='TestModerator',
-        email='testmoder@good_food.fake',
-        password='1234567',
-        role='moderator',
-        bio='moder bio'
+        username="TestModerator",
+        email="testmoder@good_food.fake",
+        password="1234567",
+        role="moderator",
+        bio="moder bio",
     )
 
 
 @pytest.fixture
 def user():
-    address = Address.objects.create(
-        address="Saint-Petersburg",
-        user=1
-    )
-    user = User.objects.create(
-        username="username",
-        email="email@test_mail.ru",
-        addrerss=address,
-        password="1234"
-    )
-    return user
+    return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
 
 
 @pytest.fixture
-def auth_client(user):
-    client = APIClient()
+def client():
+    return APIClient()
+
+
+@pytest.fixture
+def auth_client(client, user):
     client.force_authenticate(user=user)
     return client
-
-
-@pytest.fixture
-def anonimus_client(user):
-    anonimus_client = APIClient()
-    return anonimus_client
 
 
 @pytest.fixture
@@ -77,18 +64,9 @@ def categories():
 
 @pytest.fixture
 def subcategories(categories):
-    Subcategory.objects.create(
-        name="Помидоры",
-        parent_category=categories[0]
-    )
-    Subcategory.objects.create(
-        name="Хлеб",
-        parent_category=categories[1]
-    )
-    Subcategory.objects.create(
-        name="Халва",
-        parent_category=categories[2]
-    )
+    Subcategory.objects.create(name="Помидоры", parent_category=categories[0])
+    Subcategory.objects.create(name="Хлеб", parent_category=categories[1])
+    Subcategory.objects.create(name="Халва", parent_category=categories[2])
     return Subcategory.objects.all()
 
 
@@ -112,17 +90,13 @@ def producers():
     Producer.objects.create(
         name="Выборжец",
         producer_type="Юридическое лицо",
-        address="Ленинградская область"
+        address="Ленинградская область",
     )
     Producer.objects.create(
-        name="Хлебный дом",
-        producer_type="Юридическое лицо",
-        address="Тверь"
+        name="Хлебный дом", producer_type="Юридическое лицо", address="Тверь"
     )
     Producer.objects.create(
-        name="Красный Октябрь",
-        producer_type="Юридическое лицо",
-        address="Москва"
+        name="Красный Октябрь", producer_type="Юридическое лицо", address="Москва"
     )
     return Producer.objects.all()
 
@@ -151,8 +125,7 @@ def products(user, subcategories, components, tags, producers):
             kcal=kcal[ind],
             proteins=proteins[ind],
             fats=fats[ind],
-            carbohydrates=carbohydrates[ind]
-
+            carbohydrates=carbohydrates[ind],
         )
         ind += 1
 
