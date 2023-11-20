@@ -101,6 +101,16 @@ Authorization значение "Token <токен>", например, Token 456
 (PUT- и PATCH-запросы), в том числе путем добавления новых адресов для доставки,
 а также удалить пользователя (DELETE-запрос).
 
+Поля, доступные для редактирования:
+- username;
+- email;
+- first_name;
+- last_name;
+- city;
+- birth_date;
+- addresses;
+- phone_number; 
+- photo. 
 
 ## Продукты
 
