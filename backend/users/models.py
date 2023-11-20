@@ -1,11 +1,9 @@
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 from django_cleanup import cleanup
-
+from django.core.validators import RegexValidator
 from users import utils
 
 
@@ -17,31 +15,14 @@ class User(AbstractUser):
         """Constructs the path which the users photo will be saved."""
         return f"images/{self.username}"
 
-    username = models.CharField(
-        "Username",
-        unique=True,
-        max_length=150,
-        validators=[UnicodeUsernameValidator()],
-        help_text="150 characters or fewer. Letters, digits and @/./+/-/_ only.",
-    )
+    username = models.CharField("Username", unique=True, max_length=150)
     email = models.EmailField("E-mail address", unique=True, max_length=254)
     city = models.CharField(
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
     birth_date = models.DateField("Birth_date", blank=True, null=True)
-    phone_number = models.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^(\+7|7|8)\d{10}$",
-                message=(
-                    "Введен некорректный номер телефона. Введите номер телефона в "
-                    "форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
-                ),
-            )
-        ],
-        max_length=17,
-        blank=True,
-    )
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{11}$', message="Введен некорректный номер телефона. Введите номер телефона в формате '+79999999999'.")
+    phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
     photo = models.ImageField(
         "Photo",
         upload_to=user_directory_path,
