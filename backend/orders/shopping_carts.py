@@ -30,8 +30,7 @@ class ShopCart(object):
                     "name": p.name,
                     "quantity": int(product["quantity"]),
                     "final_price": p.final_price,
-                    "created_at": int(
-                        datetime.now(timezone.utc).timestamp() * 1000),
+                    "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
                 }
             elif update_quantity:
                 self.shopping_cart[product["id"]]["quantity"] = int(quantity)
@@ -41,8 +40,8 @@ class ShopCart(object):
 
         except Exception as e:
             logging.error(
-                "У нас нет такого продукта, выберете из представленных!",
-                exc_info=e)
+                "У нас нет такого продукта, выберете из представленных!", exc_info=e
+            )
 
     def save(self):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
@@ -82,8 +81,7 @@ class ShopCart(object):
         """
         Count all items in the cart.
         """
-        return sum(
-            int(item["quantity"]) for item in self.shopping_cart.values())
+        return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
         return sum(
