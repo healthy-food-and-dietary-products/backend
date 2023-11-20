@@ -60,7 +60,6 @@ class UserSerializer(DjoserUserSerializer):
             "email",
             "first_name",
             "last_name",
-            "role",
             "city",
             "birth_date",
             "addresses",

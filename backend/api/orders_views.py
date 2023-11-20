@@ -109,7 +109,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
 
     def get_queryset(self, **kwargs):
         user = self.request.user
-        if user.is_authenticated and user.is_admin:
+        if user.is_authenticated and user.is_staff:
             return ShoppingCart.objects.filter(user=user.id)
         return ShoppingCart.objects.filter(user=user).filter(status=ShoppingCart.INWORK)
 
@@ -341,7 +341,7 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_authenticated:
             user = self.request.user
-            if user.is_admin or user.is_moderator:
+            if user.is_staff:
                 return self.get_user().orders.all()
             if self.get_user() != self.request.user:
                 raise PermissionDenied()
