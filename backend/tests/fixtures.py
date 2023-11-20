@@ -1,8 +1,10 @@
 import pytest
 from rest_framework.test import APIClient
 
+import users
+from orders.models import Delivery, ShoppingCart
 from products.models import Category, Component, Producer, Product, Subcategory, Tag
-from users.models import User
+from users.models import Address, User
 
 USER = "test_user"
 USER_EMAIL = "test_user@test.com"
@@ -41,6 +43,16 @@ def moderator(django_user_model):
 @pytest.fixture
 def user():
     return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
+
+
+@pytest.fixture
+def user1(django_user_model):
+    return django_user_model.objects.create_user(
+        username="Testuser1",
+        email="testuser1@good_food.fake",
+        password="1234567",
+        role="user",
+    )
 
 
 @pytest.fixture
@@ -130,3 +142,37 @@ def products(user, subcategories, components, tags, producers):
         ind += 1
 
     return Product.objects.all()
+
+
+@pytest.fixture
+def shopping_carts(user, admin, products):
+    shopping_cart = ShoppingCart.objects.create(user=user)
+    shopping_cart.products.set(products)
+    shopping_cart = ShoppingCart.objects.create(user=admin)
+    shopping_cart.products.set(products)
+    return ShoppingCart.objects.all()
+
+
+@pytest.fixture(scope="session")
+def users_db_session(tmpdir_factory):
+    """Connect to db before tests, disconnect after."""
+    temp_dir = tmpdir_factory.mktemp("temp")
+    users.start_tasks_db(str(temp_dir), "tiny")
+    yield
+    users.stop_tasks_db()
+
+
+@pytest.fixture()
+def tasks_db(tasks_db_session):
+    """An empty tasks db."""
+    users.delete_all()
+
+
+@pytest.fixture
+def address(user):
+    return Address.objects.create(address="Saint-Petersburg", user=user)
+
+
+@pytest.fixture
+def delivery_points(user):
+    return Delivery.objects.create(delivery_point="Test delivery_point")
