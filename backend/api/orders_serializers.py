@@ -1,4 +1,5 @@
 from django.db import transaction
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .users_serializers import UserSerializer
@@ -21,7 +22,7 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
     measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
     amount = serializers.ReadOnlyField(source="product.amount")
     price = serializers.ReadOnlyField(source="product.price")
-    final_price = serializers.ReadOnlyField(source="product.final_price")
+    final_price = serializers.SerializerMethodField()
     is_favorited_by_user = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,9 +38,14 @@ class ShoppingCartProductListSerializer(serializers.ModelSerializer):
             "is_favorited_by_user",
         )
 
+    @extend_schema_field(bool)
     def get_is_favorited_by_user(self, obj):
         """Checks if this product is in the buyer's favorites."""
         return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.product.final_price
 
 
 class ShoppingCartProductCreateUpdateSerializer(serializers.ModelSerializer):
@@ -111,11 +117,14 @@ class ShoppingCartPostUpdateDeleteSerializer(serializers.ModelSerializer):
     def validate_products(self, data):
         products_id = [product["id"] for product in data]
         if len(products_id) != len(set(products_id)):
-            raise serializers.ValidationError("Продукты не должны повторяться.")
+            raise serializers.ValidationError(
+                "Продукты в корзине не должны повторяться."
+            )
         return data
 
     def to_representation(self, instance):
-        return ShoppingCartGetSerializer(instance, context=self.context).data
+        instance = instance["products"]
+        return ShoppingCartGetSerializer(instance, self.context["user"]).data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -128,9 +137,11 @@ class OrderListSerializer(serializers.ModelSerializer):
     delivery_point = serializers.StringRelatedField()
     order_number = serializers.SerializerMethodField()
 
+    @extend_schema_field(int)
     def get_order_number(self, obj):
         return obj.shopping_cart.id
 
+    @extend_schema_field(float)
     def get_total_price(self, obj):
         return obj.shopping_cart.total_price + obj.package
 
@@ -171,13 +182,13 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    def validate_address(self, data):
+    def validate_address(self, address):
         """Checks that the user has not entered someone else's address."""
-        if data.user != self.context["request"].user:
+        if address.user != self.context["request"].user:
             raise serializers.ValidationError(
                 "Данный адрес доставки принадлежит другому пользователю."
             )
-        return data
+        return address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
@@ -211,7 +222,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         delivery_method = validated_data.pop("delivery_method")
         package = validated_data.pop("package")
         comment = validated_data.pop("comment")
-        if delivery_method == "Point of delivery":
+        if delivery_method == Order.DELIVERY_POINT:
             if not validated_data.get("delivery_point"):
                 raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
             delivery_point = Delivery.objects.get(
@@ -223,7 +234,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Нужно указать адрес доставки.")
             address = Address.objects.get(address=validated_data.pop("address"))
             delivery_point = None
-        shopping_cart.status = "Ordered"
+        shopping_cart.status = ShoppingCart.ORDERED
         shopping_cart.save()
         for product in shopping_cart.products.all():
             product.orders_number += 1
@@ -231,7 +242,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         return Order.objects.create(
             user=user,
             shopping_cart=shopping_cart,
-            status="Ordered",
+            status=Order.ORDERED,
             payment_method=payment_method,
             delivery_method=delivery_method,
             delivery_point=delivery_point,

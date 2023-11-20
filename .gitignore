@@ -168,3 +168,4 @@ backend/static/
 
 # Dump files
 dump*
+*.csv

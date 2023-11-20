@@ -1,6 +1,14 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
+from drf_standardized_errors.openapi_serializers import (
+    ErrorResponse401Serializer,
+    ErrorResponse403Serializer,
+    ErrorResponse404Serializer,
+    ValidationErrorResponseSerializer,
+)
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from .filters import ProductFilter
@@ -33,6 +41,62 @@ from products.models import (
 )
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all categories",
+        operation_description="Returns a list of all the categories",
+        responses={200: CategorySerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get category by id",
+        operation_description="Retrieves a category by its id",
+        responses={200: CategorySerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create category",
+        operation_description="Creates a category (admin only)",
+        responses={
+            201: CategoryCreateSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit category",
+        operation_description="Edits a category by its id (admin only)",
+        responses={
+            200: CategoryCreateSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete category",
+        operation_description="Deletes a category by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
@@ -42,13 +106,67 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == "create":
-            return CategoryCreateSerializer
-        if self.action == "partial_update":
+        if self.action in ["create", "partial_update"]:
             return CategoryCreateSerializer
         return CategorySerializer
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all subcategories",
+        operation_description="Returns a list of all the subcategories",
+        responses={200: SubcategorySerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get subcategory by id",
+        operation_description="Retrieves a subcategory by its id",
+        responses={200: SubcategorySerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create subcategory",
+        operation_description="Creates a subcategory (admin only)",
+        responses={
+            201: SubcategorySerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit subcategory",
+        operation_description="Edits a subcategory by its id (admin only)",
+        responses={
+            200: SubcategorySerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete subcategory",
+        operation_description="Deletes a subcategory by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for subcategories."""
 
@@ -58,6 +176,62 @@ class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all components",
+        operation_description="Returns a list of all the components",
+        responses={200: ComponentSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get component by id",
+        operation_description="Retrieves a component by its id",
+        responses={200: ComponentSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create component",
+        operation_description="Creates a component (admin only)",
+        responses={
+            201: ComponentSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit component",
+        operation_description="Edits a component by its id (admin only)",
+        responses={
+            200: ComponentSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete component",
+        operation_description="Deletes a component by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class ComponentViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for components."""
 
@@ -67,6 +241,62 @@ class ComponentViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all tags",
+        operation_description="Returns a list of all the tags",
+        responses={200: TagSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get tag by id",
+        operation_description="Retrieves a tag by its id",
+        responses={200: TagSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create tag",
+        operation_description="Creates a tag (admin only)",
+        responses={
+            201: TagSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit tag",
+        operation_description="Edits a tag by its id (admin only)",
+        responses={
+            200: TagSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete tag",
+        operation_description="Deletes a tag by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for tags."""
 
@@ -76,6 +306,62 @@ class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all producers",
+        operation_description="Returns a list of all the producers",
+        responses={200: ProducerSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get producer by id",
+        operation_description="Retrieves a producer by its id",
+        responses={200: ProducerSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create producer",
+        operation_description="Creates a producer (admin only)",
+        responses={
+            201: ProducerSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit producer",
+        operation_description="Edits a producer by its id (admin only)",
+        responses={
+            200: ProducerSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete producer",
+        operation_description="Deletes a producer by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for producers."""
 
@@ -85,6 +371,62 @@ class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all promotions",
+        operation_description="Returns a list of all the promotions",
+        responses={200: PromotionSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get promotion by id",
+        operation_description="Retrieves a promotion by its id",
+        responses={200: PromotionSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create promotion",
+        operation_description="Creates a promotion (admin only)",
+        responses={
+            201: PromotionSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit promotion",
+        operation_description="Edits a promotion by its id (admin only)",
+        responses={
+            200: PromotionSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete promotion",
+        operation_description="Deletes a promotion by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for promotions."""
 
@@ -94,6 +436,62 @@ class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all products",
+        operation_description="Returns a list of all the products",
+        responses={200: ProductSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get product by id",
+        operation_description="Retrieves a product by its id",
+        responses={200: ProductSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create product",
+        operation_description="Creates a product (admin only)",
+        responses={
+            201: ProductCreateSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit product",
+        operation_description="Edits a product by its id (admin only)",
+        responses={
+            200: PromotionSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete product",
+        operation_description="Deletes a product by its id (admin only)",
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
 class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
@@ -168,6 +566,32 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         obj.save(update_fields=("views_number",))
         return super().retrieve(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        method="post",
+        operation_summary="Add favorite product",
+        operation_description=(
+            "Adds a product to a user's favorites (authorized user only)"
+        ),
+        responses={
+            201: FavoriteProductCreateSerializer,
+            400: '{"errors": "Этот продукт уже есть в вашем списке Избранного."}',
+            401: ErrorResponse401Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    )
+    @swagger_auto_schema(
+        method="delete",
+        operation_summary="Delete favorite product",
+        operation_description=(
+            "Deletes a product from a user's favorites (authorized user only)"
+        ),
+        responses={
+            200: "Detailed information about the deleted object and a success message",
+            400: '{"errors": "Этого продукта не было в вашем списке Избранного."}',
+            401: ErrorResponse401Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    )
     @decorators.action(
         methods=["post", "delete"],
         detail=True,
@@ -178,6 +602,35 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return self.create_delete_or_scold(FavoriteProduct, product, request)
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all favorite products",
+        operation_description=(
+            "Returns a list of all the favorite products of all users (admin only)"
+        ),
+        responses={
+            200: FavoriteProductSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get favorite product by id",
+        operation_description=(
+            "Retrieves a record about the user and his or her favorite product "
+            "by id of this record (admin only)"
+        ),
+        responses={
+            200: FavoriteProductSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
 class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for viewing useres' favorite products by admins."""
 

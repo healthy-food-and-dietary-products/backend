@@ -19,6 +19,9 @@ shell:
 load_data:
 	cd backend; python3 manage.py load_data
 
+dump_data:
+	cd backend; python3 manage.py export_data
+
 dumpdb:
 	cd backend; python3 manage.py dumpdata --output dump.json
 
@@ -27,6 +30,9 @@ loaddb:
 
 collectstatic:
 	cd backend; python3 manage.py collectstatic --no-input
+
+schema:
+	cd backend; python3 manage.py spectacular --color --file schema.yml
 
 up-compose:
 	cd infra; sudo docker compose -f docker-compose.local.yml up -d
@@ -52,8 +58,29 @@ superuser-compose:
 collectstatic-compose:
 	cd infra; sudo docker compose exec -it web python manage.py collectstatic --no-input
 
+shell-compose:
+	cd infra; sudo docker compose exec -it web python manage.py shell
+
+ls-compose:
+	cd infra; sudo docker compose exec -it web ls
+
+dumpdb-compose:
+	cd infra; sudo docker compose exec -it web python manage.py dumpdata --output dump.json
+
+loaddb-compose:
+	cd infra; sudo docker compose exec -it web python manage.py loaddata dump.json
+
+down-all-compose:
+	cd infra; sudo docker compose down -v --rmi all
+
 prune-containers:
 	sudo docker container prune
 
 prune-images:
 	sudo docker image prune
+
+volume-ls:
+	sudo docker volume ls
+
+volume-db-rm:
+	sudo docker volume rm infra_postgres_value
