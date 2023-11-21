@@ -30,7 +30,7 @@ from users.models import User
 DECIMAL_PLACES_NUMBER = 2
 
 
-@method_decorator(
+@method_decorator(  # TODO: Response codes may be changed significantly
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="List all shopping carts",
