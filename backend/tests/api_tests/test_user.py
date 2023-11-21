@@ -144,6 +144,9 @@ def test_patch_me_birth_date_set_null(user, auth_client):
     assert response_delete.data["birth_date"] is None
 
 
+# TODO: test phone_number
+
+
 @pytest.mark.django_db
 def test_patch_me_anonymous_fail(client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
