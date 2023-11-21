@@ -12,7 +12,6 @@ djangorestframework = "^3.14.0"
 python-dotenv = "^1.0.0"
 gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.9"
-django-phonenumber-field = {extras = ["phonenumberslite"], version = "^7.2.0"}
 pillow = "^10.1.0"
 django-cleanup = "^8.0.0"
 djoser = "^2.2.0"
@@ -24,6 +23,7 @@ drf-yasg = "^1.21.7"
 drf-standardized-errors = {extras = ["openapi"], version = "^0.12.6"}
 pytest = "^7.4.3"
 pytest-django = "^4.7.0"
+django-phonenumber-field = {extras = ["phonenumberslite"], version = "^7.2.0"}
 
 
 [tool.poetry.group.dev.dependencies]

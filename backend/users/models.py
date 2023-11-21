@@ -1,10 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 from django_cleanup import cleanup
-from phonenumber_field.modelfields import PhoneNumberField
 
 from users import utils
 
@@ -29,7 +29,19 @@ class User(AbstractUser):
         "City", choices=utils.city_choices, max_length=50, default="Moscow"
     )
     birth_date = models.DateField("Birth_date", blank=True, null=True)
-    phone_number = PhoneNumberField("Phone_number", blank=True)
+    phone_number = models.CharField(
+        validators=[
+            RegexValidator(
+                regex=r"^(\+7|7|8)\d{10}$",
+                message=(
+                    "Введен некорректный номер телефона. Введите номер телефона в "
+                    "форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
+                ),
+            )
+        ],
+        max_length=17,
+        blank=True,
+    )
     photo = models.ImageField(
         "Photo",
         upload_to=user_directory_path,
