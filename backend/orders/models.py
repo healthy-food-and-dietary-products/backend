@@ -8,25 +8,19 @@ from users.models import Address, User
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
 
-    ORDERED = "Ordered"
-    INWORK = "In Work"
-
-    SHOPPINGCART = ((ORDERED, "Передано в заказ"), (INWORK, "В работе"))
-
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="shopping_carts",
         verbose_name="Покупатель",
+        blank=True,
+        null=True,
     )
-    products = models.ManyToManyField(
+    product = models.ForeignKey(
         Product,
-        through="ShoppingCartProduct",
-        through_fields=("shopping_cart", "product"),
-        verbose_name="Продукты в корзине",
+        on_delete=models.CASCADE,
+        verbose_name="Продукт в корзине",
     )
-    status = models.CharField(max_length=50, choices=SHOPPINGCART, default=INWORK)
-    total_price = models.PositiveIntegerField(default=0)
     created = models.DateTimeField("Created", auto_now_add=True)
 
     class Meta:
@@ -36,49 +30,6 @@ class ShoppingCart(models.Model):
     def __str__(self) -> str:
         moment = self.created.strftime("%m/%d/%Y, %H:%M:%S")
         return f"Shopping cart of {self.user}, {self.status}, {moment}"
-
-
-class ShoppingCartProduct(models.Model):
-    """Model for adding products in shopping cart."""
-
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        related_name="products",
-        verbose_name="Продукт в корзине",
-    )
-    quantity = models.PositiveIntegerField(
-        verbose_name="Количество",
-        default=1,
-        validators=[
-            MinValueValidator(1, "Разрешены значения от 1 до 10000"),
-            MaxValueValidator(10000, "Разрешены значения от 1 до 10000"),
-        ],
-    )
-    shopping_cart = models.ForeignKey(
-        ShoppingCart,
-        on_delete=models.CASCADE,
-        related_name="shopping_carts",
-        verbose_name="Корзина",
-    )
-
-    class Meta:
-        verbose_name = "Продукты в корзине"
-        verbose_name_plural = "Продукты  в корзине"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["shopping_cart", "product"],
-                name="unique_shopping_cart_products",
-            )
-        ]
-
-    def __str__(self):
-        return (
-            f"{self.product.name}: "
-            f"{self.product.measure_unit}"
-            f"{self.product.price} "
-            f"{self.quantity}."
-        )
 
 
 class Delivery(models.Model):
@@ -135,16 +86,18 @@ class Order(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        blank=True,
+        null=True,
         related_name="orders",
         verbose_name="Покупатель",
     )
     order_number = models.CharField("Number", max_length=50, default="1")
     ordering_date = models.DateTimeField(auto_now_add=True, verbose_name="DateTime")
-    shopping_cart = models.ForeignKey(
-        ShoppingCart,
-        on_delete=models.CASCADE,
-        related_name="orders",
-        verbose_name="Shopping Cart",
+    products = models.ManyToManyField(
+        Product,
+        through="OrderProduct",
+        through_fields=("order", "product"),
+        verbose_name="Продукты в заказе",
     )
     status = models.CharField("Status", max_length=50, choices=STATUS, default=ORDERED)
     payment_method = models.CharField(
@@ -186,5 +139,48 @@ class Order(models.Model):
 
     def __str__(self):
         return (
-            f"{self.ordering_date} - {self.order_number} - {self.shopping_cart.user}."
+            f"{self.ordering_date} - {self.order_number}."
+        )
+
+
+class OrderProduct(models.Model):
+    """Model for adding products in shopping cart."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Продукт в корзине",
+    )
+    quantity = models.PositiveIntegerField(
+        verbose_name="Количество",
+        default=1,
+        validators=[
+            MinValueValidator(1, "Разрешены значения от 1 до 10000"),
+            MaxValueValidator(10000, "Разрешены значения от 1 до 10000"),
+        ],
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Заказ",
+    )
+
+    class Meta:
+        verbose_name = "Продукты в заказе"
+        verbose_name_plural = "Продукты  в заказе"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order", "product"],
+                name="unique_order_products",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.product.name}: "
+            f"{self.product.measure_unit}"
+            f"{self.product.price} "
+            f"{self.quantity}."
         )
