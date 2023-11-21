@@ -146,6 +146,8 @@ class ProductAdmin(admin.ModelAdmin):
         "price",
         "final_price",
         "promotion_quantity",
+        "views_number",
+        "orders_number",
     ]
     fields = [
         "name",
@@ -176,6 +178,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = [
         "category",
         "subcategory",
+        "tags",
         "discontinued",
         "producer",
         "measure_unit",

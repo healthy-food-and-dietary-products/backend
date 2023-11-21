@@ -83,8 +83,17 @@ class TagLightSerializer(serializers.ModelSerializer):
 class TagSerializer(TagLightSerializer):
     """Serializer for tags representation."""
 
+    top_three_products = serializers.SerializerMethodField()
+
     class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug")
+        fields = ("id", "name", "slug", "top_three_products")
+
+    def get_top_three_products(self, obj):
+        """Shows three most popular products of a particular tag."""
+        top_three_products_queryset = Product.objects.filter(tags=obj).order_by(
+            "-orders_number"
+        )[:3]
+        return ProductSerializer(top_three_products_queryset, many=True).data
 
 
 class ComponentLightSerializer(serializers.ModelSerializer):
