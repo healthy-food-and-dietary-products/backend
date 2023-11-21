@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
-    "phonenumber_field",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",

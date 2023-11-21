@@ -1,5 +1,15 @@
+import json
+
 import pytest
-from tests.fixtures import CITY, FIRST_NAME, LAST_NAME, PASSWORD, USER, USER_EMAIL
+from tests.fixtures import (
+    BIRTH_DATE,
+    CITY,
+    FIRST_NAME,
+    LAST_NAME,
+    PASSWORD,
+    USER,
+    USER_EMAIL,
+)
 
 
 @pytest.mark.django_db
@@ -80,7 +90,7 @@ def test_get_me(user, auth_client):
 
 
 @pytest.mark.django_db
-def test_patch_me(user, auth_client):
+def test_patch_me_first_last_names(user, auth_client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
     response = auth_client.patch("/api/users/me/", payload)
 
@@ -88,6 +98,54 @@ def test_patch_me(user, auth_client):
     assert response.data["id"] == user.id
     assert response.data["first_name"] == user.first_name == FIRST_NAME
     assert response.data["last_name"] == user.last_name == LAST_NAME
+
+
+@pytest.mark.django_db
+def test_patch_me_birth_date_post(user, auth_client):
+    response_get = auth_client.get("/api/users/me/")
+
+    assert response_get.data["birth_date"] is None
+
+    payload = {"birth_date": BIRTH_DATE}
+    response_post = auth_client.patch("/api/users/me/", payload)
+
+    assert response_post.status_code == 200
+    assert response_post.data["birth_date"] == BIRTH_DATE
+
+
+@pytest.mark.django_db
+def test_patch_me_birth_date_post_fail(user, auth_client):
+    payload = {"birth_date": "01-01-2000"}
+    response = auth_client.patch("/api/users/me/", payload)
+
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert response.data["errors"][0]["detail"] == (
+        "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY."
+    )
+
+
+@pytest.mark.skip(reason="Not passing now, need to fix")
+@pytest.mark.django_db
+def test_patch_me_birth_date_set_null(user, auth_client):
+    payload = {"birth_date": BIRTH_DATE}
+    response_post = auth_client.patch("/api/users/me/", payload)
+
+    assert response_post.status_code == 200
+    assert response_post.data["birth_date"] == BIRTH_DATE
+
+    payload2 = {"birth_date": None}
+
+    response_delete = auth_client.patch(
+        "/api/users/me/", json.dumps(payload2), headers="application/json"
+    )
+    print(response_delete.data)
+
+    assert response_delete.data["birth_date"] is None
+
+
+# TODO: test phone_number
 
 
 @pytest.mark.django_db

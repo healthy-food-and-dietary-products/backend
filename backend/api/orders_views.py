@@ -26,7 +26,7 @@ from products.models import Product
 from users.models import User
 
 
-@method_decorator(
+@method_decorator(  # TODO: Response codes may be changed significantly
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="List all shopping carts",
@@ -96,12 +96,14 @@ from users.models import User
         },
     ),
 )
-class ShoppingCartViewSet(DestroyWithPayloadMixin,
-                          mixins.CreateModelMixin,
-                          mixins.DestroyModelMixin,
-                          mixins.UpdateModelMixin,
-                          mixins.RetrieveModelMixin,
-                          GenericViewSet):
+class ShoppingCartViewSet(
+    DestroyWithPayloadMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
     """Viewset for ShoppingCart."""
 
     queryset = Product.objects.all()
@@ -126,14 +128,14 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin,
         serializer = self.get_serializer(data={"products": products})
         serializer.is_valid(raise_exception=True)
         for product in products:
-            shopping_cart.add(product=product,
-                              quantity=product["quantity"])
+            shopping_cart.add(product=product, quantity=product["quantity"])
         return Response(
             {
                 "products": shopping_cart.__iter__(),
                 "count_of_products": shopping_cart.__len__(),
                 "total_price": shopping_cart.get_total_price(),
-            }, status=status.HTTP_201_CREATED,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
     def patch(self, request, **kwargs):
@@ -143,9 +145,7 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin,
         serializer.is_valid(raise_exception=True)
         for product in products:
             shopping_cart.add(
-                product=product,
-                quantity=product["quantity"],
-                update_quantity=True
+                product=product, quantity=product["quantity"], update_quantity=True
             )
         return Response(
             {
@@ -172,7 +172,8 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin,
                 "count_of_products": shopping_cart.__len__(),
                 "total_price": shopping_cart.get_total_price(),
             },
-            status=status.HTTP_205_RESET_CONTENT)
+            status=status.HTTP_205_RESET_CONTENT,
+        )
 
 
 @method_decorator(

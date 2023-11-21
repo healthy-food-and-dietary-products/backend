@@ -51,6 +51,9 @@ class UserSerializer(DjoserUserSerializer):
 
     addresses = AddressSerializer(many=True, required=False)
     address_quantity = serializers.SerializerMethodField()
+    birth_date = serializers.DateField(
+        format="%d.%m.%Y", input_formats=["%d.%m.%Y"], allow_null=True
+    )
 
     class Meta:
         model = User
