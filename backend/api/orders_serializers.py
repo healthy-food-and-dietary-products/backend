@@ -129,7 +129,6 @@ class OrderListSerializer(serializers.ModelSerializer):
     products = OrderProductSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
     total_price = serializers.SerializerMethodField()
-    shopping_cart = ShoppingCartSerializer(read_only=True)
     address = serializers.StringRelatedField()
     delivery_point = serializers.StringRelatedField()
     order_number = serializers.SerializerMethodField()
