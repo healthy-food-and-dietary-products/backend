@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
+    "recipes.apps.RecipesConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
