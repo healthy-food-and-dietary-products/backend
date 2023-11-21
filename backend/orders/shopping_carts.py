@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
+from api.orders_serializers import OrderProductSerializer
 from products.models import Product
 
 
