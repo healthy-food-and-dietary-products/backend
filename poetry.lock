@@ -408,6 +408,25 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-phonenumber-field"
+version = "7.2.0"
+description = "An international phone number field for django models."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django-phonenumber-field-7.2.0.tar.gz", hash = "sha256:20c7c5c449e33eed5fd45ef8d3dc668faabaeff3277eddd1892b262d686ba381"},
+    {file = "django_phonenumber_field-7.2.0-py3-none-any.whl", hash = "sha256:16778f2717ea2aecc6178beb0d6bc431c78c6a8b0474e1fa8face040efeb6e9e"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+phonenumberslite = {version = ">=7.0.2", optional = true, markers = "extra == \"phonenumberslite\""}
+
+[package.extras]
+phonenumbers = ["phonenumbers (>=7.0.2)"]
+phonenumberslite = ["phonenumberslite (>=7.0.2)"]
+
+[[package]]
 name = "django-templated-mail"
 version = "1.1.1"
 description = "Send emails using Django template system."
@@ -814,6 +833,17 @@ files = [
 
 [package.dependencies]
 flake8 = ">=5.0.0"
+
+[[package]]
+name = "phonenumberslite"
+version = "8.13.25"
+description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
+optional = false
+python-versions = "*"
+files = [
+    {file = "phonenumberslite-8.13.25-py2.py3-none-any.whl", hash = "sha256:4e4fe95d83c2d842b1ec7bb42c4a431de1628e9308fb436e58ccd6dbf4416baf"},
+    {file = "phonenumberslite-8.13.25.tar.gz", hash = "sha256:d44b48b910d1ce227e40ebc5acb701a0ea6ce7dd77a6e2fc92cece2db6eadd27"},
+]
 
 [[package]]
 name = "pillow"
@@ -1464,4 +1494,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "5509c48068585846c86991067f0d815a799a96043b7123d7a456a91967ffe76a"
+content-hash = "57490ad30b1737659a2f7c493cac6e72b50a32ef7862b6ea8c0f4bac10526181"
