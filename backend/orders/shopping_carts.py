@@ -25,8 +25,7 @@ class ShopCart(object):
                 "name": p.name,
                 "quantity": quantity,
                 "final_price": p.final_price,
-                "created_at": int(
-                    datetime.now(timezone.utc).timestamp() * 1000),
+                "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
             }
 
         elif update_quantity:
@@ -50,8 +49,7 @@ class ShopCart(object):
         products = Product.objects.filter(id__in=product_ids)
         cart = self.shopping_cart.copy()
         for product in products:
-            cart[str(product.id)]["product"] = OrderProductSerializer(
-                product).data
+            cart[str(product.id)]["product"] = OrderProductSerializer(product).data
 
         for item in cart.values():
             item["name"] = item["name"]
@@ -62,8 +60,7 @@ class ShopCart(object):
 
     def __len__(self):
         """Count all items in the cart."""
-        return sum(
-            int(item["quantity"]) for item in self.shopping_cart.values())
+        return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
         return sum(

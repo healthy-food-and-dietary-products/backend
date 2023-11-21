@@ -70,6 +70,7 @@ class OrderProductSerializer(serializers.ModelSerializer):
             )
         return data
 
+
 #     @transaction.atomic
 #     def create(self, validated_data):
 #         product = validated_data.pop("product")
@@ -124,6 +125,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(serializers.ModelSerializer):
     """Serializer for order representation."""
+
     products = OrderProductSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
     total_price = serializers.SerializerMethodField()
@@ -229,11 +231,11 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     #             raise serializers.ValidationError("Нужно указать адрес доставки.")
     #         address = Address.objects.get(address=validated_data.pop("address"))
     #         delivery_point = None
-        # shopping_cart.status = ShoppingCart.ORDERED
-        # shopping_cart.save()
-        # for product in shopping_cart.products.all():
-        #     product.orders_number += 1
-        #     product.save()
+    # shopping_cart.status = ShoppingCart.ORDERED
+    # shopping_cart.save()
+    # for product in shopping_cart.products.all():
+    #     product.orders_number += 1
+    #     product.save()
     #     return Order.objects.create(
     #         user=user,
     #         shopping_cart=shopping_cart,

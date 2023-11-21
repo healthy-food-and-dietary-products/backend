@@ -10260,6 +10260,8 @@ components:
         username:
           type: string
           minLength: 1
+          description: 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+          pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
           type: string
@@ -10289,7 +10291,8 @@ components:
             $ref: '#/components/schemas/AddressRequest'
         phone_number:
           type: string
-          maxLength: 128
+          pattern: ^(\+7|7|8)\d{10}$
+          maxLength: 17
         photo:
           type: string
           format: binary
@@ -14487,6 +14490,8 @@ components:
           readOnly: true
         username:
           type: string
+          description: 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+          pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
           type: string
@@ -14518,12 +14523,14 @@ components:
           readOnly: true
         phone_number:
           type: string
-          maxLength: 128
+          pattern: ^(\+7|7|8)\d{10}$
+          maxLength: 17
         photo:
           type: string
           format: uri
       required:
       - address_quantity
+      - birth_date
       - email
       - id
       - username
@@ -14572,6 +14579,8 @@ components:
       properties:
         username:
           type: string
+          description: 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+          pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
           type: string
@@ -14587,6 +14596,8 @@ components:
       properties:
         username:
           type: string
+          description: 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+          pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
@@ -14605,6 +14616,8 @@ components:
         username:
           type: string
           minLength: 1
+          description: 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+          pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
           type: string
@@ -14634,11 +14647,13 @@ components:
             $ref: '#/components/schemas/AddressRequest'
         phone_number:
           type: string
-          maxLength: 128
+          pattern: ^(\+7|7|8)\d{10}$
+          maxLength: 17
         photo:
           type: string
           format: binary
       required:
+      - birth_date
       - email
       - username
     UsernameResetConfirm:
@@ -15077,10 +15092,12 @@ components:
           enum:
           - datetime
           - invalid
+          - required
           type: string
           description: |-
             * `datetime` - datetime
             * `invalid` - invalid
+            * `required` - required
         detail:
           type: string
       required:
@@ -15479,10 +15496,12 @@ components:
           enum:
           - datetime
           - invalid
+          - required
           type: string
           description: |-
             * `datetime` - datetime
             * `invalid` - invalid
+            * `required` - required
         detail:
           type: string
       required:
@@ -16094,10 +16113,12 @@ components:
           enum:
           - datetime
           - invalid
+          - required
           type: string
           description: |-
             * `datetime` - datetime
             * `invalid` - invalid
+            * `required` - required
         detail:
           type: string
       required:
@@ -17224,10 +17245,12 @@ components:
           enum:
           - datetime
           - invalid
+          - required
           type: string
           description: |-
             * `datetime` - datetime
             * `invalid` - invalid
+            * `required` - required
         detail:
           type: string
       required:
