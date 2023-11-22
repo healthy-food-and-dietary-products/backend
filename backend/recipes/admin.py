@@ -49,8 +49,4 @@ class ProductsInRecipeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        queryset = (
-            queryset.select_related("recipe")
-            .prefetch_related("ingredient")
-        )
-        return queryset
+        return queryset.select_related("recipe").prefetch_related("ingredient")
