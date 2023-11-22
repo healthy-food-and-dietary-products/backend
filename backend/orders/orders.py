@@ -2,78 +2,44 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
-from api.orders_serializers import OrderProductSerializer
-from products.models import Product
+# from api.orders_serializers import OrderProductSerializer, OrderPostDeleteSerializer
 
 
-
-class Order(object):
+class NewOrder(object):
     def __init__(self, request):
         """Initialize the order."""
         self.session = request.session
-        self.order = self.session.get(settings.ORDER_SESSION_ID, {})
+        self.new_order = self.session.get(settings.ORDER_SESSION_ID, {})
 
     def save(self):
-        self.session[settings.ORDER_SESSION_ID] = self.order
+        self.session[settings.ORDER_SESSION_ID] = self.new_order
         self.session.modified = True
 
-    def create(self, product, quantity):
-        """Add a product to the shopping_cart."""
-        p_id = str(product["id"])
-        p = Product.objects.get(id=product["id"])
-        if p_id not in self.order:
-            self.shopping_cart[p_id] = {
-                "name": p.name,
-                "quantity": quantity,
-                "final_price": p.final_price,
-                "created_at": int(
-                    datetime.now(timezone.utc).timestamp() * 1000),
-            }
+    def create(self, shopping_data, data):
+        """Crete the order."""
+        data = {
+            "user_data": data.get("user_data"),
+            "payment_method": data.get("payment_method"),
+            "delivery_method": data.get("delivery_method"),
+            "delivery_point": data.get("delivery_point"),
+            "package": data.get("package"),
+            "products": shopping_data["products"],
+            "count_of_products": shopping_data["count_of_products"],
+            "total_price": shopping_data["total_price"],
+            "created_at": int(
+                datetime.now(timezone.utc).timestamp()),
+        }
 
-        elif update_quantity:
-            self.shopping_cart[p_id]["quantity"] = int(quantity)
-        else:
-            self.shopping_cart[p_id]["quantity"] += int(quantity)
+        # serializer = OrderPostDeleteSerializer(data=data)
+        # serializer.is_valid(raise_exception=True)
+        self.new_order = data
         self.save()
 
-    def remove(self, product_id):
-        """Change a product quantity from the shopping_cart."""
-        if product_id in self.shopping_cart.keys():
-            del self.shopping_cart[product_id]
-            self.save()
-
-    def __iter__(self):
-        """
-        Iterate over the items in the cart and get the products
-        from the database.
-        """
-        product_ids = self.shopping_cart.keys()
-        products = Product.objects.filter(id__in=product_ids)
-        cart = self.shopping_cart.copy()
-        for product in products:
-            cart[str(product.id)]["product"] = OrderProductSerializer(
-                product).data
-
-        for item in cart.values():
-            item["name"] = item["name"]
-            item["quantity"] = int(item["quantity"])
-            item["total_price"] = item["quantity"] * item["final_price"]
-
-            yield item
-
-    def __len__(self):
-        """Count all items in the cart."""
-        return sum(
-            int(item["quantity"]) for item in self.shopping_cart.values())
-
-    def get_total_price(self):
-        return sum(
-            int(item["quantity"]) * item["final_price"]
-            for item in self.shopping_cart.values()
-        )
+    def get_order_data(self):
+        """Iterate over the items in the order."""
+        return self.new_order.items()
 
     def clear(self):
         """remove cart from session."""
-        del self.session[settings.SHOPPING_CART_SESSION_ID]
+        del self.session[settings.ORDER_SESSION_ID]
         self.session.modified = True
-
