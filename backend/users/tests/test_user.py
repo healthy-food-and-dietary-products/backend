@@ -108,6 +108,50 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(response.data["errors"][0]["detail"], PHONE_NUMBER_ERROR)
 
+    def test_user_add_birthdate(self):
+        """Check add birthdate for user."""
+        data = {"birth_date": "10.12.2004"}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["birth_date"], data["birth_date"])
+
+        data = {"birth_date": ""}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["birth_date"], None)
+
+        data = {"birth_date": "4"}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["type"], "validation_error")
+        self.assertEqual(response.data["errors"][0]["code"], "invalid")
+        self.assertEqual(
+            response.data["errors"][0]["detail"],
+            "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY.",
+        )
+
+    def test_user_add_phone_number(self):
+        """Check add phone_number for user."""
+        data = {"phone_number": "89999999999"}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["phone_number"], data["phone_number"])
+
+        data = {"phone_number": ""}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["phone_number"], "")
+
+        data = {"phone_number": "4"}
+        response = self.authorized_client.patch("/api/users/me/", data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["type"], "validation_error")
+        self.assertEqual(response.data["errors"][0]["code"], "invalid")
+        self.assertEqual(
+            response.data["errors"][0]["detail"],
+            "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
+        )
+
     def test_check_user_creation(self):
         """Check user creation."""
         self.created_user = APIClient()
