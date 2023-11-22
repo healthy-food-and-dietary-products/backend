@@ -167,6 +167,8 @@ class OrderListSerializer(serializers.ModelSerializer):
 class OrderPostDeleteSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete order."""
 
+    products = OrderProductSerializer(many=True)
+
     class Meta:
         model = Order
         fields = (
