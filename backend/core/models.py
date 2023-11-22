@@ -20,3 +20,12 @@ class CategoryModel(models.Model):
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)[:50]
         super().save(*args, **kwargs)
+
+
+class CreatedModel(models.Model):
+    """Abstract model. Adds creation date."""
+
+    pub_date = models.DateTimeField("Created", auto_now_add=True)
+
+    class Meta:
+        abstract = True
