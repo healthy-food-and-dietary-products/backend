@@ -71,8 +71,6 @@ class UsersTest(TestCase):
         """Check add birthdate for user."""
         data = {"birth_date": "10.12.2004"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
-        print('xxxxxxxxxxxxxxxxxxxxxxx', response.data)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["birth_date"], data["birth_date"])
 
@@ -83,7 +81,6 @@ class UsersTest(TestCase):
 
         data = {"birth_date": "4"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
-        print('xxxxxxxxxxxxxxxxxxxxxxx', response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["type"], "validation_error")
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
@@ -111,7 +108,7 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(
             response.data["errors"][0]["detail"],
-            "Вв '8XXXXXXXXXX'",
+            "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
         )
 
     def test_check_user_creation(self):

@@ -81,6 +81,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart"
+ORDER_SESSION_ID = "order_id"
 
 ROOT_URLCONF = "good_food.urls"
 
