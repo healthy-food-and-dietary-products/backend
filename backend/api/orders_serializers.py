@@ -52,24 +52,21 @@ class OrderProductSerializer(serializers.ModelSerializer):
     """Serializer for add/update/delete products into shopping_cart."""
 
     id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default=1)
+    quantity = serializers.IntegerField()
 
     class Meta:
         model = OrderProduct
         fields = ("id", "quantity")
 
-    def validate_quantity(self, data):
-        if data < 1:
+    def validate(self, attrs):
+        if attrs["quantity"] < 1 or None:
             raise serializers.ValidationError("Укажите количество товара.")
-        return data
 
-    def validate_id(self, data):
-        if not Product.objects.filter(id=data).exists():
+        if not Product.objects.filter(id=attrs["id"]).exists():
             raise serializers.ValidationError(
                 "У нас нет таких продуктов. Выберете из представленных."
             )
-        return data
-
+        return attrs
 
 #     @transaction.atomic
 #     def create(self, validated_data):
