@@ -2,7 +2,8 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
-# from api.orders_serializers import OrderProductSerializer, OrderPostDeleteSerializer
+# from api.orders_serializers import OrderPostDeleteSerializer, OrderProductSerializer
+from orders.models import Delivery
 
 
 class NewOrder(object):
@@ -17,21 +18,25 @@ class NewOrder(object):
 
     def create(self, shopping_data, data):
         """Crete the order."""
+        delivery = Delivery.objects.get(id=data.get("delivery_point"))
         data = {
             "user_data": data.get("user_data"),
-            "payment_method": data.get("payment_method"),
-            "delivery_method": data.get("delivery_method"),
-            "delivery_point": data.get("delivery_point"),
-            "package": data.get("package"),
             "products": shopping_data["products"],
             "count_of_products": shopping_data["count_of_products"],
             "total_price": shopping_data["total_price"],
-            "created_at": int(
-                datetime.now(timezone.utc).timestamp()),
+            "payment_method": data.get("payment_method"),
+            "delivery_method": data.get("delivery_method"),
+            "delivery_point": delivery.delivery_point,
+            "address": data.get("address"),
+            "comment": data.get("comment"),
+            "package": data.get("package"),
+            "status": "ORDERED",
+            "is_paid": data.get("is_paid"),
+            "created_at": int(datetime.now(timezone.utc).timestamp()),
         }
 
         # serializer = OrderPostDeleteSerializer(data=data)
-        # serializer.is_valid(raise_exception=True)
+        # serializer.is_valid(raise_exception=True)# TODO: validate delivery_method
         self.new_order = data
         self.save()
 
