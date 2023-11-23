@@ -167,8 +167,6 @@ class OrderListSerializer(serializers.ModelSerializer):
 class OrderPostDeleteSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete order."""
 
-    products = OrderProductSerializer(many=True)
-
     class Meta:
         model = Order
         fields = (
@@ -181,13 +179,13 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    def validate_address(self, address):
-        """Checks that the user has not entered someone else's address."""
-        if address.user != self.context["request"].user:
-            raise serializers.ValidationError(
-                "Данный адрес доставки принадлежит другому пользователю."
-            )
-        return address
+    # def validate_address(self, address):
+    #     """Checks that the user has not entered someone else's address."""
+    #     if address.user != self.context["request"].user:
+    #         raise serializers.ValidationError(
+    #             "Данный адрес доставки принадлежит другому пользователю."
+    #         )
+    #     return address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
@@ -204,7 +202,10 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(no_match_error_message)
-        return super().validate(attrs)
+
+        return attrs
+
+        # return super().validate(attrs)
 
     # @transaction.atomic
     # def create(self, validated_data):
