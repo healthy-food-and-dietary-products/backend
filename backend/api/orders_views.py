@@ -19,10 +19,9 @@ from .orders_serializers import (
     OrderPostDeleteSerializer,
     ShoppingCartSerializer,
 )
-from orders.models import Order
+from orders.models import Order, ShoppingCart
 from orders.orders import NewOrder
 from orders.shopping_carts import ShopCart
-from products.models import Product
 from users.models import User
 
 # from .permissions import IsAuthorOrAdmin
@@ -108,7 +107,7 @@ class ShoppingCartViewSet(
 ):
     """Viewset for ShoppingCart."""
 
-    queryset = Product.objects.all()
+    queryset = ShoppingCart.objects.all()
     permission_classes = [AllowAny]
     http_method_names = ("get", "post", "delete", "patch")
     serializer_class = ShoppingCartSerializer
