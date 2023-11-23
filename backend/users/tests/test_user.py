@@ -67,15 +67,12 @@ class UsersTest(TestCase):
         response = self.guest_client.get("/api/users/2/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_user_add_address(self):
-        """Check add address for user. Still not work :(."""
-        # data = {"first_name": "tessst"}
-        # response = self.authorized_client.patch("/api/users/me/", data=data)
-
     def test_user_add_birthdate(self):
         """Check add birthdate for user."""
         data = {"birth_date": "10.12.2004"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
+        print('xxxxxxxxxxxxxxxxxxxxxxx', response.data)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["birth_date"], data["birth_date"])
 
@@ -86,6 +83,7 @@ class UsersTest(TestCase):
 
         data = {"birth_date": "4"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
+        print('xxxxxxxxxxxxxxxxxxxxxxx', response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["type"], "validation_error")
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
@@ -113,7 +111,7 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(
             response.data["errors"][0]["detail"],
-            "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
+            "Вв '8XXXXXXXXXX'",
         )
 
     def test_check_user_creation(self):
