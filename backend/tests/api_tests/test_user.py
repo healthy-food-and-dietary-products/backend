@@ -91,6 +91,52 @@ def test_patch_me(user, auth_client):
 
 
 @pytest.mark.django_db
+def test_user_add_birthdate(user, auth_client):
+    """Check add birthdate for user."""
+    payload = {"birth_date": "10.12.2004"}
+    response = auth_client.patch("/api/users/me/", payload)
+    print(user.birth_date, 'xxxxxxxxxxxxxxxxxxxxxxx', response.data)
+    assert response.status_code == 200
+    assert response.data["birth_date"] == user.birth_name == payload["birth_date"]
+
+    payload = {"birth_date": ""}
+    response = auth_client.patch("/api/users/me/", payload)
+    assert response.status_code == 200
+    assert response.data["birth_date"] == None
+
+    payload = {"birth_date": "4"}
+    response = auth_client.patch("/api/users/me/", payload)
+    assert response.status_code == 400
+    
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert response.data["errors"][0]["detail"] == "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY."
+
+# @pytest.mark.django_db
+# def test_user_add_phone_number(self):
+#     """Check add phone_number for user."""
+#     data = {"phone_number": "89999999999"}
+#     response = self.authorized_client.patch("/api/users/me/", data=data)
+#     self.assertEqual(response.status_code, status.HTTP_200_OK)
+#     self.assertEqual(response.data["phone_number"], data["phone_number"])
+
+#     data = {"phone_number": ""}
+#     response = self.authorized_client.patch("/api/users/me/", data=data)
+#     self.assertEqual(response.status_code, status.HTTP_200_OK)
+#     self.assertEqual(response.data["phone_number"], "")
+
+#     data = {"phone_number": "4"}
+#     response = self.authorized_client.patch("/api/users/me/", data=data)
+#     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+#     self.assertEqual(response.data["type"], "validation_error")
+#     self.assertEqual(response.data["errors"][0]["code"], "invalid")
+#     self.assertEqual(
+#         response.data["errors"][0]["detail"],
+#         "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
+#     )
+
+
+@pytest.mark.django_db
 def test_patch_me_anonymous_fail(client):
     payload = {"first_name": FIRST_NAME, "last_name": LAST_NAME}
     response = client.patch("/api/users/me/", payload)
@@ -117,3 +163,6 @@ def test_delete_me_anonymous_fail(client):
     assert response.status_code == 401
     assert response.data["type"] == "client_error"
     assert response.data["errors"][0]["code"] == "not_authenticated"
+
+
+    
