@@ -1,4 +1,6 @@
 import pytest
+from django.urls import reverse
+
 from tests.fixtures import ADDRESS1, ADDRESS2
 
 
@@ -10,7 +12,7 @@ def test_patch_user_addresses(user, auth_client):
             {"address": ADDRESS2, "priority_address": "false"},
         ],
     }
-    response = auth_client.patch("/api/users/me/", payload, format="json")
+    response = auth_client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response.status_code == 200
     assert response.data["id"] == user.id
@@ -24,7 +26,7 @@ def test_patch_user_addresses(user, auth_client):
 @pytest.mark.django_db
 def test_patch_user_addresses_default_priority(user, auth_client):
     payload = {"addresses": [{"address": ADDRESS1}, {"address": ADDRESS2}]}
-    response = auth_client.patch("/api/users/me/", payload, format="json")
+    response = auth_client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response.status_code == 200
     assert len(response.data["addresses"]) == 2
@@ -40,7 +42,7 @@ def test_patch_user_addresses_priority_fail(user, auth_client):
             {"address": ADDRESS2, "priority_address": "true"},
         ],
     }
-    response = auth_client.patch("/api/users/me/", payload, format="json")
+    response = auth_client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response.status_code == 400
     assert response.data["type"] == "validation_error"
@@ -59,7 +61,7 @@ def test_patch_user_same_addresses_save_as_one(user, auth_client):
             {"address": ADDRESS1, "priority_address": "true"},
         ],
     }
-    response = auth_client.patch("/api/users/me/", payload, format="json")
+    response = auth_client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response.status_code == 200
     assert len(response.data["addresses"]) == 1
@@ -69,7 +71,7 @@ def test_patch_user_same_addresses_save_as_one(user, auth_client):
 @pytest.mark.django_db
 def test_patch_user_addresses_anonymous_fail(user, client):
     payload = {"addresses": [{"address": ADDRESS1, "priority_address": "true"}]}
-    response = client.patch("/api/users/me/", payload, format="json")
+    response = client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response.status_code == 401
     assert response.data["type"] == "client_error"
@@ -84,13 +86,13 @@ def test_patch_user_addresses_deletion(user, auth_client):
             {"address": ADDRESS2, "priority_address": "false"},
         ],
     }
-    response_create = auth_client.patch("/api/users/me/", payload, format="json")
+    response_create = auth_client.patch(reverse("api:user-me"), payload, format="json")
 
     assert response_create.status_code == 200
     assert len(response_create.data["addresses"]) == 2
 
     response_delete = auth_client.patch(
-        "/api/users/me/", {"addresses": []}, format="json"
+        reverse("api:user-me"), {"addresses": []}, format="json"
     )
 
     assert response_delete.status_code == 200
