@@ -7,10 +7,12 @@ from tests.fixtures import (
     FIRST_NAME,
     LAST_NAME,
     PASSWORD,
+    PHONE_NUMBER,
     USER,
     USER_EMAIL,
-    PHONE_NUMBER
 )
+
+from users.models import PHONE_NUMBER_ERROR
 
 
 @pytest.mark.django_db
@@ -166,10 +168,10 @@ def test_patch_me_phone_number(user, auth_client):
     payload = {"phone_number": "4"}
     response = auth_client.patch("/api/users/me/", payload)
     assert response.status_code == 400
-    
+
     assert response.data["type"] == "validation_error"
     assert response.data["errors"][0]["code"] == "invalid"
-    assert response.data["errors"][0]["detail"] == "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
+    assert response.data["errors"][0]["detail"] == PHONE_NUMBER_ERROR
 
 
 @pytest.mark.django_db
@@ -199,6 +201,3 @@ def test_delete_me_anonymous_fail(client):
     assert response.status_code == 401
     assert response.data["type"] == "client_error"
     assert response.data["errors"][0]["code"] == "not_authenticated"
-
-
-    

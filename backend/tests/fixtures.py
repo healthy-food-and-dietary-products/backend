@@ -17,7 +17,8 @@ LAST_NAME = "Last"
 ADDRESS1 = "Test address 1"
 ADDRESS2 = "Test address 2"
 BIRTH_DATE = "01.01.2000"
-PHONE_NUMBER = '89999999999'
+PHONE_NUMBER = "89999999999"
+
 
 @pytest.fixture
 def admin(django_user_model):
