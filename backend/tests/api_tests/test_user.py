@@ -7,9 +7,12 @@ from tests.fixtures import (
     FIRST_NAME,
     LAST_NAME,
     PASSWORD,
+    PHONE_NUMBER,
     USER,
     USER_EMAIL,
 )
+
+from users.models import PHONE_NUMBER_ERROR
 
 
 @pytest.mark.django_db
@@ -145,7 +148,30 @@ def test_patch_me_birth_date_set_null(user, auth_client):
     assert response_delete.data["birth_date"] is None
 
 
-# TODO: test phone_number
+@pytest.mark.django_db
+def test_patch_me_phone_number(user, auth_client):
+    response_get = auth_client.get("/api/users/me/")
+
+    assert response_get.data["phone_number"] == ""
+
+    payload = {"phone_number": PHONE_NUMBER}
+    response_post = auth_client.patch("/api/users/me/", payload)
+
+    assert response_post.status_code == 200
+    assert response_post.data["phone_number"] == user.phone_number == PHONE_NUMBER
+
+    payload = {"phone_number": ""}
+    response = auth_client.patch("/api/users/me/", payload)
+    assert response.status_code == 200
+    assert response.data["phone_number"] == ""
+
+    payload = {"phone_number": "4"}
+    response = auth_client.patch("/api/users/me/", payload)
+    assert response.status_code == 400
+
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert response.data["errors"][0]["detail"] == PHONE_NUMBER_ERROR
 
 
 @pytest.mark.django_db
