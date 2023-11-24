@@ -59,6 +59,7 @@ class OrderProductSerializer(serializers.ModelSerializer):
         fields = ("id", "quantity")
 
     def validate(self, attrs):
+        print(attrs)
         if attrs["quantity"] < 1 or None:
             raise serializers.ValidationError("Укажите количество товара.")
 
@@ -68,39 +69,6 @@ class OrderProductSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-#     @transaction.atomic
-#     def create(self, validated_data):
-#         product = validated_data.pop("product")
-#         quantity = validated_data.pop("quantity")
-#         shopping_cart = validated_data.pop("shopping_cart")
-#
-#         return ShoppingCartProduct.objects.create(
-#             product=product, quantity=quantity, shopping_cart=shopping_cart
-#         )
-#
-#     @transaction.atomic
-#     def update(self, instance, validated_data):
-#         product = validated_data.pop("product")
-#         quantity = validated_data.pop("quantity")
-#         shopping_cart = validated_data.pop("shopping_cart")
-#         shopping_cart_product = ShoppingCartProduct.objects.get(
-#             product=product, quantity=quantity, shopping_cart=shopping_cart
-#         )
-#         if validated_data:
-#             shopping_cart_product.save()
-
-#
-# class ShoppingCartGetSerializer(serializers.ModelSerializer):
-#     """Serializer for shopping_cart representation."""
-#
-#     products = OrderProductListSerializer(
-#         many=True, read_only=True, source="shopping_carts"
-#     )
-#
-#     class Meta:
-#         model = ShoppingCart
-#         fields = ("id", "user", "products", "total_price")
-
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete shopping_cart."""
@@ -109,15 +77,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ("products",)
-        model = Product
-
-    def validate_products(self, data):
-        products_id = [product["id"] for product in data]
-        if len(products_id) != len(set(products_id)):
-            raise serializers.ValidationError(
-                "Продукты в корзине не должны повторяться."
-            )
-        return data
+        model = OrderProduct
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -136,7 +96,12 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(float)
     def get_total_price(self, obj):
-        return obj.shopping_cart.total_price + obj.package
+        return (round(sum(
+                [
+                    (float(Product.objects.get(id=product["id"]).final_price))
+                    * int(product["quantity"])
+                    for product in obj.products
+                ]), 2) + obj.package)
 
     class Meta:
         fields = (
@@ -200,25 +165,16 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(no_match_error_message)
 
-        return attrs
-
-        # return super().validate(attrs)
+        return super().validate(attrs)
 
     # @transaction.atomic
     # def create(self, validated_data):
     #     user = self.context["request"].user
-    #     try:
-    #         shopping_cart = ShoppingCart.objects.get(
-    #             user=user, status=ShoppingCart.INWORK
-    #         )
-    #     except Exception:
-    #         raise serializers.ValidationError(
-    #             "У вас нет продуктов для заказа, наполните корзину."
-    #         )
     #     payment_method = validated_data.pop("payment_method")
     #     delivery_method = validated_data.pop("delivery_method")
     #     package = validated_data.pop("package")
     #     comment = validated_data.pop("comment")
+    #     products = validated_data.pop["products"]
     #     if delivery_method == Order.DELIVERY_POINT:
     #         if not validated_data.get("delivery_point"):
     #             raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
@@ -231,14 +187,10 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
     #             raise serializers.ValidationError("Нужно указать адрес доставки.")
     #         address = Address.objects.get(address=validated_data.pop("address"))
     #         delivery_point = None
-    # shopping_cart.status = ShoppingCart.ORDERED
-    # shopping_cart.save()
-    # for product in shopping_cart.products.all():
-    #     product.orders_number += 1
-    #     product.save()
+    #
     #     return Order.objects.create(
     #         user=user,
-    #         shopping_cart=shopping_cart,
+    #         products=products,
     #         status=Order.ORDERED,
     #         payment_method=payment_method,
     #         delivery_method=delivery_method,
