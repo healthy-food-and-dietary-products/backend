@@ -19,14 +19,33 @@ ADDRESS2 = "Test address 2"
 BIRTH_DATE = "01.01.2000"
 PHONE_NUMBER = "89999999999"
 
+INVALID_SLUG = "te st"
+INVALID_SLUG_MESSAGE = (
+    "Значение должно состоять только из букв, цифр, символов подчёркивания или "
+    "дефисов, входящих в стандарт Юникод."
+)
+
+CATEGORY_NAME_1 = "Овощи"
+CATEGORY_NAME_2 = "Хлебобулочные изделия"
+CATEGORY_NAME_3 = "Сладости"
+CATEGORY_SLUG_1 = "vegetables"
+CATEGORY_SLUG_2 = "bakery"
+CATEGORY_SLUG_3 = "sweets"
+
+SUBCATEGORY_NAME_1 = "Помидоры"
+SUBCATEGORY_NAME_2 = "Огурцы"
+SUBCATEGORY_NAME_3 = "Хлеб дрожжевой"
+SUBCATEGORY_NAME_4 = "Булочки"
+SUBCATEGORY_SLUG_1 = "tomatoes"
+SUBCATEGORY_SLUG_2 = "cucumbers"
+SUBCATEGORY_SLUG_3 = "yeast-bread"
+SUBCATEGORY_SLUG_4 = "buns"
+
 
 @pytest.fixture
 def admin(django_user_model):
     return django_user_model.objects.create_user(
-        username=ADMIN,
-        email=ADMIN_EMAIL,
-        password=PASSWORD,
-        bio="admin bio",
+        username=ADMIN, email=ADMIN_EMAIL, password=PASSWORD, is_staff=True
     )
 
 
@@ -56,18 +75,33 @@ def auth_client(client, user):
 
 
 @pytest.fixture
+def auth_admin(client, admin):
+    client.force_authenticate(user=admin)
+    return client
+
+
+@pytest.fixture
 def categories():
-    Category.objects.create(category_name="Овощи")
-    Category.objects.create(category_name="Хлебобулочные изделия")
-    Category.objects.create(category_name="Сладости")
+    Category.objects.create(name=CATEGORY_NAME_1, slug=CATEGORY_SLUG_1)
+    Category.objects.create(name=CATEGORY_NAME_2, slug=CATEGORY_SLUG_2)
+    Category.objects.create(name=CATEGORY_NAME_3, slug=CATEGORY_SLUG_3)
     return Category.objects.all()
 
 
 @pytest.fixture
 def subcategories(categories):
-    Subcategory.objects.create(name="Помидоры", parent_category=categories[0])
-    Subcategory.objects.create(name="Хлеб", parent_category=categories[1])
-    Subcategory.objects.create(name="Халва", parent_category=categories[2])
+    Subcategory.objects.create(
+        name=SUBCATEGORY_NAME_1, slug=SUBCATEGORY_SLUG_1, parent_category=categories[0]
+    )
+    Subcategory.objects.create(
+        name=SUBCATEGORY_NAME_2, slug=SUBCATEGORY_SLUG_2, parent_category=categories[0]
+    )
+    Subcategory.objects.create(
+        name=SUBCATEGORY_NAME_3, slug=SUBCATEGORY_SLUG_3, parent_category=categories[1]
+    )
+    Subcategory.objects.create(
+        name=SUBCATEGORY_NAME_4, slug=SUBCATEGORY_SLUG_4, parent_category=categories[1]
+    )
     return Subcategory.objects.all()
 
 
