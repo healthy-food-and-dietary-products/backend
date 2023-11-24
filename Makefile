@@ -19,7 +19,7 @@ shell:
 load_data:
 	cd backend; python3 manage.py load_data
 
-dump_data:
+export_data:
 	cd backend; python3 manage.py export_data
 
 dumpdb:
