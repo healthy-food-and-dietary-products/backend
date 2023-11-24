@@ -2,6 +2,8 @@ from rest_framework import response, status
 
 from .users_serializers import CustomUserDeleteSerializer, UserSerializer
 
+MESSAGE_ON_DELETE = "This object was successfully deleted"
+
 
 class DestroyWithPayloadMixin(object):
     """Mixin to provide detailed api response after delete requests."""
@@ -11,6 +13,6 @@ class DestroyWithPayloadMixin(object):
             serializer_data = UserSerializer(self.get_object()).data
         else:
             serializer_data = self.get_serializer(self.get_object()).data
-        serializer_data["Success"] = "This object was successfully deleted"
+        serializer_data["Success"] = MESSAGE_ON_DELETE
         super().destroy(*args, **kwargs)
         return response.Response(serializer_data, status=status.HTTP_200_OK)

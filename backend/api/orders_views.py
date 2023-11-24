@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from .mixins import DestroyWithPayloadMixin
+from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
     OrderListSerializer,
     OrderPostDeleteSerializer,
@@ -288,6 +288,6 @@ class OrderViewSet(ModelViewSet):
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
         serializer_data = self.get_serializer(order).data
-        serializer_data["Success"] = "This object was successfully deleted"
+        serializer_data["Success"] = MESSAGE_ON_DELETE
         order.shopping_cart.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)

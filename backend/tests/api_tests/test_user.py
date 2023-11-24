@@ -3,6 +3,7 @@ import json
 import pytest
 from django.urls import reverse
 
+from api.mixins import MESSAGE_ON_DELETE
 from tests.fixtures import (
     BIRTH_DATE,
     CITY,
@@ -144,7 +145,6 @@ def test_patch_me_birth_date_set_null(user, auth_client):
     response_delete = auth_client.patch(
         reverse("api:user-me"), json.dumps(payload2), headers="application/json"
     )
-    print(response_delete.data)
 
     assert response_delete.data["birth_date"] is None
 
@@ -192,7 +192,7 @@ def test_delete_me(auth_client, user):
     assert response.status_code == 200
     assert response.data["username"] == user.username
     assert response.data["email"] == user.email
-    assert response.data["Success"] == "This object was successfully deleted"
+    assert response.data["Success"] == MESSAGE_ON_DELETE
 
 
 @pytest.mark.django_db
