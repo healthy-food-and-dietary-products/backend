@@ -3,7 +3,15 @@ from rest_framework.test import APIClient
 
 import users
 from orders.models import Delivery, ShoppingCart
-from products.models import Category, Component, Producer, Product, Subcategory, Tag
+from products.models import (
+    Category,
+    Component,
+    Producer,
+    Product,
+    Promotion,
+    Subcategory,
+    Tag,
+)
 from users.models import Address, User
 
 TEST_NAME = "Test"
@@ -78,6 +86,12 @@ PRODUCER_SLUG_2 = "kurochkin"
 
 PRODUCER_ADDRESS_1 = "Ленинградская область, г. Светогорск, ул. Кирова, д. 8"
 PRODUCER_ADDRESS_2 = "г. Москва, Аптекарский огород"
+
+PROMOTION_NAME_1 = "Birthday Discount 15%"
+PROMOTION_NAME_2 = "Black Friday"
+
+PROMOTION_DISCOUNT_1 = 15
+PROMOTION_DISCOUNT_2 = 20
 
 
 @pytest.fixture
@@ -161,6 +175,17 @@ def tags():
     Tag.objects.create(name=TAG_NAME_1, slug=TAG_SLUG_1)
     Tag.objects.create(name=TAG_NAME_2, slug=TAG_SLUG_2)
     return Tag.objects.all()
+
+
+@pytest.fixture
+def promotions():
+    Promotion.objects.create(
+        promotion_type=Promotion.BIRTHDAY,
+        name=PROMOTION_NAME_1,
+        discount=PROMOTION_DISCOUNT_1,
+    )
+    Promotion.objects.create(name=PROMOTION_NAME_2, discount=PROMOTION_DISCOUNT_2)
+    return Promotion.objects.all()
 
 
 @pytest.fixture

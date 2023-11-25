@@ -116,6 +116,17 @@ def test_create_producer_fail_address_validation(auth_admin):
 
 
 @pytest.mark.django_db
+def test_create_producer_fail_type_validation(auth_admin):
+    payload = {"name": TEST_NAME, "producer_type": TEST_NAME, "address": TEST_ADDRESS}
+    response = auth_admin.post(reverse("api:producer-list"), payload)
+
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid_choice"
+    assert response.data["errors"][0]["attr"] == "producer_type"
+
+
+@pytest.mark.django_db
 def test_edit_producer_name(auth_admin, producers):
     payload = {"name": TEST_NAME}
     response = auth_admin.patch(
