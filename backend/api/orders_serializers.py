@@ -141,14 +141,6 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    # def validate_address(self, address):
-    #     """Checks that the user has not entered someone else's address."""
-    #     if address.user != self.context["request"].user:
-    #         raise serializers.ValidationError(
-    #             "Данный адрес доставки принадлежит другому пользователю."
-    #         )
-    #     return address
-
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
@@ -166,39 +158,3 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(no_match_error_message)
 
         return super().validate(attrs)
-
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     user = self.context["request"].user
-    #     payment_method = validated_data.pop("payment_method")
-    #     delivery_method = validated_data.pop("delivery_method")
-    #     package = validated_data.pop("package")
-    #     comment = validated_data.pop("comment")
-    #     products = validated_data.pop["products"]
-    #     if delivery_method == Order.DELIVERY_POINT:
-    #         if not validated_data.get("delivery_point"):
-    #             raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
-    #         delivery_point = Delivery.objects.get(
-    #             delivery_point=validated_data.pop("delivery_point")
-    #         )
-    #         address = None
-    #     else:
-    #         if not validated_data.get("address"):
-    #             raise serializers.ValidationError("Нужно указать адрес доставки.")
-    #         address = Address.objects.get(address=validated_data.pop("address"))
-    #         delivery_point = None
-    #
-    #     return Order.objects.create(
-    #         user=user,
-    #         products=products,
-    #         status=Order.ORDERED,
-    #         payment_method=payment_method,
-    #         delivery_method=delivery_method,
-    #         delivery_point=delivery_point,
-    #         package=package,
-    #         comment=comment,
-    #         address=address,
-    #     )
-    #
-    # def to_representation(self, instance):
-    #     return OrderListSerializer(instance, context=self.context).data
