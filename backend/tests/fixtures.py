@@ -45,6 +45,24 @@ SUBCATEGORY_SLUG_2 = "cucumbers"
 SUBCATEGORY_SLUG_3 = "yeast-bread"
 SUBCATEGORY_SLUG_4 = "buns"
 
+COMPONENT_NAME_1 = "помидоры"
+COMPONENT_NAME_2 = "огурцы"
+COMPONENT_NAME_3 = "мука пшеничная в/с"
+COMPONENT_NAME_4 = "вода питьевая"
+COMPONENT_NAME_5 = "соль поваренная"
+COMPONENT_NAME_6 = "сахар"
+COMPONENT_NAME_7 = "дрожжи хлебопекарные"
+COMPONENT_NAME_8 = "масло растительное"
+
+COMPONENT_SLUG_1 = "tomato"
+COMPONENT_SLUG_2 = "cucumber"
+COMPONENT_SLUG_3 = "premium-wheat-flour"
+COMPONENT_SLUG_4 = "water"
+COMPONENT_SLUG_5 = "table-salt"
+COMPONENT_SLUG_6 = "sugar"
+COMPONENT_SLUG_7 = "yeast"
+COMPONENT_SLUG_8 = "oil"
+
 
 @pytest.fixture
 def admin(django_user_model):
@@ -111,9 +129,14 @@ def subcategories(categories):
 
 @pytest.fixture
 def components():
-    Component.objects.create(name="Помидоры")
-    Component.objects.create(name="Хлеб")
-    Component.objects.create(name="Халва")
+    Component.objects.create(name=COMPONENT_NAME_1, slug=COMPONENT_SLUG_1)
+    Component.objects.create(name=COMPONENT_NAME_2, slug=COMPONENT_SLUG_2)
+    Component.objects.create(name=COMPONENT_NAME_3, slug=COMPONENT_SLUG_3)
+    Component.objects.create(name=COMPONENT_NAME_4, slug=COMPONENT_SLUG_4)
+    Component.objects.create(name=COMPONENT_NAME_5, slug=COMPONENT_SLUG_5)
+    Component.objects.create(name=COMPONENT_NAME_6, slug=COMPONENT_SLUG_6)
+    Component.objects.create(name=COMPONENT_NAME_7, slug=COMPONENT_SLUG_7)
+    Component.objects.create(name=COMPONENT_NAME_8, slug=COMPONENT_SLUG_8)
     return Component.objects.all()
 
 
