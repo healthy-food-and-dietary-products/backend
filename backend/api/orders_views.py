@@ -8,6 +8,7 @@ from drf_standardized_errors.openapi_serializers import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -69,20 +70,6 @@ from products.models import Product
     ),
 )
 @method_decorator(
-    name="partial_update",
-    decorator=swagger_auto_schema(
-        operation_summary="Edit shopping cart",
-        operation_description="Edits a shopping cart by its id (authorized only)",
-        responses={
-            200: ShoppingCartSerializer,
-            400: ValidationErrorResponseSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
-        },
-    ),
-)
-@method_decorator(
     name="destroy",
     decorator=swagger_auto_schema(
         operation_summary="Delete shopping cart",
@@ -99,7 +86,6 @@ class ShoppingCartViewSet(
     DestroyWithPayloadMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
-    mixins.UpdateModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
@@ -107,7 +93,7 @@ class ShoppingCartViewSet(
 
     queryset = ShoppingCart.objects.all()
     permission_classes = [AllowAny]
-    http_method_names = ("get", "post", "delete", "patch")
+    http_method_names = ("get", "post", "delete")
     serializer_class = ShoppingCartSerializer
 
     def list(self, request, **kwargs):
@@ -137,24 +123,7 @@ class ShoppingCartViewSet(
             status=status.HTTP_201_CREATED,
         )
 
-    def patch(self, request, **kwargs):
-        shopping_cart = ShopCart(request)
-        products = request.data["products"]
-        serializer = ShoppingCartSerializer(data={"products": products})
-        serializer.is_valid(raise_exception=True)
-        for product in products:
-            shopping_cart.add(
-                product=product, quantity=product["quantity"], update_quantity=True
-            )
-        return Response(
-            {
-                "products": shopping_cart.__iter__(),
-                "count_of_products": shopping_cart.__len__(),
-                "total_price": shopping_cart.get_total_price(),
-            },
-            status=status.HTTP_205_RESET_CONTENT,
-        )
-
+    @action(detail=True, methods=["delete"])
     def delete(self, request, **kwargs):
         shopping_cart = ShopCart(request)
         if not shopping_cart:
@@ -162,9 +131,8 @@ class ShoppingCartViewSet(
                 {"errors": "no shopping_cart available"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        products = request.data["products"]
-        for product in products:
-            shopping_cart.remove(product["id"])
+        product_id = self.kwargs["product_id"]
+        shopping_cart.remove(product_id)
         return Response(
             {
                 "products": shopping_cart.__iter__(),
