@@ -15,7 +15,7 @@ class ShopCart(object):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
         self.session.modified = True
 
-    def add(self, product, quantity, update_quantity=False):
+    def add(self, product, quantity):
         """Add a product to the shopping_cart."""
         p_id = str(product["id"])
         p = Product.objects.get(id=product["id"])
@@ -27,11 +27,9 @@ class ShopCart(object):
                 "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp()),
             }
-
-        elif update_quantity:
-            self.shopping_cart[p_id]["quantity"] = int(quantity)
         else:
-            self.shopping_cart[p_id]["quantity"] += int(quantity)
+            self.shopping_cart[p_id]["quantity"] = int(quantity)
+
         self.save()
 
     def remove(self, product_id):
