@@ -297,18 +297,17 @@ class OrderViewSet(
 
     def delete(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
-                Order.COLLECTING,
-                Order.GATHERED,
-                Order.DELIVERING,
-                Order.DELIVERED,
-                Order.COMPLETED,
+            Order.COLLECTING,
+            Order.GATHERED,
+            Order.DELIVERING,
+            Order.DELIVERED,
+            Order.COMPLETED,
         ]
         if not self.request.user.is_authenticated:
             new_order = NewOrder(request)
             if new_order.status in order_restricted_deletion_statuses:
                 return Response(
-                    {
-                     "errors": "Отмена заказа после комплектования невозможна."}
+                    {"errors": "Отмена заказа после комплектования невозможна."}
                 )
             new_order.clear()
             return Response(status=status.HTTP_204_NO_CONTENT)
