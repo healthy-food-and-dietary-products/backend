@@ -8,6 +8,7 @@ from users.models import Address, User
 
 TEST_NAME = "Test"
 TEST_SLUG = "test"
+TEST_ADDRESS = "test address"
 
 INVALID_SLUG = "te st"
 INVALID_SLUG_MESSAGE = (
@@ -68,6 +69,15 @@ TAG_NAME_2 = "Детское меню"
 
 TAG_SLUG_1 = "vegetarian"
 TAG_SLUG_2 = "kids"
+
+PRODUCER_NAME_1 = "Выборжец"
+PRODUCER_NAME_2 = "Курочкин П.Н."
+
+PRODUCER_SLUG_1 = "vyborgets"
+PRODUCER_SLUG_2 = "kurochkin"
+
+PRODUCER_ADDRESS_1 = "Ленинградская область, г. Светогорск, ул. Кирова, д. 8"
+PRODUCER_ADDRESS_2 = "г. Москва, Аптекарский огород"
 
 
 @pytest.fixture
@@ -156,15 +166,16 @@ def tags():
 @pytest.fixture
 def producers():
     Producer.objects.create(
-        name="Выборжец",
-        producer_type="Юридическое лицо",
-        address="Ленинградская область",
+        name=PRODUCER_NAME_1,
+        slug=PRODUCER_SLUG_1,
+        producer_type=Producer.COMPANY,
+        address=PRODUCER_ADDRESS_1,
     )
     Producer.objects.create(
-        name="Хлебный дом", producer_type="Юридическое лицо", address="Тверь"
-    )
-    Producer.objects.create(
-        name="Красный Октябрь", producer_type="Юридическое лицо", address="Москва"
+        name=PRODUCER_NAME_2,
+        slug=PRODUCER_SLUG_2,
+        producer_type=Producer.ENTREPRENEUR,
+        address=PRODUCER_ADDRESS_2,
     )
     return Producer.objects.all()
 

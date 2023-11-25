@@ -111,8 +111,8 @@ def test_edit_category_slug(auth_admin, categories):
     )
 
     assert response.status_code == 200
-    assert response.data["slug"] == TEST_SLUG
     assert response.data["category_name"] == categories[0].name
+    assert response.data["slug"] == TEST_SLUG
 
 
 @pytest.mark.django_db
