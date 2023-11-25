@@ -6,6 +6,16 @@ from orders.models import Delivery, ShoppingCart
 from products.models import Category, Component, Producer, Product, Subcategory, Tag
 from users.models import Address, User
 
+TEST_NAME = "Test"
+TEST_SLUG = "test"
+
+INVALID_SLUG = "te st"
+INVALID_SLUG_MESSAGE = (
+    "Значение должно состоять только из букв, цифр, символов подчёркивания или "
+    "дефисов, входящих в стандарт Юникод."
+)
+INVALID_ID = 1000
+
 USER = "test_user"
 USER_EMAIL = "test_user@test.com"
 ADMIN = "TestAdmin"
@@ -18,12 +28,6 @@ ADDRESS1 = "Test address 1"
 ADDRESS2 = "Test address 2"
 BIRTH_DATE = "01.01.2000"
 PHONE_NUMBER = "89999999999"
-
-INVALID_SLUG = "te st"
-INVALID_SLUG_MESSAGE = (
-    "Значение должно состоять только из букв, цифр, символов подчёркивания или "
-    "дефисов, входящих в стандарт Юникод."
-)
 
 CATEGORY_NAME_1 = "Овощи"
 CATEGORY_NAME_2 = "Хлебобулочные изделия"

@@ -8,10 +8,9 @@ from tests.fixtures import (
     INVALID_SLUG,
     INVALID_SLUG_MESSAGE,
     SUBCATEGORY_NAME_1,
+    TEST_NAME,
+    TEST_SLUG,
 )
-
-TEST_NAME = "Test"
-TEST_SLUG = "test"
 
 
 @pytest.mark.django_db
