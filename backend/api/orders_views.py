@@ -228,7 +228,7 @@ class OrderViewSet(
                 {"order": new_order.get_order_data()},
                 status=status.HTTP_200_OK
             )
-        serializer = self.get_serializer(request)
+        serializer = self.get_serializer()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -258,7 +258,6 @@ class OrderViewSet(
         }
         if not self.request.user.is_authenticated:
             new_order = NewOrder(request)
-
             new_order.create(shopping_data, data=request.data)
             return Response(
                 {"order": new_order.get_order_data()},
@@ -294,26 +293,30 @@ class OrderViewSet(
 
         ]
         Order.products = products
-        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
-
-        # return super().create(shopping_data, request, *args, **kwargs)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
+        order_restricted_deletion_statuses = [
+                Order.COLLECTING,
+                Order.GATHERED,
+                Order.DELIVERING,
+                Order.DELIVERED,
+                Order.COMPLETED,
+        ]
         if not self.request.user.is_authenticated:
             new_order = NewOrder(request)
+            if new_order.status in order_restricted_deletion_statuses:
+                return Response(
+                    {
+                     "errors": "Отмена заказа после комплектования невозможна."}
+                )
             new_order.clear()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user != self.get_user() or order.user != self.request.user:
             raise PermissionDenied()
-        order_restricted_deletion_statuses = [
-            Order.COLLECTING,
-            Order.GATHERED,
-            Order.DELIVERING,
-            Order.DELIVERED,
-            Order.COMPLETED,
-        ]
+
         if order.status in order_restricted_deletion_statuses:
             return Response(
                 {"errors": "Отмена заказа после комплектования невозможна."}
