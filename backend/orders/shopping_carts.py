@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
-from api.orders_serializers import OrderProductSerializer
 from products.models import Product
 
 
@@ -16,28 +15,28 @@ class ShopCart(object):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
         self.session.modified = True
 
-    def add(self, product, quantity, update_quantity=False):
+    def add(self, product, quantity):
         """Add a product to the shopping_cart."""
         p_id = str(product["id"])
         p = Product.objects.get(id=product["id"])
         if p_id not in self.shopping_cart:
             self.shopping_cart[p_id] = {
+                "product_id": p.id,
                 "name": p.name,
                 "quantity": quantity,
                 "final_price": p.final_price,
-                "created_at": int(datetime.now(timezone.utc).timestamp() * 1000),
+                "created_at": int(datetime.now(timezone.utc).timestamp()),
             }
-
-        elif update_quantity:
-            self.shopping_cart[p_id]["quantity"] = int(quantity)
         else:
-            self.shopping_cart[p_id]["quantity"] += int(quantity)
+            self.shopping_cart[p_id]["quantity"] = int(quantity)
+
         self.save()
 
     def remove(self, product_id):
         """Change a product quantity from the shopping_cart."""
-        if product_id in self.shopping_cart.keys():
-            del self.shopping_cart[product_id]
+        p_id = str(product_id)
+        if p_id in self.shopping_cart.keys():
+            del self.shopping_cart[p_id]
             self.save()
 
     def __iter__(self):
@@ -45,18 +44,23 @@ class ShopCart(object):
         Iterate over the items in the cart and get the products
         from the database.
         """
-        product_ids = self.shopping_cart.keys()
-        products = Product.objects.filter(id__in=product_ids)
-        cart = self.shopping_cart.copy()
-        for product in products:
-            cart[str(product.id)]["product"] = OrderProductSerializer(product).data
-
-        for item in cart.values():
+        for item in self.shopping_cart.values():
             item["name"] = item["name"]
             item["quantity"] = int(item["quantity"])
             item["total_price"] = item["quantity"] * item["final_price"]
 
             yield item
+
+    def get_shop_products(self):
+        """List of all products in the cart."""
+        products = []
+        for item in self.shopping_cart.values():
+            product = {}
+            product["product_id"] = item["product_id"]
+            product["name"] = item["name"]
+            product["quantity"] = item["quantity"]
+            products.append(product)
+        return products
 
     def __len__(self):
         """Count all items in the cart."""

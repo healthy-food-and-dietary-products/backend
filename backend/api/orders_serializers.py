@@ -52,57 +52,21 @@ class OrderProductSerializer(serializers.ModelSerializer):
     """Serializer for add/update/delete products into shopping_cart."""
 
     id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default=1)
+    quantity = serializers.IntegerField()
 
     class Meta:
         model = OrderProduct
         fields = ("id", "quantity")
 
-    def validate_quantity(self, data):
-        if data < 1:
+    def validate(self, attrs):
+        if attrs["quantity"] < 1 or None:
             raise serializers.ValidationError("Укажите количество товара.")
-        return data
 
-    def validate_id(self, data):
-        if not Product.objects.filter(id=data).exists():
+        if not Product.objects.filter(id=attrs["id"]).exists():
             raise serializers.ValidationError(
                 "У нас нет таких продуктов. Выберете из представленных."
             )
-        return data
-
-
-#     @transaction.atomic
-#     def create(self, validated_data):
-#         product = validated_data.pop("product")
-#         quantity = validated_data.pop("quantity")
-#         shopping_cart = validated_data.pop("shopping_cart")
-#
-#         return ShoppingCartProduct.objects.create(
-#             product=product, quantity=quantity, shopping_cart=shopping_cart
-#         )
-#
-#     @transaction.atomic
-#     def update(self, instance, validated_data):
-#         product = validated_data.pop("product")
-#         quantity = validated_data.pop("quantity")
-#         shopping_cart = validated_data.pop("shopping_cart")
-#         shopping_cart_product = ShoppingCartProduct.objects.get(
-#             product=product, quantity=quantity, shopping_cart=shopping_cart
-#         )
-#         if validated_data:
-#             shopping_cart_product.save()
-
-#
-# class ShoppingCartGetSerializer(serializers.ModelSerializer):
-#     """Serializer for shopping_cart representation."""
-#
-#     products = OrderProductListSerializer(
-#         many=True, read_only=True, source="shopping_carts"
-#     )
-#
-#     class Meta:
-#         model = ShoppingCart
-#         fields = ("id", "user", "products", "total_price")
+        return attrs
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -112,15 +76,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ("products",)
-        model = Product
-
-    def validate_products(self, data):
-        products_id = [product["id"] for product in data]
-        if len(products_id) != len(set(products_id)):
-            raise serializers.ValidationError(
-                "Продукты в корзине не должны повторяться."
-            )
-        return data
+        model = OrderProduct
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -139,7 +95,19 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(float)
     def get_total_price(self, obj):
-        return obj.shopping_cart.total_price + obj.package
+        return (
+            round(
+                sum(
+                    [
+                        (float(Product.objects.get(id=product["id"]).final_price))
+                        * int(product["quantity"])
+                        for product in obj.products
+                    ]
+                ),
+                2,
+            )
+            + obj.package
+        )
 
     class Meta:
         fields = (
@@ -179,13 +147,8 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    def validate_address(self, address):
-        """Checks that the user has not entered someone else's address."""
-        if address.user != self.context["request"].user:
-            raise serializers.ValidationError(
-                "Данный адрес доставки принадлежит другому пользователю."
-            )
-        return address
+    # TODO: allow to create new address during order creation
+    # TODO: if user chooses existing address, check that it is his/her address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
@@ -202,51 +165,5 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(no_match_error_message)
-        return super().validate(attrs)
 
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     user = self.context["request"].user
-    #     try:
-    #         shopping_cart = ShoppingCart.objects.get(
-    #             user=user, status=ShoppingCart.INWORK
-    #         )
-    #     except Exception:
-    #         raise serializers.ValidationError(
-    #             "У вас нет продуктов для заказа, наполните корзину."
-    #         )
-    #     payment_method = validated_data.pop("payment_method")
-    #     delivery_method = validated_data.pop("delivery_method")
-    #     package = validated_data.pop("package")
-    #     comment = validated_data.pop("comment")
-    #     if delivery_method == Order.DELIVERY_POINT:
-    #         if not validated_data.get("delivery_point"):
-    #             raise serializers.ValidationError("Нужно выбрать пункт выдачи.")
-    #         delivery_point = Delivery.objects.get(
-    #             delivery_point=validated_data.pop("delivery_point")
-    #         )
-    #         address = None
-    #     else:
-    #         if not validated_data.get("address"):
-    #             raise serializers.ValidationError("Нужно указать адрес доставки.")
-    #         address = Address.objects.get(address=validated_data.pop("address"))
-    #         delivery_point = None
-    # shopping_cart.status = ShoppingCart.ORDERED
-    # shopping_cart.save()
-    # for product in shopping_cart.products.all():
-    #     product.orders_number += 1
-    #     product.save()
-    #     return Order.objects.create(
-    #         user=user,
-    #         shopping_cart=shopping_cart,
-    #         status=Order.ORDERED,
-    #         payment_method=payment_method,
-    #         delivery_method=delivery_method,
-    #         delivery_point=delivery_point,
-    #         package=package,
-    #         comment=comment,
-    #         address=address,
-    #     )
-    #
-    # def to_representation(self, instance):
-    #     return OrderListSerializer(instance, context=self.context).data
+        return super().validate(attrs)

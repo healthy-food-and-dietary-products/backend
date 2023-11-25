@@ -15,14 +15,6 @@ class OrderProductInline(admin.TabularInline):
     list_editable = ("product", "quantity")
 
 
-# @admin.register(ShoppingCart)
-# class ShoppingCartAdmin(admin.ModelAdmin):
-#
-#     list_display = ("id", "user", "status", "total_price", "created")
-#     list_editable = ("status", "total_price")
-#     list_filter = ("user", "status", "created")
-
-
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = (OrderProductInline,)
