@@ -106,8 +106,8 @@ def test_edit_component_slug(auth_admin, components):
     )
 
     assert response.status_code == 200
-    assert response.data["slug"] == TEST_SLUG
     assert response.data["name"] == components[0].name
+    assert response.data["slug"] == TEST_SLUG
 
 
 @pytest.mark.django_db
