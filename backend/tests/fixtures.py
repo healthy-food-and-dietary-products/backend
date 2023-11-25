@@ -63,6 +63,12 @@ COMPONENT_SLUG_6 = "sugar"
 COMPONENT_SLUG_7 = "yeast"
 COMPONENT_SLUG_8 = "oil"
 
+TAG_NAME_1 = "Для вегетарианцев"
+TAG_NAME_2 = "Детское меню"
+
+TAG_SLUG_1 = "vegetarian"
+TAG_SLUG_2 = "kids"
+
 
 @pytest.fixture
 def admin(django_user_model):
@@ -142,8 +148,8 @@ def components():
 
 @pytest.fixture
 def tags():
-    Tag.objects.create(name="Витамины")
-    Tag.objects.create(name="Полезно")
+    Tag.objects.create(name=TAG_NAME_1, slug=TAG_SLUG_1)
+    Tag.objects.create(name=TAG_NAME_2, slug=TAG_SLUG_2)
     return Tag.objects.all()
 
 
