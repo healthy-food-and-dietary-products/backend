@@ -11,7 +11,7 @@ from rest_framework import mixins, permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
@@ -19,12 +19,10 @@ from .orders_serializers import (
     OrderPostDeleteSerializer,
     ShoppingCartSerializer,
 )
-from orders.models import Order, ShoppingCart
+from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.orders import NewOrder
 from orders.shopping_carts import ShopCart
-from users.models import User
-
-# from .permissions import IsAuthorOrAdmin
+from products.models import Product
 
 
 @method_decorator(  # TODO: Response codes may be changed significantly
@@ -232,7 +230,12 @@ class ShoppingCartViewSet(
         },
     ),
 )
-class OrderViewSet(ModelViewSet):
+class OrderViewSet(
+        DestroyWithPayloadMixin,
+        mixins.CreateModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.RetrieveModelMixin,
+        GenericViewSet,):
     """Viewset for Order."""
 
     http_method_names = ["get", "post", "delete"]
@@ -244,16 +247,10 @@ class OrderViewSet(ModelViewSet):
             return OrderListSerializer
         return OrderPostDeleteSerializer
 
-    def get_user(self):
-        user_id = self.kwargs.get("user_id")
-        return get_object_or_404(User, id=user_id)
-
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
             return self.get_user().orders.all()
-        if self.get_user() != self.request.user:
-            raise PermissionDenied()
         return self.request.user.orders.all()
 
     def list(self, request, **kwargs):
@@ -263,23 +260,35 @@ class OrderViewSet(ModelViewSet):
                 {"order": new_order.get_order_data()},
                 status=status.HTTP_200_OK
             )
-        serializer = self.get_serializer()
+        serializer = self.get_serializer(request)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def retrieve(self, request, **kwargs):
+        if self.request.user.is_authenticated:
+            return self.request.user.orders.filter(
+                status in ("Ordered", "In processing", "Collecting",
+                           "Gathered", "In delivering", "Delivered"))
+        new_order = NewOrder(request)
+        return Response(
+            {"order": new_order.get_order_data()},
+            status=status.HTTP_200_OK
+        )
+
     def create(self, request, *args, **kwargs):
+        shopping_cart = ShopCart(request)
+        if not shopping_cart:
+            return Response(
+                {"errors": "no shopping_cart available"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        shopping_data = {
+            "products": shopping_cart.get_shop_products(),
+            "count_of_products": shopping_cart.__len__(),
+            "total_price": shopping_cart.get_total_price()
+
+        }
         if not self.request.user.is_authenticated:
-            shopping_cart = ShopCart(request)
-            if not shopping_cart:
-                return Response(
-                    {"errors": "no shopping_cart available"},
-                    status=status.HTTP_204_NO_CONTENT,
-                )
-            shopping_data = {
-                "products": shopping_cart.get_shop_products(),
-                "count_of_products": shopping_cart.__len__(),
-                "total_price": shopping_cart.get_total_price()
-            }
             new_order = NewOrder(request)
 
             new_order.create(shopping_data, data=request.data)
@@ -287,9 +296,39 @@ class OrderViewSet(ModelViewSet):
                 {"order": new_order.get_order_data()},
                 status=status.HTTP_201_CREATED,
             )
-        # if self.kwargs.get("user_id") != str(self.request.user.id):
-        #     raise PermissionDenied()
-        return super().create(request, *args, **kwargs)
+
+        serializer = self.get_serializer(shopping_data, request.data)
+        serializer.is_valid(raise_exception=True)
+        comment = None
+        address = None
+        if "comment" in request.data:
+            comment = request.data["comment"]
+        if "address" in request.data:
+            address = request.data["address"]
+        delivery = Delivery.objects.get(id=request.data.get("delivery_point"))
+        order = Order.objects.create(
+            user=self.request.user,
+            status=Order.ORDERED,
+            payment_method=request.data["payment_method"],
+            delivery_method=request.data["delivery_method"],
+            delivery_point=delivery,
+            package=request.data["package"],
+            comment=comment,
+            address=address
+        )
+
+        products = [OrderProduct.objects.create(
+            product=Product.objects.get(id=prod["product_id"]),
+            quantity=prod["quantity"],
+            order=order
+        )
+            for prod in shopping_data["products"]
+
+        ]
+        Order.products = products
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+        # return super().create(shopping_data, request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         if not self.request.user.is_authenticated:
