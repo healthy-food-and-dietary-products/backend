@@ -78,37 +78,3 @@ class TestShoppingCart:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data.user.id == auth_client.id
-
-
-#
-# @pytest.mark.parametrize('http_method', ('post', 'patch'))
-# def test_delete_mine_basket(auth_client, shopping_cart, user):
-#     endpoint = f"{SHOPPING_CART_ENDPOINT}mine/"
-#     response = auth_client.delete(endpoint)
-#     assert response.status_code == status.HTTP_204_NO_CONTENT
-#
-#     response = auth_client.get(endpoint)
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
-#
-#
-#
-#
-#
-# def test_delete_product_in_mine_basket(auth_client, basket, product, user):
-#     updated_basket_data = {"basket_products": []}
-#     endpoint = f"{SHOPPING_CART_ENDPOINT}mine/"
-#     response = auth_client.put(endpoint, updated_basket_data, format="json")
-#     assert response.status_code == status.HTTP_200_OK
-#
-#     response = auth_client.get(endpoint)
-#     assert response.status_code == status.HTTP_200_OK
-#
-#     data = response.json()
-#     assert "basket_products" in data
-#     assert len(data["basket_products"]) == 0
-#
-#
-# def test_get_shopping_cart(auth_client, shopping_cart, user):
-#     endpoint = f"{SHOPPING_CART_ENDPOINT}mine/"
-#     response = auth_client.get(endpoint)
-#     assert response.status_code == status.HTTP_200_OK

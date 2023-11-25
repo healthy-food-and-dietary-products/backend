@@ -8,7 +8,6 @@ from drf_standardized_errors.openapi_serializers import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status
-from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -42,21 +41,6 @@ from products.models import Product
     ),
 )
 @method_decorator(
-    name="retrieve",
-    decorator=swagger_auto_schema(
-        operation_summary="Get shopping cart by id",
-        operation_description=(
-            "Retrieves a shopping cart of a user by its id (admin or authorized user)"
-        ),
-        responses={
-            200: ShoppingCartSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
-        },
-    ),
-)
-@method_decorator(
     name="create",
     decorator=swagger_auto_schema(
         operation_summary="Create shopping cart",
@@ -86,7 +70,6 @@ class ShoppingCartViewSet(
     DestroyWithPayloadMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
-    mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
     """Viewset for ShoppingCart."""
@@ -123,15 +106,14 @@ class ShoppingCartViewSet(
             status=status.HTTP_201_CREATED,
         )
 
-    @action(detail=True, methods=["delete"])
-    def delete(self, request, **kwargs):
-        shopping_cart = ShopCart(request)
+    def destroy(self, *args, **kwargs):
+        shopping_cart = ShopCart(self.request)
         if not shopping_cart:
             return Response(
                 {"errors": "no shopping_cart available"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        product_id = self.kwargs["product_id"]
+        product_id = self.kwargs["pk"]
         shopping_cart.remove(product_id)
         return Response(
             {
@@ -199,11 +181,12 @@ class ShoppingCartViewSet(
     ),
 )
 class OrderViewSet(
-        DestroyWithPayloadMixin,
-        mixins.CreateModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.RetrieveModelMixin,
-        GenericViewSet,):
+    DestroyWithPayloadMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
     """Viewset for Order."""
 
     http_method_names = ["get", "post", "delete"]
@@ -225,8 +208,7 @@ class OrderViewSet(
         if not self.request.user.is_authenticated:
             new_order = NewOrder(request)
             return Response(
-                {"order": new_order.get_order_data()},
-                status=status.HTTP_200_OK
+                {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
             )
         serializer = self.get_serializer()
 
@@ -235,12 +217,19 @@ class OrderViewSet(
     def retrieve(self, request, **kwargs):
         if self.request.user.is_authenticated:
             return self.request.user.orders.filter(
-                status in ("Ordered", "In processing", "Collecting",
-                           "Gathered", "In delivering", "Delivered"))
+                status
+                in (
+                    "Ordered",
+                    "In processing",
+                    "Collecting",
+                    "Gathered",
+                    "In delivering",
+                    "Delivered",
+                )
+            )
         new_order = NewOrder(request)
         return Response(
-            {"order": new_order.get_order_data()},
-            status=status.HTTP_200_OK
+            {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
         )
 
     def create(self, request, *args, **kwargs):
@@ -248,16 +237,16 @@ class OrderViewSet(
         if not shopping_cart:
             return Response(
                 {"errors": "no shopping_cart available"},
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_204_NO_CONTENT,
             )
         shopping_data = {
             "products": shopping_cart.get_shop_products(),
             "count_of_products": shopping_cart.__len__(),
-            "total_price": shopping_cart.get_total_price()
-
+            "total_price": shopping_cart.get_total_price(),
         }
         if not self.request.user.is_authenticated:
             new_order = NewOrder(request)
+
             new_order.create(shopping_data, data=request.data)
             return Response(
                 {"order": new_order.get_order_data()},
@@ -281,16 +270,16 @@ class OrderViewSet(
             delivery_point=delivery,
             package=request.data["package"],
             comment=comment,
-            address=address
+            address=address,
         )
 
-        products = [OrderProduct.objects.create(
-            product=Product.objects.get(id=prod["product_id"]),
-            quantity=prod["quantity"],
-            order=order
-        )
+        products = [
+            OrderProduct.objects.create(
+                product=Product.objects.get(id=prod["product_id"]),
+                quantity=prod["quantity"],
+                order=order,
+            )
             for prod in shopping_data["products"]
-
         ]
         Order.products = products
         return Response(serializer.data, status=status.HTTP_201_CREATED)

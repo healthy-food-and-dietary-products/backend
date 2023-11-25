@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from django.conf import settings
 
-# from api.orders_serializers import OrderPostDeleteSerializer, OrderProductSerializer
 from orders.models import Delivery
 
 
@@ -34,9 +33,6 @@ class NewOrder(object):
             "is_paid": data.get("is_paid"),
             "created_at": int(datetime.now(timezone.utc).timestamp()),
         }
-
-        # serializer = OrderPostDeleteSerializer(data=data)
-        # serializer.is_valid(raise_exception=True)# TODO: validate delivery_method
         self.new_order = data
         self.save()
 

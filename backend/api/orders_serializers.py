@@ -59,7 +59,6 @@ class OrderProductSerializer(serializers.ModelSerializer):
         fields = ("id", "quantity")
 
     def validate(self, attrs):
-        print(attrs)
         if attrs["quantity"] < 1 or None:
             raise serializers.ValidationError("Укажите количество товара.")
 
@@ -96,12 +95,19 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(float)
     def get_total_price(self, obj):
-        return (round(sum(
-                [
-                    (float(Product.objects.get(id=product["id"]).final_price))
-                    * int(product["quantity"])
-                    for product in obj.products
-                ]), 2) + obj.package)
+        return (
+            round(
+                sum(
+                    [
+                        (float(Product.objects.get(id=product["id"]).final_price))
+                        * int(product["quantity"])
+                        for product in obj.products
+                    ]
+                ),
+                2,
+            )
+            + obj.package
+        )
 
     class Meta:
         fields = (
@@ -140,6 +146,9 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "comment",
             "address",
         )
+
+    # TODO: allow to create new address during order creation
+    # TODO: if user chooses existing address, check that it is his/her address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""

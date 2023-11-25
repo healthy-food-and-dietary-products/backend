@@ -140,7 +140,6 @@ def test_patch_me_birth_date_set_null(user, auth_client):
     response_delete = auth_client.patch(
         "/api/users/me/", json.dumps(payload2), headers="application/json"
     )
-    print(response_delete.data)
 
     assert response_delete.data["birth_date"] is None
 
