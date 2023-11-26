@@ -35,9 +35,8 @@ class ShopCart(object):
     def remove(self, product_id):
         """Change a product quantity from the shopping_cart."""
         p_id = str(product_id)
-        if p_id in self.shopping_cart.keys():
-            del self.shopping_cart[p_id]
-            self.save()
+        del self.shopping_cart[p_id]
+        self.save()
 
     def __iter__(self):
         """
