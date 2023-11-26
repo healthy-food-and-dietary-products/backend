@@ -113,8 +113,9 @@ class ShoppingCartViewSet(
                 {"errors": "no shopping_cart available"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        product_id = self.kwargs["pk"]
-        products = shopping_cart.get_shop_products()
+        product_id = int(self.kwargs["pk"])
+        products = [
+                product["product_id"] for product in shopping_cart.get_shop_products()]
         if product_id not in products:
             return Response({"errors": "Такого товара нет в корзине!"},
                             status=status.HTTP_404_NOT_FOUND)
