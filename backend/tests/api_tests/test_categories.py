@@ -69,9 +69,8 @@ def test_create_category_fail_if_not_authenticated(client):
 
 
 @pytest.mark.django_db
-def test_create_category_fail_name_validation(auth_admin):
-    payload = {"name": TEST_NAME}
-    response = auth_admin.post(reverse("api:category-list"), payload)
+def test_create_category_fail_no_name(auth_admin):
+    response = auth_admin.post(reverse("api:category-list"), {})
 
     assert response.status_code == 400
     assert response.data["type"] == "validation_error"

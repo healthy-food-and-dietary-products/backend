@@ -73,7 +73,7 @@ def test_create_producer_fail_if_not_authenticated(client):
 
 
 @pytest.mark.django_db
-def test_create_producer_fail_name_validation(auth_admin):
+def test_create_producer_fail_no_name(auth_admin):
     payload = {
         "slug": TEST_SLUG,
         "producer_type": Producer.COMPANY,
@@ -105,7 +105,7 @@ def test_create_producer_fail_slug_validation(auth_admin):
 
 
 @pytest.mark.django_db
-def test_create_producer_fail_address_validation(auth_admin):
+def test_create_producer_fail_no_address(auth_admin):
     payload = {"name": TEST_NAME}
     response = auth_admin.post(reverse("api:producer-list"), payload)
 

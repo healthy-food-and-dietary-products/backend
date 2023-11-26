@@ -17,6 +17,7 @@ from users.models import Address, User
 TEST_NAME = "Test"
 TEST_SLUG = "test"
 TEST_ADDRESS = "test address"
+TEST_TIME = "2023-11-26T10:27:08"
 
 INVALID_SLUG = "te st"
 INVALID_SLUG_MESSAGE = (

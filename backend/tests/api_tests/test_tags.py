@@ -62,7 +62,7 @@ def test_create_tag_fail_if_not_authenticated(client):
 
 
 @pytest.mark.django_db
-def test_create_tag_fail_name_validation(auth_admin):
+def test_create_tag_fail_no_name(auth_admin):
     payload = {"slug": TEST_SLUG}
     response = auth_admin.post(reverse("api:tag-list"), payload)
 

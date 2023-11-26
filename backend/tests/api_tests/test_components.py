@@ -64,7 +64,7 @@ def test_create_component_fail_if_not_authenticated(client):
 
 
 @pytest.mark.django_db
-def test_create_component_fail_name_validation(auth_admin):
+def test_create_component_fail_no_name(auth_admin):
     payload = {"slug": TEST_SLUG}
     response = auth_admin.post(reverse("api:component-list"), payload)
 

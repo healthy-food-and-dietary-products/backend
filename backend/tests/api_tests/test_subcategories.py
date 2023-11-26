@@ -66,7 +66,7 @@ def test_create_subcategory_fail_if_not_authenticated(client, categories):
 
 
 @pytest.mark.django_db
-def test_create_subcategory_fail_name_validation(auth_admin, categories):
+def test_create_subcategory_fail_no_name(auth_admin, categories):
     payload = {"parent_category": categories[0].id}
     response = auth_admin.post(reverse("api:subcategory-list"), payload)
 
