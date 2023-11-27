@@ -101,7 +101,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Category.objects.all()
+    queryset = Category.objects.prefetch_related("subcategories").all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -171,7 +171,7 @@ class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for subcategories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Subcategory.objects.all()
+    queryset = Subcategory.objects.select_related("parent_category").all()
     serializer_class = SubcategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -496,7 +496,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Product.objects.all()
+    queryset = Product.objects.select_related(
+        "category", "subcategory", "producer"
+    ).prefetch_related("components", "tags", "promotions")
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [rf_filters.DjangoFilterBackend]
@@ -511,6 +513,11 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         if self.action == "favorite":
             return FavoriteProductCreateSerializer
         return ProductSerializer
+
+    def get_queryset(self):
+        return (
+            super().get_queryset().prefetch_related("components", "tags", "promotions")
+        )
 
     @transaction.atomic
     def create_delete_or_scold(self, model, product, request):
@@ -634,6 +641,6 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
 class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for viewing useres' favorite products by admins."""
 
-    queryset = FavoriteProduct.objects.all()
+    queryset = FavoriteProduct.objects.select_related("user", "product")
     serializer_class = FavoriteProductSerializer
     permission_classes = [permissions.IsAdminUser]

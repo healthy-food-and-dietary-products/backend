@@ -63,9 +63,12 @@ class CategorySerializer(CategoryLightSerializer):
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
-        top_three_products_queryset = Product.objects.filter(category=obj).order_by(
-            "-orders_number"
-        )[:3]
+        top_three_products_queryset = (
+            Product.objects.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions")
+            .filter(category=obj)
+            .order_by("-orders_number")[:3]
+        )
         return ProductSerializer(top_three_products_queryset, many=True).data
 
 
@@ -90,9 +93,12 @@ class TagSerializer(TagLightSerializer):
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = Product.objects.filter(tags=obj).order_by(
-            "-orders_number"
-        )[:3]
+        top_three_products_queryset = (
+            Product.objects.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions")
+            .filter(tags=obj)
+            .order_by("-orders_number")[:3]
+        )
         return ProductSerializer(top_three_products_queryset, many=True).data
 
 
@@ -314,10 +320,7 @@ class ProductLightSerializer(ProductSerializer):
     """Serializer for products representation in favorite product serializer."""
 
     class Meta(ProductSerializer.Meta):
-        fields = (
-            "name",
-            "producer",
-        )
+        fields = ("name",)
 
 
 class FavoriteProductSerializer(serializers.ModelSerializer):
