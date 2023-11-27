@@ -5,6 +5,8 @@ from api.mixins import MESSAGE_ON_DELETE
 from products.models import Promotion
 from tests.fixtures import PROMOTION_DISCOUNT_1, PROMOTION_NAME_1, TEST_NAME, TEST_TIME
 
+DISCOUNT_MAX_VALUE_MESSAGE_RU = "Убедитесь, что это значение меньше либо равно 100."
+
 
 @pytest.mark.django_db
 def test_get_promotion_list(client, promotions):
@@ -97,8 +99,6 @@ def test_create_promotion_fail_no_name(auth_admin):
 
 @pytest.mark.django_db
 def test_create_promotion_fail_discount_validation(auth_admin):
-    error_message_1 = "Допустимы числа от 0 до 100."
-    error_message_2 = "Убедитесь, что это значение меньше либо равно 100."
     payload_1 = {"name": TEST_NAME, "discount": -1}
     payload_2 = {"name": TEST_NAME, "discount": 101}
     response_1 = auth_admin.post(reverse("api:promotion-list"), payload_1)
@@ -108,13 +108,13 @@ def test_create_promotion_fail_discount_validation(auth_admin):
     assert response_1.data["type"] == "validation_error"
     assert response_1.data["errors"][0]["code"] == "invalid"
     assert response_1.data["errors"][0]["attr"] == "discount"
-    assert response_1.data["errors"][0]["detail"] == error_message_1
+    assert response_1.data["errors"][0]["detail"] == Promotion.INVALID_DISCOUNT_MESSAGE
 
     assert response_2.status_code == 400
     assert response_2.data["type"] == "validation_error"
     assert response_2.data["errors"][0]["code"] == "max_value"
     assert response_2.data["errors"][0]["attr"] == "discount"
-    assert response_2.data["errors"][0]["detail"] == error_message_2
+    assert response_2.data["errors"][0]["detail"] == DISCOUNT_MAX_VALUE_MESSAGE_RU
 
 
 @pytest.mark.django_db
@@ -258,8 +258,6 @@ def test_edit_promotion_fail_if_not_authenticated(client, promotions):
 
 @pytest.mark.django_db
 def test_edit_promotion_fail_discount_validation(auth_admin, promotions):
-    error_message_1 = "Допустимы числа от 0 до 100."
-    error_message_2 = "Убедитесь, что это значение меньше либо равно 100."
     payload_1 = {"discount": -1}
     payload_2 = {"discount": 101}
     response_1 = auth_admin.patch(
@@ -273,13 +271,13 @@ def test_edit_promotion_fail_discount_validation(auth_admin, promotions):
     assert response_1.data["type"] == "validation_error"
     assert response_1.data["errors"][0]["code"] == "invalid"
     assert response_1.data["errors"][0]["attr"] == "discount"
-    assert response_1.data["errors"][0]["detail"] == error_message_1
+    assert response_1.data["errors"][0]["detail"] == Promotion.INVALID_DISCOUNT_MESSAGE
 
     assert response_2.status_code == 400
     assert response_2.data["type"] == "validation_error"
     assert response_2.data["errors"][0]["code"] == "max_value"
     assert response_2.data["errors"][0]["attr"] == "discount"
-    assert response_2.data["errors"][0]["detail"] == error_message_2
+    assert response_2.data["errors"][0]["detail"] == DISCOUNT_MAX_VALUE_MESSAGE_RU
 
 
 @pytest.mark.django_db

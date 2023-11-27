@@ -164,11 +164,10 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
-    # TODO: This error message is not displayed, another error message is displayed
     def validate_discount(self, value):
         """Checks that the discount is between 0 and 100%."""
         if value < 0 or value > 100:
-            raise serializers.ValidationError("Допустимы числа от 0 до 100.")
+            raise serializers.ValidationError(Promotion.INVALID_DISCOUNT_MESSAGE)
         return value
 
 
@@ -234,6 +233,8 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(ProductSerializer):
     """Serializer for creating products."""
 
+    PRICE_ERROR_MESSAGE = "Отрицательная цена недопустима."
+
     category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
@@ -271,12 +272,17 @@ class ProductCreateSerializer(ProductSerializer):
     def validate_price(self, value):
         """Checks that the price is more or equals to 0."""
         if value < 0:
-            raise serializers.ValidationError("Отрицательная цена недопустима.")
+            raise serializers.ValidationError(self.PRICE_ERROR_MESSAGE)
         return value
 
 
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
+
+    PROMOTIONS_ERROR_MESSAGE = (
+        "The number of promotions for one product "
+        f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+    )
 
     promotions = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Promotion.objects.all()
@@ -309,10 +315,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
         if len(value) > MAX_PROMOTIONS_NUMBER:
-            raise serializers.ValidationError(
-                "The number of promotions for one product "
-                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-            )
+            raise serializers.ValidationError(self.PROMOTIONS_ERROR_MESSAGE)
         return value
 
 
