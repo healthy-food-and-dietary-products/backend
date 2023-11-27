@@ -115,10 +115,13 @@ class ShoppingCartViewSet(
             )
         product_id = int(self.kwargs["pk"])
         products = [
-            product["product_id"] for product in shopping_cart.get_shop_products()]
+            product["product_id"] for product in shopping_cart.get_shop_products()
+        ]
         if product_id not in products:
-            return Response({"errors": "Такого товара нет в корзине!"},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"errors": "Такого товара нет в корзине!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         shopping_cart.remove(product_id)
         return Response(
             {

@@ -14,7 +14,7 @@ from rest_framework import decorators, permissions, response, status, viewsets
 from .filters import ProductFilter
 from .mixins import DestroyWithPayloadMixin
 from .pagination import CustomPageNumberPagination
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
     CategoryCreateSerializer,
     CategorySerializer,
@@ -636,4 +636,4 @@ class FavoriteProductViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = FavoriteProduct.objects.all()
     serializer_class = FavoriteProductSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAdminUser]
