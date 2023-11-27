@@ -8,7 +8,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_authenticated
-            and request.user.is_admin
+            and request.user.is_staff
         )
 
 
@@ -16,11 +16,11 @@ class IsAdmin(permissions.BasePermission):
     """Allows only admins to view objects."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_admin
+        return request.user.is_authenticated and request.user.is_staff
 
 
 class IsAuthorOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and (
-            request.user == obj.user or request.user.is_admin
+            request.user == obj.user or request.user.is_staff
         )

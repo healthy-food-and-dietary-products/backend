@@ -1,5 +1,4 @@
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -8,29 +7,25 @@ from drf_standardized_errors.openapi_serializers import (
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import permissions, status
+from rest_framework import mixins, permissions, status
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
-from .mixins import DestroyWithPayloadMixin
+from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
     OrderListSerializer,
     OrderPostDeleteSerializer,
-    ShoppingCartGetSerializer,
-    ShoppingCartPostUpdateDeleteSerializer,
+    ShoppingCartSerializer,
 )
-from .permissions import IsAuthorOrAdmin
-from orders.models import Order, ShoppingCart, ShoppingCartProduct
+from orders.models import Delivery, Order, OrderProduct, ShoppingCart
+from orders.orders import NewOrder
 from orders.shopping_carts import ShopCart
 from products.models import Product
-from users.models import User
-
-DECIMAL_PLACES_NUMBER = 2
 
 
-@method_decorator(
+@method_decorator(  # TODO: Response codes may be changed significantly
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="List all shopping carts",
@@ -39,24 +34,9 @@ DECIMAL_PLACES_NUMBER = 2
             "(admin or authorized user)"
         ),
         responses={
-            200: ShoppingCartGetSerializer,
+            200: ShoppingCartSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
-        },
-    ),
-)
-@method_decorator(
-    name="retrieve",
-    decorator=swagger_auto_schema(
-        operation_summary="Get shopping cart by id",
-        operation_description=(
-            "Retrieves a shopping cart of a user by its id (admin or authorized user)"
-        ),
-        responses={
-            200: ShoppingCartGetSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
         },
     ),
 )
@@ -66,24 +46,10 @@ DECIMAL_PLACES_NUMBER = 2
         operation_summary="Create shopping cart",
         operation_description="Creates a shopping cart of a user (authorized only)",
         responses={
-            201: ShoppingCartPostUpdateDeleteSerializer,
+            201: ShoppingCartSerializer,
             400: ValidationErrorResponseSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
-        },
-    ),
-)
-@method_decorator(
-    name="partial_update",
-    decorator=swagger_auto_schema(
-        operation_summary="Edit shopping cart",
-        operation_description="Edits a shopping cart by its id (authorized only)",
-        responses={
-            200: ShoppingCartPostUpdateDeleteSerializer,
-            400: ValidationErrorResponseSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
         },
     ),
 )
@@ -100,176 +66,68 @@ DECIMAL_PLACES_NUMBER = 2
         },
     ),
 )
-class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
+class ShoppingCartViewSet(
+    DestroyWithPayloadMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     """Viewset for ShoppingCart."""
 
     queryset = ShoppingCart.objects.all()
     permission_classes = [AllowAny]
-    http_method_names = ("get", "post", "delete", "patch")
+    http_method_names = ("get", "post", "delete")
+    serializer_class = ShoppingCartSerializer
 
-    def get_queryset(self, **kwargs):
-        user = self.request.user
-        if user.is_authenticated and user.is_admin:
-            return ShoppingCart.objects.filter(user=user.id)
-        return ShoppingCart.objects.filter(user=user).filter(status=ShoppingCart.INWORK)
-
-    def get_serializer_class(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return ShoppingCartGetSerializer
-        return ShoppingCartPostUpdateDeleteSerializer
-
-    def get_shopping_cart(self, **kwargs):
-        try:
-            shopping_cart = ShoppingCart.objects.get(user=self.request.user.id)
-            if (
-                shopping_cart.user == self.request.user
-                and shopping_cart.status == ShoppingCart.INWORK
-            ):
-                return shopping_cart
-            raise PermissionDenied()
-        finally:
-            ErrorResponse404Serializer("Корзина пуста")
-
-    def list(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous:
-            shopping_cart = ShopCart(request)
-            return Response(
-                {
-                    "products": shopping_cart.__iter__(),
-                    "count_of_products": shopping_cart.__len__(),
-                    "total_price": shopping_cart.get_total_price(),
-                },
-                status=status.HTTP_200_OK,
-            )
-        shopping_cart = self.get_shopping_cart()
-        serializer = self.get_serializer(
-            shopping_cart, data={"user": self.request.user}
+    def list(self, request, **kwargs):
+        shopping_cart = ShopCart(request)
+        return Response(
+            {
+                "products": shopping_cart.__iter__(),
+                "count_of_products": shopping_cart.__len__(),
+                "total_price": shopping_cart.get_total_price(),
+            },
+            status=status.HTTP_200_OK,
         )
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous:
-            shopping_cart = ShopCart(request)
-            products = request.data["products"]
-            for product in products:
-                shopping_cart.add(product=product, quantity=product["quantity"])
-            return Response(
-                {
-                    "products": shopping_cart.__iter__(),
-                    "count_of_products": shopping_cart.__len__(),
-                    "total_price": shopping_cart.get_total_price(),
-                },
-                status=status.HTTP_201_CREATED,
-            )
-
-        user = self.request.user
-
-        if (
-            ShoppingCart.objects.filter(user=user.id)
-            .filter(status=ShoppingCart.INWORK)
-            .exists()
-        ):
-            return Response(
-                {
-                    "errors": "Ваша корзина еще не оформлена, "
-                    "можно добавить продукты, изменить или удалить."
-                }
-            )
+    def create(self, request, **kwargs):
+        shopping_cart = ShopCart(request)
         products = request.data["products"]
-        serializer = self.get_serializer(
-            data={"products": products, "user": user.id},
-            context={"request": request.data, "user": user},
-        )
+        serializer = ShoppingCartSerializer(data={"products": products})
         serializer.is_valid(raise_exception=True)
-        shopping_cart = ShoppingCart.objects.create(
-            user=self.request.user,
-            total_price=(
-                round(
-                    sum(
-                        [
-                            (float(Product.objects.get(id=product["id"]).final_price))
-                            * int(product["quantity"])
-                            for product in products
-                        ]
-                    ),
-                    DECIMAL_PLACES_NUMBER,
-                )
-            ),
+        for product in products:
+            shopping_cart.add(product=product, quantity=product["quantity"])
+        return Response(
+            {
+                "products": shopping_cart.__iter__(),
+                "count_of_products": shopping_cart.__len__(),
+                "total_price": shopping_cart.get_total_price(),
+            },
+            status=status.HTTP_201_CREATED,
         )
-        ShoppingCartProduct.objects.bulk_create(
-            [
-                ShoppingCartProduct(
-                    shopping_cart=shopping_cart,
-                    quantity=product["quantity"],
-                    product=Product.objects.get(id=product["id"]),
-                )
-                for product in products
-            ]
-        )
-        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
-    @transaction.atomic
-    def patch(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous:
-            shopping_cart = ShopCart(request)
-            products = request.data["products"]
-            for product in products:
-                shopping_cart.add(
-                    product=product, quantity=product["quantity"], update_quantity=True
-                )
+    def destroy(self, *args, **kwargs):
+        shopping_cart = ShopCart(self.request)
+        if not shopping_cart:
             return Response(
-                {
-                    "products": shopping_cart.__iter__(),
-                    "count_of_products": shopping_cart.__len__(),
-                    "total_price": shopping_cart.get_total_price(),
-                },
-                status=status.HTTP_201_CREATED,
+                {"errors": "no shopping_cart available"},
+                status=status.HTTP_404_NOT_FOUND,
             )
-
-        shopping_cart = self.get_shopping_cart()
-        products = request.data["products"]
-        serializer = self.get_serializer(shopping_cart, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        if products is not None:
-            shopping_cart.products.clear()
-        ShoppingCartProduct.objects.bulk_create(
-            [
-                ShoppingCartProduct(
-                    shopping_cart=shopping_cart,
-                    quantity=product["quantity"],
-                    product=Product.objects.get(id=product["id"]),
-                )
-                for product in products
-            ]
+        product_id = int(self.kwargs["pk"])
+        products = [
+            product["product_id"] for product in shopping_cart.get_shop_products()]
+        if product_id not in products:
+            return Response({"errors": "Такого товара нет в корзине!"},
+                            status=status.HTTP_404_NOT_FOUND)
+        shopping_cart.remove(product_id)
+        return Response(
+            {
+                "products": shopping_cart.__iter__(),
+                "count_of_products": shopping_cart.__len__(),
+                "total_price": shopping_cart.get_total_price(),
+            },
+            status=status.HTTP_205_RESET_CONTENT,
         )
-        shopping_cart.total_price = round(
-            sum(
-                [
-                    (float(Product.objects.get(id=int(product["id"])).final_price))
-                    * int(product["quantity"])
-                    for product in products
-                ]
-            ),
-            2,
-        )
-        shopping_cart.save()
-        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, *args, **kwargs):
-        if self.request.user.is_anonymous:
-            shopping_cart = ShopCart(request)
-            if not shopping_cart:
-                return Response(
-                    {"errors": "no shopping_cart available"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-            shopping_cart.clear()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        shopping_cart = self.get_shopping_cart()
-        shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @method_decorator(
@@ -327,41 +185,113 @@ class ShoppingCartViewSet(DestroyWithPayloadMixin, ModelViewSet):
         },
     ),
 )
-class OrderViewSet(ModelViewSet):
+class OrderViewSet(
+    DestroyWithPayloadMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
     """Viewset for Order."""
 
     http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
-    permission_classes = [IsAuthenticated, IsAuthorOrAdmin]
-
-    def get_user(self):
-        user_id = self.kwargs.get("user_id")
-        return get_object_or_404(User, id=user_id)
-
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            user = self.request.user
-            if user.is_admin or user.is_moderator:
-                return self.get_user().orders.all()
-            if self.get_user() != self.request.user:
-                raise PermissionDenied()
-            return self.request.user.orders.all()
-        return Order.objects.none()
+    permission_classes = [AllowAny]
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return OrderListSerializer
         return OrderPostDeleteSerializer
 
-    def create(self, request, *args, **kwargs):
-        if self.kwargs.get("user_id") != str(self.request.user.id):
-            raise PermissionDenied()
-        return super().create(request, *args, **kwargs)
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.get_user().orders.all()
+        return self.request.user.orders.all()
 
-    def destroy(self, *args, **kwargs):
-        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if order.user != self.get_user():
-            raise PermissionDenied()
+    def list(self, request, **kwargs):
+        if not self.request.user.is_authenticated:
+            new_order = NewOrder(request)
+            return Response(
+                {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
+            )
+        serializer = self.get_serializer()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, **kwargs):
+        if self.request.user.is_authenticated:
+            return self.request.user.orders.filter(
+                status
+                in (
+                    "Ordered",
+                    "In processing",
+                    "Collecting",
+                    "Gathered",
+                    "In delivering",
+                    "Delivered",
+                )
+            )
+        new_order = NewOrder(request)
+        return Response(
+            {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
+        )
+
+    def create(self, request, *args, **kwargs):
+        shopping_cart = ShopCart(request)
+        if not shopping_cart:
+            return Response(
+                {"errors": "no shopping_cart available"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        shopping_data = {
+            "products": shopping_cart.get_shop_products(),
+            "count_of_products": shopping_cart.__len__(),
+            "total_price": shopping_cart.get_total_price(),
+        }
+        if not self.request.user.is_authenticated:
+            new_order = NewOrder(request)
+
+            new_order.create(shopping_data, data=request.data)
+            shopping_cart.clear()
+            return Response(
+                {"order": new_order.get_order_data()},
+                status=status.HTTP_201_CREATED,
+            )
+
+        serializer = self.get_serializer(shopping_data, request.data)
+        serializer.is_valid(raise_exception=True)
+        comment = None
+        address = None
+        if "comment" in request.data:
+            comment = request.data["comment"]
+        if "address" in request.data:
+            address = request.data["address"]
+        delivery = Delivery.objects.get(id=request.data.get("delivery_point"))
+        order = Order.objects.create(
+            user=self.request.user,
+            status=Order.ORDERED,
+            payment_method=request.data["payment_method"],
+            delivery_method=request.data["delivery_method"],
+            delivery_point=delivery,
+            package=request.data["package"],
+            comment=comment,
+            address=address,
+        )
+
+        products = [
+            OrderProduct.objects.create(
+                product=Product.objects.get(id=prod["product_id"]),
+                quantity=prod["quantity"],
+                order=order,
+            )
+            for prod in shopping_data["products"]
+        ]
+        Order.products = products
+        shopping_cart.clear()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
             Order.COLLECTING,
             Order.GATHERED,
@@ -369,11 +299,24 @@ class OrderViewSet(ModelViewSet):
             Order.DELIVERED,
             Order.COMPLETED,
         ]
+        if not self.request.user.is_authenticated:
+            new_order = NewOrder(request)
+            if new_order.status in order_restricted_deletion_statuses:
+                return Response(
+                    {"errors": "Отмена заказа после комплектования невозможна."}
+                )
+            new_order.clear()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user != self.get_user() or order.user != self.request.user:
+            raise PermissionDenied()
+
         if order.status in order_restricted_deletion_statuses:
             return Response(
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
         serializer_data = self.get_serializer(order).data
-        serializer_data["Success"] = "This object was successfully deleted"
+        serializer_data["Success"] = MESSAGE_ON_DELETE
         order.shopping_cart.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)

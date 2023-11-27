@@ -54,10 +54,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
+    "recipes.apps.RecipesConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
-    "phonenumber_field",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
@@ -82,6 +82,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart"
+ORDER_SESSION_ID = "order_id"
 
 ROOT_URLCONF = "good_food.urls"
 
