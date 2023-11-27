@@ -242,9 +242,11 @@ class Product(models.Model):
     measure_unit = models.CharField(
         "Measure unit", max_length=11, choices=CHOISES, default=ITEMS
     )
-    # TODO: add MinValueValidator(1)
     amount = models.PositiveSmallIntegerField(
-        "Amount", default=1, help_text="Number of grams, milliliters or items"
+        "Amount",
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Number of grams, milliliters or items",
     )
     price = models.FloatField(
         "Price",
@@ -267,17 +269,20 @@ class Product(models.Model):
     kcal = models.PositiveSmallIntegerField(
         "Kcal", help_text="Number of kcal per 100 g of product"
     )
-    # TODO: make them float
-    proteins = models.PositiveSmallIntegerField(
-        "Proteins", help_text="Number of proteins per 100 g of product"
+    proteins = models.FloatField(
+        "Proteins",
+        validators=[MinValueValidator(0)],
+        help_text="Number of proteins per 100 g of product",
     )
-    # TODO: make them float
-    fats = models.PositiveSmallIntegerField(
-        "Fats", help_text="Number of fats per 100 g of product"
+    fats = models.FloatField(
+        "Fats",
+        validators=[MinValueValidator(0)],
+        help_text="Number of fats per 100 g of product",
     )
-    # TODO: make them float
-    carbohydrates = models.PositiveSmallIntegerField(
-        "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
+    carbohydrates = models.FloatField(
+        "Carbohydrates",
+        validators=[MinValueValidator(0)],
+        help_text="Number of carbohydrates per 100 g of product",
     )
     views_number = models.PositiveIntegerField(
         "Views number", default=0, help_text="Number of product page views"
