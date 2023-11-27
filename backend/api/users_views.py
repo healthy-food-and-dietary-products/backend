@@ -62,6 +62,9 @@ class AddressViewSet(viewsets.ReadOnlyModelViewSet):
 class CustomUserViewSet(DestroyWithPayloadMixin, DjoserUserViewSet):
     """Overrides DjoserUserViewSet serializer to delete a user without password."""
 
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("addresses")
+
     def get_serializer_class(self):
         if self.action == "destroy" or (
             self.action == "me" and self.request and self.request.method == "DELETE"
