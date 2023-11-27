@@ -11,10 +11,9 @@ from drf_standardized_errors.openapi_serializers import (
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
+from rest_framework import permissions, viewsets
 
 from .mixins import DestroyWithPayloadMixin
-from .permissions import IsAdmin
 from .users_serializers import AddressSerializer, CustomUserDeleteSerializer
 from users.models import Address, User
 
@@ -48,7 +47,7 @@ class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for addresses."""
 
     serializer_class = AddressSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [permissions.IsAdminUser]
 
     def get_user(self):
         user_id = self.kwargs.get("user_id")

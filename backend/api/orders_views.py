@@ -13,17 +13,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from .mixins import DestroyWithPayloadMixin
+from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
     OrderListSerializer,
     OrderPostDeleteSerializer,
-    OrderSerializer,
     ShoppingCartSerializer,
 )
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
+from orders.orders import NewOrder
 from orders.shopping_carts import ShopCart
 from products.models import Product
-from users.models import Address
 
 
 @method_decorator(  # TODO: Response codes may be changed significantly
@@ -116,10 +115,13 @@ class ShoppingCartViewSet(
             )
         product_id = int(self.kwargs["pk"])
         products = [
-            product["id"] for product in shopping_cart.get_shop_products()]
+            product["product_id"] for product in shopping_cart.get_shop_products()
+        ]
         if product_id not in products:
-            return Response({"errors": "Такого товара нет в корзине!"},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"errors": "Такого товара нет в корзине!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         shopping_cart.remove(product_id)
         return Response(
             {
@@ -188,7 +190,6 @@ class ShoppingCartViewSet(
 )
 class OrderViewSet(
     DestroyWithPayloadMixin,
-    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.RetrieveModelMixin,
@@ -199,32 +200,45 @@ class OrderViewSet(
     http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = OrderPostDeleteSerializer
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return OrderListSerializer
-        if self.request.user.is_authenticated:
-            return OrderPostDeleteSerializer
-        return OrderSerializer
+        return OrderPostDeleteSerializer
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.is_staff:
-    #         return self.get_user().orders.all()
-    #     return self.request.user.orders.all()
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return self.get_user().orders.all()
+        return self.request.user.orders.all()
 
     def list(self, request, **kwargs):
+        if not self.request.user.is_authenticated:
+            new_order = NewOrder(request)
+            return Response(
+                {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
+            )
         serializer = self.get_serializer()
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            return self.request.user.orders
-        order = Order.objects.get(id=self.kwargs.get("pk"))
-        serializer = self.get_serializer(order)
-        print(order)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return self.request.user.orders.filter(
+                status
+                in (
+                    "Ordered",
+                    "In processing",
+                    "Collecting",
+                    "Gathered",
+                    "In delivering",
+                    "Delivered",
+                )
+            )
+        new_order = NewOrder(request)
+        return Response(
+            {"order": new_order.get_order_data()}, status=status.HTTP_200_OK
+        )
 
     def create(self, request, *args, **kwargs):
         shopping_cart = ShopCart(request)
@@ -238,29 +252,27 @@ class OrderViewSet(
             "count_of_products": shopping_cart.__len__(),
             "total_price": shopping_cart.get_total_price(),
         }
+        if not self.request.user.is_authenticated:
+            new_order = NewOrder(request)
+
+            new_order.create(shopping_data, data=request.data)
+            shopping_cart.clear()
+            return Response(
+                {"order": new_order.get_order_data()},
+                status=status.HTTP_201_CREATED,
+            )
+
         serializer = self.get_serializer(shopping_data, request.data)
         serializer.is_valid(raise_exception=True)
         comment = None
         address = None
-        user = None
-        user_data = None
-        delivery = None
-        address_anonymous = None
-        if self.request.user.is_authenticated:
-            user = self.request.user
-        else:
-            user_data = request.data["user_data"]
         if "comment" in request.data:
             comment = request.data["comment"]
-        if "address" in request.data and self.request.user.is_authenticated:
-            address = Address.objects.get(address=request.data["address"])
-        elif "address" in request.data:
-            address_anonymous = request.data["address"]
-        if "delivery" in request.data:
-            delivery = Delivery.objects.get(id=request.data.get("delivery_point"))
+        if "address" in request.data:
+            address = request.data["address"]
+        delivery = Delivery.objects.get(id=request.data.get("delivery_point"))
         order = Order.objects.create(
-            user=user,
-            user_data=user_data,
+            user=self.request.user,
             status=Order.ORDERED,
             payment_method=request.data["payment_method"],
             delivery_method=request.data["delivery_method"],
@@ -268,23 +280,21 @@ class OrderViewSet(
             package=request.data["package"],
             comment=comment,
             address=address,
-            address_anonymous=address_anonymous
         )
 
         products = [
             OrderProduct.objects.create(
-                product=Product.objects.get(id=prod["id"]),
+                product=Product.objects.get(id=prod["product_id"]),
                 quantity=prod["quantity"],
                 order=order,
             )
             for prod in shopping_data["products"]
         ]
         Order.products = products
-        order.order_number = order.id
         shopping_cart.clear()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
             Order.COLLECTING,
             Order.GATHERED,
@@ -293,10 +303,16 @@ class OrderViewSet(
             Order.COMPLETED,
         ]
         if not self.request.user.is_authenticated:
-            order = Order.objects.get(order_number=self.kwargs.get("pk"))
-        else:
-            order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if order.user != self.request.user:
+            new_order = NewOrder(request)
+            if new_order.status in order_restricted_deletion_statuses:
+                return Response(
+                    {"errors": "Отмена заказа после комплектования невозможна."}
+                )
+            new_order.clear()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user != self.get_user() or order.user != self.request.user:
             raise PermissionDenied()
 
         if order.status in order_restricted_deletion_statuses:
@@ -304,6 +320,6 @@ class OrderViewSet(
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
         serializer_data = self.get_serializer(order).data
-        serializer_data["Success"] = "This object was successfully deleted"
-        order.delete()
-        return Response(serializer_data, status=status.HTTP_204_NO_CONTENT)
+        serializer_data["Success"] = MESSAGE_ON_DELETE
+        order.shopping_cart.delete()
+        return Response(serializer_data, status=status.HTTP_200_OK)
