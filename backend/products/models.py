@@ -269,21 +269,24 @@ class Product(models.Model):
         verbose_name="Components that the product consists of",
     )
     kcal = models.PositiveSmallIntegerField(
-        "Kcal", help_text="Number of kcal per 100 g of product"
+        "Kcal", default=0, help_text="Number of kcal per 100 g of product"
     )
     proteins = models.FloatField(
         "Proteins",
         validators=[MinValueValidator(0)],
+        default=0,
         help_text="Number of proteins per 100 g of product",
     )
     fats = models.FloatField(
         "Fats",
         validators=[MinValueValidator(0)],
+        default=0,
         help_text="Number of fats per 100 g of product",
     )
     carbohydrates = models.FloatField(
         "Carbohydrates",
         validators=[MinValueValidator(0)],
+        default=0,
         help_text="Number of carbohydrates per 100 g of product",
     )
     views_number = models.PositiveIntegerField(

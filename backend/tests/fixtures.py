@@ -41,19 +41,19 @@ PHONE_NUMBER = "89999999999"
 
 CATEGORY_NAME_1 = "Овощи"
 CATEGORY_NAME_2 = "Хлебобулочные изделия"
-CATEGORY_NAME_3 = "Сладости"
+CATEGORY_NAME_3 = "Напитки"
 CATEGORY_SLUG_1 = "vegetables"
 CATEGORY_SLUG_2 = "bakery"
-CATEGORY_SLUG_3 = "sweets"
+CATEGORY_SLUG_3 = "beverages"
 
 SUBCATEGORY_NAME_1 = "Помидоры"
 SUBCATEGORY_NAME_2 = "Огурцы"
 SUBCATEGORY_NAME_3 = "Хлеб дрожжевой"
-SUBCATEGORY_NAME_4 = "Булочки"
+SUBCATEGORY_NAME_4 = "Вода"
 SUBCATEGORY_SLUG_1 = "tomatoes"
 SUBCATEGORY_SLUG_2 = "cucumbers"
 SUBCATEGORY_SLUG_3 = "yeast-bread"
-SUBCATEGORY_SLUG_4 = "buns"
+SUBCATEGORY_SLUG_4 = "water"
 
 COMPONENT_NAME_1 = "помидоры"
 COMPONENT_NAME_2 = "огурцы"
@@ -93,6 +93,18 @@ PROMOTION_NAME_2 = "Black Friday"
 
 PROMOTION_DISCOUNT_1 = 15
 PROMOTION_DISCOUNT_2 = 20
+
+PRODUCT_NAME_1 = "Батон нарезной"
+PRODUCT_NAME_2 = "Вода без газа 0.5 л"
+PRODUCT_NAME_3 = "Огурцы короткоплодные 2 шт."
+
+PRODUCT_PRICE_1 = 30
+PRODUCT_PRICE_2 = 50
+PRODUCT_PRICE_3 = 100
+
+PRODUCT_AMOUNT_1 = 300
+PRODUCT_AMOUNT_2 = 500
+PRODUCT_AMOUNT_3 = 2
 
 
 @pytest.fixture
@@ -153,7 +165,7 @@ def subcategories(categories):
         name=SUBCATEGORY_NAME_3, slug=SUBCATEGORY_SLUG_3, parent_category=categories[1]
     )
     Subcategory.objects.create(
-        name=SUBCATEGORY_NAME_4, slug=SUBCATEGORY_SLUG_4, parent_category=categories[1]
+        name=SUBCATEGORY_NAME_4, slug=SUBCATEGORY_SLUG_4, parent_category=categories[2]
     )
     return Subcategory.objects.all()
 
@@ -207,33 +219,37 @@ def producers():
 
 
 @pytest.fixture
-def products(user, subcategories, components, tags, producers):
-    ind = 0
-    price = [100, 140, 120]
-    measure_unit = ["гр", "шт", "гр"]
-    amount = [1000, 1, 1000]
-    carbohydrates = [3.89, 37.7, 43]
-    fats = [0.2, 1.4, 37]
-    proteins = [0.88, 7.7, 13]
-    kcal = [18.0, 201, 560]
-    for subcategory in subcategories:
-        Product.objects.create(
-            user=user,
-            subategory=subcategory[ind],
-            name=components[ind],
-            components=components[ind],
-            price=price[ind],
-            tags=tags,
-            producer=producers[ind],
-            measure_unit=measure_unit[ind],
-            amount=amount[ind],
-            kcal=kcal[ind],
-            proteins=proteins[ind],
-            fats=fats[ind],
-            carbohydrates=carbohydrates[ind],
-        )
-        ind += 1
-
+def products(subcategories, components, producers):
+    bread = Product.objects.create(
+        name=PRODUCT_NAME_1,
+        category=subcategories[2].parent_category,
+        subcategory=subcategories[2],
+        producer=producers[0],
+        measure_unit=Product.GRAMS,
+        amount=PRODUCT_AMOUNT_1,
+        price=PRODUCT_PRICE_1,
+    )
+    bread.components.set(components[2:])
+    water = Product.objects.create(
+        name=PRODUCT_NAME_2,
+        category=subcategories[3].parent_category,
+        subcategory=subcategories[3],
+        producer=producers[1],
+        measure_unit=Product.MILLILITRES,
+        amount=PRODUCT_AMOUNT_2,
+        price=PRODUCT_PRICE_2,
+    )
+    water.components.set(components[3:4])
+    cucumbers = Product.objects.create(
+        name=PRODUCT_NAME_3,
+        category=subcategories[1].parent_category,
+        subcategory=subcategories[1],
+        producer=producers[1],
+        measure_unit=Product.ITEMS,
+        amount=PRODUCT_AMOUNT_3,
+        price=PRODUCT_PRICE_3,
+    )
+    cucumbers.components.set(components[1:2])
     return Product.objects.all()
 
 
