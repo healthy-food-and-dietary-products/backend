@@ -146,6 +146,8 @@ class Promotion(models.Model):
         (MULTIPLE_ITEMS, "Скидка при покупке нескольких штук"),
     ]
 
+    INVALID_DISCOUNT_MESSAGE = "Допустимы числа от 0 до 100"
+
     # TODO: make slug field after MVP?
 
     promotion_type = models.CharField(
@@ -159,7 +161,7 @@ class Promotion(models.Model):
         default=0,
         validators=[MaxValueValidator(100)],
         help_text="Percentage of a product price",
-        error_messages={"invalid": "Допустимы числа от 0 до 100"},
+        error_messages={"invalid": INVALID_DISCOUNT_MESSAGE},
     )
     conditions = models.TextField(
         "Conditions", blank=True, help_text="Conditions of the promotion"

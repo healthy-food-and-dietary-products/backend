@@ -1533,6 +1533,451 @@ paths:
               schema:
                 $ref: '#/components/schemas/FavoriteProduct'
           description: ''
+  /api/order/:
+    get:
+      operationId: order_list
+      description: Viewset for Order.
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListErrorResponse400'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse401'
+              examples:
+                AuthenticationFailed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: authentication_failed
+                      detail: Некорректные учетные данные.
+                      attr: null
+                NotAuthenticated:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_authenticated
+                      detail: Учетные данные не были предоставлены.
+                      attr: null
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse405'
+              examples:
+                MethodNotAllowed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: method_not_allowed
+                      detail: Метод "get" не разрешен.
+                      attr: null
+          description: ''
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse406'
+              examples:
+                NotAcceptable:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_acceptable
+                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
+                      attr: null
+          description: ''
+        '415':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse415'
+              examples:
+                UnsupportedMediaType:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: unsupported_media_type
+                      detail: Неподдерживаемый тип данных "application/json" в запросе.
+                      attr: null
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse500'
+              examples:
+                APIException:
+                  value:
+                    type: server_error
+                    errors:
+                    - code: error
+                      detail: Ошибка сервера.
+                      attr: null
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderList'
+          description: ''
+    post:
+      operationId: order_create
+      description: Viewset for Order.
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderPostDeleteRequest'
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCreateErrorResponse400'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse401'
+              examples:
+                AuthenticationFailed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: authentication_failed
+                      detail: Некорректные учетные данные.
+                      attr: null
+                NotAuthenticated:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_authenticated
+                      detail: Учетные данные не были предоставлены.
+                      attr: null
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse405'
+              examples:
+                MethodNotAllowed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: method_not_allowed
+                      detail: Метод "get" не разрешен.
+                      attr: null
+          description: ''
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse406'
+              examples:
+                NotAcceptable:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_acceptable
+                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
+                      attr: null
+          description: ''
+        '415':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse415'
+              examples:
+                UnsupportedMediaType:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: unsupported_media_type
+                      detail: Неподдерживаемый тип данных "application/json" в запросе.
+                      attr: null
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse500'
+              examples:
+                APIException:
+                  value:
+                    type: server_error
+                    errors:
+                    - code: error
+                      detail: Ошибка сервера.
+                      attr: null
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPostDelete'
+          description: ''
+  /api/order/{id}/:
+    get:
+      operationId: order_retrieve
+      description: Viewset for Order.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRetrieveErrorResponse400'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse401'
+              examples:
+                AuthenticationFailed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: authentication_failed
+                      detail: Некорректные учетные данные.
+                      attr: null
+                NotAuthenticated:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_authenticated
+                      detail: Учетные данные не были предоставлены.
+                      attr: null
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse404'
+              examples:
+                NotFound:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_found
+                      detail: Страница не найдена.
+                      attr: null
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse405'
+              examples:
+                MethodNotAllowed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: method_not_allowed
+                      detail: Метод "get" не разрешен.
+                      attr: null
+          description: ''
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse406'
+              examples:
+                NotAcceptable:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_acceptable
+                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
+                      attr: null
+          description: ''
+        '415':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse415'
+              examples:
+                UnsupportedMediaType:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: unsupported_media_type
+                      detail: Неподдерживаемый тип данных "application/json" в запросе.
+                      attr: null
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse500'
+              examples:
+                APIException:
+                  value:
+                    type: server_error
+                    errors:
+                    - code: error
+                      detail: Ошибка сервера.
+                      attr: null
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderList'
+          description: ''
+    delete:
+      operationId: order_destroy
+      description: Viewset for Order.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заказ.
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDestroyErrorResponse400'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse401'
+              examples:
+                AuthenticationFailed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: authentication_failed
+                      detail: Некорректные учетные данные.
+                      attr: null
+                NotAuthenticated:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_authenticated
+                      detail: Учетные данные не были предоставлены.
+                      attr: null
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse404'
+              examples:
+                NotFound:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_found
+                      detail: Страница не найдена.
+                      attr: null
+          description: ''
+        '405':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse405'
+              examples:
+                MethodNotAllowed:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: method_not_allowed
+                      detail: Метод "get" не разрешен.
+                      attr: null
+          description: ''
+        '406':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse406'
+              examples:
+                NotAcceptable:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: not_acceptable
+                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
+                      attr: null
+          description: ''
+        '415':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse415'
+              examples:
+                UnsupportedMediaType:
+                  value:
+                    type: client_error
+                    errors:
+                    - code: unsupported_media_type
+                      detail: Неподдерживаемый тип данных "application/json" в запросе.
+                      attr: null
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse500'
+              examples:
+                APIException:
+                  value:
+                    type: server_error
+                    errors:
+                    - code: error
+                      detail: Ошибка сервера.
+                      attr: null
+          description: ''
+        '204':
+          description: No response body
   /api/producers/:
     get:
       operationId: producers_list
@@ -3903,7 +4348,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ShoppingCartGet'
+                  $ref: '#/components/schemas/ShoppingCart'
           description: ''
     post:
       operationId: shopping_cart_create
@@ -3914,13 +4359,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+              $ref: '#/components/schemas/ShoppingCartRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+              $ref: '#/components/schemas/ShoppingCartRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ShoppingCartPostUpdateDeleteRequest'
+              $ref: '#/components/schemas/ShoppingCartRequest'
         required: true
       security:
       - tokenAuth: []
@@ -4013,258 +4458,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
+                $ref: '#/components/schemas/ShoppingCart'
           description: ''
   /api/shopping_cart/{id}/:
-    get:
-      operationId: shopping_cart_retrieve
-      description: Viewset for ShoppingCart.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Корзина.
-        required: true
-      tags:
-      - shopping_cart
-      security:
-      - tokenAuth: []
-      - {}
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartRetrieveErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartGet'
-          description: ''
-    patch:
-      operationId: shopping_cart_partial_update
-      description: Viewset for ShoppingCart.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Корзина.
-        required: true
-      tags:
-      - shopping_cart
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedShoppingCartPostUpdateDeleteRequest'
-      security:
-      - tokenAuth: []
-      - {}
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartPartialUpdateErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShoppingCartPostUpdateDelete'
-          description: ''
     delete:
       operationId: shopping_cart_destroy
       description: Viewset for ShoppingCart.
@@ -6922,557 +7118,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Address'
           description: ''
-  /api/users/{user_id}/order/:
-    get:
-      operationId: users_order_list
-      description: Viewset for Order.
-      parameters:
-      - in: path
-        name: user_id
-        schema:
-          type: string
-          pattern: ^\d+$
-        required: true
-      tags:
-      - users
-      security:
-      - tokenAuth: []
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersOrderListErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse403'
-              examples:
-                PermissionDenied:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: permission_denied
-                      detail: У вас недостаточно прав для выполнения данного действия.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrderList'
-          description: ''
-    post:
-      operationId: users_order_create
-      description: Viewset for Order.
-      parameters:
-      - in: path
-        name: user_id
-        schema:
-          type: string
-          pattern: ^\d+$
-        required: true
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrderPostDeleteRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OrderPostDeleteRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OrderPostDeleteRequest'
-      security:
-      - tokenAuth: []
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersOrderCreateErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse403'
-              examples:
-                PermissionDenied:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: permission_denied
-                      detail: У вас недостаточно прав для выполнения данного действия.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderPostDelete'
-          description: ''
-  /api/users/{user_id}/order/{id}/:
-    get:
-      operationId: users_order_retrieve
-      description: Viewset for Order.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Заказ.
-        required: true
-      - in: path
-        name: user_id
-        schema:
-          type: string
-          pattern: ^\d+$
-        required: true
-      tags:
-      - users
-      security:
-      - tokenAuth: []
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersOrderRetrieveErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse403'
-              examples:
-                PermissionDenied:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: permission_denied
-                      detail: У вас недостаточно прав для выполнения данного действия.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderList'
-          description: ''
-    delete:
-      operationId: users_order_destroy
-      description: Viewset for Order.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this Заказ.
-        required: true
-      - in: path
-        name: user_id
-        schema:
-          type: string
-          pattern: ^\d+$
-        required: true
-      tags:
-      - users
-      security:
-      - tokenAuth: []
-      responses:
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsersOrderDestroyErrorResponse400'
-          description: ''
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse401'
-              examples:
-                AuthenticationFailed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: authentication_failed
-                      detail: Некорректные учетные данные.
-                      attr: null
-                NotAuthenticated:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_authenticated
-                      detail: Учетные данные не были предоставлены.
-                      attr: null
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse403'
-              examples:
-                PermissionDenied:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: permission_denied
-                      detail: У вас недостаточно прав для выполнения данного действия.
-                      attr: null
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse404'
-              examples:
-                NotFound:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_found
-                      detail: Страница не найдена.
-                      attr: null
-          description: ''
-        '405':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse405'
-              examples:
-                MethodNotAllowed:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: method_not_allowed
-                      detail: Метод "get" не разрешен.
-                      attr: null
-          description: ''
-        '406':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse406'
-              examples:
-                NotAcceptable:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: not_acceptable
-                      detail: Невозможно удовлетворить "Accept" заголовок запроса.
-                      attr: null
-          description: ''
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse415'
-              examples:
-                UnsupportedMediaType:
-                  value:
-                    type: client_error
-                    errors:
-                    - code: unsupported_media_type
-                      detail: Неподдерживаемый тип данных "application/json" в запросе.
-                      attr: null
-          description: ''
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse500'
-              examples:
-                APIException:
-                  value:
-                    type: server_error
-                    errors:
-                    - code: error
-                      detail: Ошибка сервера.
-                      attr: null
-          description: ''
-        '204':
-          description: No response body
   /api/users/activation/:
     post:
       operationId: users_activation_create
@@ -9825,6 +9470,212 @@ components:
       - milliliters
       - items
       type: string
+    OrderCreateAddressErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - address
+          type: string
+          description: '* `address` - address'
+        code:
+          enum:
+          - does_not_exist
+          - incorrect_type
+          type: string
+          description: |-
+            * `does_not_exist` - does_not_exist
+            * `incorrect_type` - incorrect_type
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreateCommentErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - comment
+          type: string
+          description: '* `comment` - comment'
+        code:
+          enum:
+          - invalid
+          - null_characters_not_allowed
+          - surrogate_characters_not_allowed
+          type: string
+          description: |-
+            * `invalid` - invalid
+            * `null_characters_not_allowed` - null_characters_not_allowed
+            * `surrogate_characters_not_allowed` - surrogate_characters_not_allowed
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreateDeliveryMethodErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - delivery_method
+          type: string
+          description: '* `delivery_method` - delivery_method'
+        code:
+          enum:
+          - invalid_choice
+          - 'null'
+          type: string
+          description: |-
+            * `invalid_choice` - invalid_choice
+            * `null` - null
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreateDeliveryPointErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - delivery_point
+          type: string
+          description: '* `delivery_point` - delivery_point'
+        code:
+          enum:
+          - does_not_exist
+          - incorrect_type
+          type: string
+          description: |-
+            * `does_not_exist` - does_not_exist
+            * `incorrect_type` - incorrect_type
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreateError:
+      oneOf:
+      - $ref: '#/components/schemas/OrderCreateNonFieldErrorsErrorComponent'
+      - $ref: '#/components/schemas/OrderCreatePaymentMethodErrorComponent'
+      - $ref: '#/components/schemas/OrderCreateDeliveryMethodErrorComponent'
+      - $ref: '#/components/schemas/OrderCreateDeliveryPointErrorComponent'
+      - $ref: '#/components/schemas/OrderCreatePackageErrorComponent'
+      - $ref: '#/components/schemas/OrderCreateCommentErrorComponent'
+      - $ref: '#/components/schemas/OrderCreateAddressErrorComponent'
+      discriminator:
+        propertyName: attr
+        mapping:
+          non_field_errors: '#/components/schemas/OrderCreateNonFieldErrorsErrorComponent'
+          payment_method: '#/components/schemas/OrderCreatePaymentMethodErrorComponent'
+          delivery_method: '#/components/schemas/OrderCreateDeliveryMethodErrorComponent'
+          delivery_point: '#/components/schemas/OrderCreateDeliveryPointErrorComponent'
+          package: '#/components/schemas/OrderCreatePackageErrorComponent'
+          comment: '#/components/schemas/OrderCreateCommentErrorComponent'
+          address: '#/components/schemas/OrderCreateAddressErrorComponent'
+    OrderCreateErrorResponse400:
+      oneOf:
+      - $ref: '#/components/schemas/OrderCreateValidationError'
+      - $ref: '#/components/schemas/ParseErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          validation_error: '#/components/schemas/OrderCreateValidationError'
+          client_error: '#/components/schemas/ParseErrorResponse'
+    OrderCreateNonFieldErrorsErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - non_field_errors
+          type: string
+          description: '* `non_field_errors` - non_field_errors'
+        code:
+          enum:
+          - invalid
+          type: string
+          description: '* `invalid` - invalid'
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreatePackageErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - package
+          type: string
+          description: '* `package` - package'
+        code:
+          enum:
+          - invalid
+          - max_string_length
+          - min_value
+          - 'null'
+          type: string
+          description: |-
+            * `invalid` - invalid
+            * `max_string_length` - max_string_length
+            * `min_value` - min_value
+            * `null` - null
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreatePaymentMethodErrorComponent:
+      type: object
+      properties:
+        attr:
+          enum:
+          - payment_method
+          type: string
+          description: '* `payment_method` - payment_method'
+        code:
+          enum:
+          - invalid_choice
+          - 'null'
+          type: string
+          description: |-
+            * `invalid_choice` - invalid_choice
+            * `null` - null
+        detail:
+          type: string
+      required:
+      - attr
+      - code
+      - detail
+    OrderCreateValidationError:
+      type: object
+      properties:
+        type:
+          allOf:
+          - $ref: '#/components/schemas/ValidationErrorEnum'
+          description: '* `validation_error` - Validation Error'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderCreateError'
+      required:
+      - errors
+      - type
+    OrderDestroyErrorResponse400:
+      oneOf:
+      - $ref: '#/components/schemas/ParseErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          client_error: '#/components/schemas/ParseErrorResponse'
     OrderList:
       type: object
       description: Serializer for order representation.
@@ -9836,10 +9687,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/UserPresent'
           readOnly: true
-        shopping_cart:
-          allOf:
-          - $ref: '#/components/schemas/ShoppingCartGet'
-          readOnly: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderProduct'
         order_number:
           type: integer
           readOnly: true
@@ -9850,7 +9701,7 @@ components:
           title: DateTime
         status:
           allOf:
-          - $ref: '#/components/schemas/OrderListStatusEnum'
+          - $ref: '#/components/schemas/StatusEnum'
           description: |-
             * `Ordered` - Оформлен
             * `In processing` - В обработке
@@ -9898,23 +9749,27 @@ components:
       - id
       - order_number
       - ordering_date
-      - shopping_cart
+      - products
       - total_price
       - user
-    OrderListStatusEnum:
-      enum:
-      - Ordered
-      - In processing
-      - Collecting
-      - Gathered
-      - In delivering
-      - Delivered
-      - Completed
-      type: string
+    OrderListErrorResponse400:
+      oneOf:
+      - $ref: '#/components/schemas/ParseErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          client_error: '#/components/schemas/ParseErrorResponse'
     OrderPostDelete:
       type: object
       description: Serializer for create/update/delete order.
       properties:
+        products:
+          type: array
+          items:
+            type: integer
+            title: Продукты в заказе
+          readOnly: true
+          title: Продукты в заказе
         payment_method:
           allOf:
           - $ref: '#/components/schemas/PaymentMethodEnum'
@@ -9943,6 +9798,8 @@ components:
           type: integer
           nullable: true
           title: User's address
+      required:
+      - products
     OrderPostDeleteRequest:
       type: object
       description: Serializer for create/update/delete order.
@@ -9975,6 +9832,35 @@ components:
           type: integer
           nullable: true
           title: User's address
+    OrderProduct:
+      type: object
+      description: Serializer for add/update/delete products into shopping_cart.
+      properties:
+        id:
+          type: integer
+        quantity:
+          type: integer
+      required:
+      - id
+      - quantity
+    OrderProductRequest:
+      type: object
+      description: Serializer for add/update/delete products into shopping_cart.
+      properties:
+        id:
+          type: integer
+        quantity:
+          type: integer
+      required:
+      - id
+      - quantity
+    OrderRetrieveErrorResponse400:
+      oneOf:
+      - $ref: '#/components/schemas/ParseErrorResponse'
+      discriminator:
+        propertyName: type
+        mapping:
+          client_error: '#/components/schemas/ParseErrorResponse'
     PaginatedProductList:
       type: object
       properties:
@@ -10142,6 +10028,7 @@ components:
             * `items` - шт.
         amount:
           type: integer
+          minimum: 1
           description: Number of grams, milliliters or items
         price:
           type: number
@@ -10163,13 +10050,19 @@ components:
           type: integer
           description: Number of kcal per 100 g of product
         proteins:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of proteins per 100 g of product
         fats:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of fats per 100 g of product
         carbohydrates:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of carbohydrates per 100 g of product
     PatchedPromotionRequest:
       type: object
@@ -10216,14 +10109,6 @@ components:
           format: date-time
           nullable: true
           title: Promotion end time
-    PatchedShoppingCartPostUpdateDeleteRequest:
-      type: object
-      description: Serializer for create/update/delete shopping_cart.
-      properties:
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
     PatchedSubcategoryRequest:
       type: object
       description: Serializer for subcategories representation.
@@ -10845,6 +10730,7 @@ components:
             * `items` - шт.
         amount:
           type: integer
+          minimum: 1
           description: Number of grams, milliliters or items
         price:
           type: number
@@ -10873,13 +10759,19 @@ components:
           type: integer
           description: Number of kcal per 100 g of product
         proteins:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of proteins per 100 g of product
         fats:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of fats per 100 g of product
         carbohydrates:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of carbohydrates per 100 g of product
         views_number:
           type: integer
@@ -10948,6 +10840,7 @@ components:
             * `items` - шт.
         amount:
           type: integer
+          minimum: 1
           description: Number of grams, milliliters or items
         price:
           type: number
@@ -10969,13 +10862,19 @@ components:
           type: integer
           description: Number of kcal per 100 g of product
         proteins:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of proteins per 100 g of product
         fats:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of fats per 100 g of product
         carbohydrates:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of carbohydrates per 100 g of product
       required:
       - carbohydrates
@@ -11023,6 +10922,7 @@ components:
             * `items` - шт.
         amount:
           type: integer
+          minimum: 1
           description: Number of grams, milliliters or items
         price:
           type: number
@@ -11040,13 +10940,19 @@ components:
           type: integer
           description: Number of kcal per 100 g of product
         proteins:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of proteins per 100 g of product
         fats:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of fats per 100 g of product
         carbohydrates:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of carbohydrates per 100 g of product
       required:
       - carbohydrates
@@ -11066,11 +10972,8 @@ components:
           type: string
           description: Product name
           maxLength: 100
-        producer:
-          $ref: '#/components/schemas/ProducerLight'
       required:
       - name
-      - producer
     ProductUpdate:
       type: object
       description: Serializer for updating products.
@@ -11113,6 +11016,7 @@ components:
             * `items` - шт.
         amount:
           type: integer
+          minimum: 1
           description: Number of grams, milliliters or items
         price:
           type: number
@@ -11138,13 +11042,19 @@ components:
           type: integer
           description: Number of kcal per 100 g of product
         proteins:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of proteins per 100 g of product
         fats:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of fats per 100 g of product
         carbohydrates:
-          type: integer
+          type: number
+          format: double
+          minimum: 0
           description: Number of carbohydrates per 100 g of product
       required:
       - carbohydrates
@@ -11173,11 +11083,13 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
         detail:
           type: string
@@ -11197,12 +11109,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -11345,12 +11259,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -11554,12 +11470,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -11979,11 +11897,13 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
         detail:
           type: string
@@ -12003,12 +11923,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -12153,12 +12075,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -12390,12 +12314,14 @@ components:
           enum:
           - invalid
           - max_string_length
+          - min_value
           - 'null'
           - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
+            * `min_value` - min_value
             * `null` - null
             * `required` - required
         detail:
@@ -13226,6 +13152,16 @@ components:
       required:
       - current_password
       - new_email
+    ShoppingCart:
+      type: object
+      description: Serializer for create/update/delete shopping_cart.
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderProduct'
+      required:
+      - products
     ShoppingCartCreateError:
       oneOf:
       - $ref: '#/components/schemas/ShoppingCartCreateNonFieldErrorsErrorComponent'
@@ -13332,11 +13268,13 @@ components:
           - invalid
           - max_string_length
           - 'null'
+          - required
           type: string
           description: |-
             * `invalid` - invalid
             * `max_string_length` - max_string_length
             * `null` - null
+            * `required` - required
         detail:
           type: string
       required:
@@ -13388,39 +13326,6 @@ components:
         propertyName: type
         mapping:
           client_error: '#/components/schemas/ParseErrorResponse'
-    ShoppingCartGet:
-      type: object
-      description: Serializer for shopping_cart representation.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        user:
-          allOf:
-          - $ref: '#/components/schemas/UserPresent'
-          readOnly: true
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingCartProductList'
-          readOnly: true
-        total_price:
-          type: integer
-        status:
-          allOf:
-          - $ref: '#/components/schemas/ShoppingCartGetStatusEnum'
-          description: |-
-            * `Ordered` - Передано в заказ
-            * `In Work` - В работе
-      required:
-      - id
-      - products
-      - user
-    ShoppingCartGetStatusEnum:
-      enum:
-      - Ordered
-      - In Work
-      type: string
     ShoppingCartListErrorResponse400:
       oneOf:
       - $ref: '#/components/schemas/ParseErrorResponse'
@@ -13428,260 +13333,26 @@ components:
         propertyName: type
         mapping:
           client_error: '#/components/schemas/ParseErrorResponse'
-    ShoppingCartPartialUpdateError:
-      oneOf:
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateNonFieldErrorsErrorComponent'
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateProductsNonFieldErrorsErrorComponent'
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXNonFieldErrorsErrorComponent'
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXIdErrorComponent'
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXQuantityErrorComponent'
-      discriminator:
-        propertyName: attr
-        mapping:
-          non_field_errors: '#/components/schemas/ShoppingCartPartialUpdateNonFieldErrorsErrorComponent'
-          products.non_field_errors: '#/components/schemas/ShoppingCartPartialUpdateProductsNonFieldErrorsErrorComponent'
-          products.INDEX.non_field_errors: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXNonFieldErrorsErrorComponent'
-          products.INDEX.id: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXIdErrorComponent'
-          products.INDEX.quantity: '#/components/schemas/ShoppingCartPartialUpdateProductsINDEXQuantityErrorComponent'
-    ShoppingCartPartialUpdateErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/ShoppingCartPartialUpdateValidationError'
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          validation_error: '#/components/schemas/ShoppingCartPartialUpdateValidationError'
-          client_error: '#/components/schemas/ParseErrorResponse'
-    ShoppingCartPartialUpdateNonFieldErrorsErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - non_field_errors
-          type: string
-          description: '* `non_field_errors` - non_field_errors'
-        code:
-          enum:
-          - invalid
-          type: string
-          description: '* `invalid` - invalid'
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    ShoppingCartPartialUpdateProductsINDEXIdErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - products.INDEX.id
-          type: string
-          description: '* `products.INDEX.id` - products.INDEX.id'
-        code:
-          enum:
-          - invalid
-          - max_string_length
-          - 'null'
-          - required
-          type: string
-          description: |-
-            * `invalid` - invalid
-            * `max_string_length` - max_string_length
-            * `null` - null
-            * `required` - required
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    ShoppingCartPartialUpdateProductsINDEXNonFieldErrorsErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - products.INDEX.non_field_errors
-          type: string
-          description: '* `products.INDEX.non_field_errors` - products.INDEX.non_field_errors'
-        code:
-          enum:
-          - invalid
-          - 'null'
-          - required
-          type: string
-          description: |-
-            * `invalid` - invalid
-            * `null` - null
-            * `required` - required
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    ShoppingCartPartialUpdateProductsINDEXQuantityErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - products.INDEX.quantity
-          type: string
-          description: '* `products.INDEX.quantity` - products.INDEX.quantity'
-        code:
-          enum:
-          - invalid
-          - max_string_length
-          - 'null'
-          type: string
-          description: |-
-            * `invalid` - invalid
-            * `max_string_length` - max_string_length
-            * `null` - null
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    ShoppingCartPartialUpdateProductsNonFieldErrorsErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - products.non_field_errors
-          type: string
-          description: '* `products.non_field_errors` - products.non_field_errors'
-        code:
-          enum:
-          - not_a_list
-          - 'null'
-          - required
-          type: string
-          description: |-
-            * `not_a_list` - not_a_list
-            * `null` - null
-            * `required` - required
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    ShoppingCartPartialUpdateValidationError:
-      type: object
-      properties:
-        type:
-          allOf:
-          - $ref: '#/components/schemas/ValidationErrorEnum'
-          description: '* `validation_error` - Validation Error'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingCartPartialUpdateError'
-      required:
-      - errors
-      - type
-    ShoppingCartPostUpdateDelete:
+    ShoppingCartRequest:
       type: object
       description: Serializer for create/update/delete shopping_cart.
       properties:
         products:
           type: array
           items:
-            $ref: '#/components/schemas/ShoppingCartProductCreateUpdate'
+            $ref: '#/components/schemas/OrderProductRequest'
       required:
       - products
-    ShoppingCartPostUpdateDeleteRequest:
-      type: object
-      description: Serializer for create/update/delete shopping_cart.
-      properties:
-        products:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShoppingCartProductCreateUpdateRequest'
-      required:
-      - products
-    ShoppingCartProductCreateUpdate:
-      type: object
-      description: Serializer for add/update/delete products into shopping_cart.
-      properties:
-        id:
-          type: integer
-        quantity:
-          type: integer
-          default: 1
-      required:
-      - id
-    ShoppingCartProductCreateUpdateRequest:
-      type: object
-      description: Serializer for add/update/delete products into shopping_cart.
-      properties:
-        id:
-          type: integer
-        quantity:
-          type: integer
-          default: 1
-      required:
-      - id
-    ShoppingCartProductList:
-      type: object
-      description: Serializer products in shopping_cart.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
-          type: string
-          description: Product name
-          readOnly: true
-        measure_unit:
-          allOf:
-          - $ref: '#/components/schemas/MeasureUnitEnum'
-          description: |-
-            * `grams` - г.
-            * `milliliters` - мл.
-            * `items` - шт.
-          readOnly: true
-        price:
-          type: number
-          format: double
-          minimum: 0
-          description: Price per one product unit
-          readOnly: true
-        final_price:
-          type: number
-          format: double
-          readOnly: true
-        amount:
-          type: integer
-          description: Number of grams, milliliters or items
-          readOnly: true
-        quantity:
-          type: integer
-          maximum: 10000
-          minimum: 1
-          title: Количество
-        is_favorited_by_user:
-          type: boolean
-          description: Checks if this product is in the buyer's favorites.
-          readOnly: true
-      required:
-      - amount
-      - final_price
-      - id
-      - is_favorited_by_user
-      - measure_unit
-      - name
-      - price
-    ShoppingCartRetrieveErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          client_error: '#/components/schemas/ParseErrorResponse'
+    StatusEnum:
+      enum:
+      - Ordered
+      - In processing
+      - Collecting
+      - Gathered
+      - In delivering
+      - Delivered
+      - Completed
+      type: string
     SubcategoriesCreateError:
       oneOf:
       - $ref: '#/components/schemas/SubcategoriesCreateNonFieldErrorsErrorComponent'
@@ -14059,9 +13730,13 @@ components:
           description: Tag slug
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
+        top_three_products:
+          type: string
+          readOnly: true
       required:
       - id
       - name
+      - top_three_products
     TagLight:
       type: object
       description: Serializer for tags representation in product serializer.
@@ -15785,226 +15460,6 @@ components:
       required:
       - errors
       - type
-    UsersOrderCreateAddressErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - address
-          type: string
-          description: '* `address` - address'
-        code:
-          enum:
-          - does_not_exist
-          - incorrect_type
-          type: string
-          description: |-
-            * `does_not_exist` - does_not_exist
-            * `incorrect_type` - incorrect_type
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreateCommentErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - comment
-          type: string
-          description: '* `comment` - comment'
-        code:
-          enum:
-          - invalid
-          - null_characters_not_allowed
-          - surrogate_characters_not_allowed
-          type: string
-          description: |-
-            * `invalid` - invalid
-            * `null_characters_not_allowed` - null_characters_not_allowed
-            * `surrogate_characters_not_allowed` - surrogate_characters_not_allowed
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreateDeliveryMethodErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - delivery_method
-          type: string
-          description: '* `delivery_method` - delivery_method'
-        code:
-          enum:
-          - invalid_choice
-          - 'null'
-          type: string
-          description: |-
-            * `invalid_choice` - invalid_choice
-            * `null` - null
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreateDeliveryPointErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - delivery_point
-          type: string
-          description: '* `delivery_point` - delivery_point'
-        code:
-          enum:
-          - does_not_exist
-          - incorrect_type
-          type: string
-          description: |-
-            * `does_not_exist` - does_not_exist
-            * `incorrect_type` - incorrect_type
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreateError:
-      oneOf:
-      - $ref: '#/components/schemas/UsersOrderCreateNonFieldErrorsErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreatePaymentMethodErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreateDeliveryMethodErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreateDeliveryPointErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreatePackageErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreateCommentErrorComponent'
-      - $ref: '#/components/schemas/UsersOrderCreateAddressErrorComponent'
-      discriminator:
-        propertyName: attr
-        mapping:
-          non_field_errors: '#/components/schemas/UsersOrderCreateNonFieldErrorsErrorComponent'
-          payment_method: '#/components/schemas/UsersOrderCreatePaymentMethodErrorComponent'
-          delivery_method: '#/components/schemas/UsersOrderCreateDeliveryMethodErrorComponent'
-          delivery_point: '#/components/schemas/UsersOrderCreateDeliveryPointErrorComponent'
-          package: '#/components/schemas/UsersOrderCreatePackageErrorComponent'
-          comment: '#/components/schemas/UsersOrderCreateCommentErrorComponent'
-          address: '#/components/schemas/UsersOrderCreateAddressErrorComponent'
-    UsersOrderCreateErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/UsersOrderCreateValidationError'
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          validation_error: '#/components/schemas/UsersOrderCreateValidationError'
-          client_error: '#/components/schemas/ParseErrorResponse'
-    UsersOrderCreateNonFieldErrorsErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - non_field_errors
-          type: string
-          description: '* `non_field_errors` - non_field_errors'
-        code:
-          enum:
-          - invalid
-          type: string
-          description: '* `invalid` - invalid'
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreatePackageErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - package
-          type: string
-          description: '* `package` - package'
-        code:
-          enum:
-          - invalid
-          - max_string_length
-          - min_value
-          - 'null'
-          type: string
-          description: |-
-            * `invalid` - invalid
-            * `max_string_length` - max_string_length
-            * `min_value` - min_value
-            * `null` - null
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreatePaymentMethodErrorComponent:
-      type: object
-      properties:
-        attr:
-          enum:
-          - payment_method
-          type: string
-          description: '* `payment_method` - payment_method'
-        code:
-          enum:
-          - invalid_choice
-          - 'null'
-          type: string
-          description: |-
-            * `invalid_choice` - invalid_choice
-            * `null` - null
-        detail:
-          type: string
-      required:
-      - attr
-      - code
-      - detail
-    UsersOrderCreateValidationError:
-      type: object
-      properties:
-        type:
-          allOf:
-          - $ref: '#/components/schemas/ValidationErrorEnum'
-          description: '* `validation_error` - Validation Error'
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/UsersOrderCreateError'
-      required:
-      - errors
-      - type
-    UsersOrderDestroyErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          client_error: '#/components/schemas/ParseErrorResponse'
-    UsersOrderListErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          client_error: '#/components/schemas/ParseErrorResponse'
-    UsersOrderRetrieveErrorResponse400:
-      oneOf:
-      - $ref: '#/components/schemas/ParseErrorResponse'
-      discriminator:
-        propertyName: type
-        mapping:
-          client_error: '#/components/schemas/ParseErrorResponse'
     UsersPartialUpdateAddressesINDEXAddressErrorComponent:
       type: object
       properties:

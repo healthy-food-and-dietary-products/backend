@@ -12,7 +12,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from .filters import ProductFilter
-from .mixins import DestroyWithPayloadMixin
+from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
@@ -38,6 +38,14 @@ from products.models import (
     Promotion,
     Subcategory,
     Tag,
+)
+
+NO_FAVORITE_PRODUCT_ERROR_MESSAGE = "Этого продукта не было в вашем списке Избранного."
+DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE = (
+    "Этот продукт уже есть в вашем списке Избранного."
+)
+STATUS_200_RESPONSE_ON_DELETE_IN_DOCS = (
+    "Detailed information about the deleted object and a success message"
 )
 
 
@@ -90,7 +98,7 @@ from products.models import (
         operation_summary="Delete category",
         operation_description="Deletes a category by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -160,7 +168,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete subcategory",
         operation_description="Deletes a subcategory by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -225,7 +233,7 @@ class SubcategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete component",
         operation_description="Deletes a component by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -290,7 +298,7 @@ class ComponentViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete tag",
         operation_description="Deletes a tag by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -355,7 +363,7 @@ class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete producer",
         operation_description="Deletes a producer by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -420,7 +428,7 @@ class ProducerViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete promotion",
         operation_description="Deletes a promotion by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -485,7 +493,7 @@ class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         operation_summary="Delete product",
         operation_description="Deletes a product by its id (admin only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -524,7 +532,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         instance = model.objects.filter(product=product, user=request.user)
         if request.method == "DELETE" and not instance:
             return response.Response(
-                {"errors": "Этого продукта не было в вашем списке Избранного."},
+                {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
@@ -534,13 +542,13 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
                 "favorite_product_name": instance[0].product.name,
                 "user_id": instance[0].user.id,
                 "user_username": instance[0].user.username,
-                "Success": "This favorite product object was successfully deleted",
+                "Success": MESSAGE_ON_DELETE,
             }
             instance.delete()
             return response.Response(data=message, status=status.HTTP_200_OK)
         if instance:
             return response.Response(
-                {"errors": "Этот продукт уже есть в вашем списке Избранного."},
+                {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         new_favorite_product = model.objects.create(user=request.user, product=product)
@@ -581,7 +589,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             201: FavoriteProductCreateSerializer,
-            400: '{"errors": "Этот продукт уже есть в вашем списке Избранного."}',
+            400: '{"errors": "' + DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -593,8 +601,8 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             "Deletes a product from a user's favorites (authorized user only)"
         ),
         responses={
-            200: "Detailed information about the deleted object and a success message",
-            400: '{"errors": "Этого продукта не было в вашем списке Избранного."}',
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
+            400: '{"errors": "' + NO_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
