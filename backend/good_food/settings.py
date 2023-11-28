@@ -80,8 +80,9 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-SHOPPING_CART_SESSION_ID = "shopping_cart"
-ORDER_SESSION_ID = "order_id"
+SHOPPING_CART_SESSION_ID = "shopping_cart_id"
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 ROOT_URLCONF = "good_food.urls"
 
