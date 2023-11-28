@@ -9,6 +9,7 @@ from products.models import (
     FavoriteProduct,
     Producer,
     Product,
+    ProductPromotion,
     Promotion,
     Subcategory,
     Tag,
@@ -279,11 +280,6 @@ class ProductCreateSerializer(ProductSerializer):
 class ProductUpdateSerializer(ProductCreateSerializer):
     """Serializer for updating products."""
 
-    PROMOTIONS_ERROR_MESSAGE = (
-        "The number of promotions for one product "
-        f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-    )
-
     promotions = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Promotion.objects.all()
     )
@@ -315,7 +311,9 @@ class ProductUpdateSerializer(ProductCreateSerializer):
     def validate_promotions(self, value):
         """Checks the number of promotions that apply to a product."""
         if len(value) > MAX_PROMOTIONS_NUMBER:
-            raise serializers.ValidationError(self.PROMOTIONS_ERROR_MESSAGE)
+            raise serializers.ValidationError(
+                ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
+            )
         return value
 
 

@@ -1,7 +1,8 @@
 import pytest
 from django.urls import reverse
 
-from products.models import Product
+from api.mixins import MESSAGE_ON_DELETE
+from products.models import Product, ProductPromotion
 from tests.fixtures import (
     PRODUCT_AMOUNT_1,
     PRODUCT_NAME_1,
@@ -806,5 +807,63 @@ def test_edit_product_fail_carbohydrates_validation(auth_admin, products):
     assert response.data["errors"][0]["attr"] == "carbohydrates"
 
 
-# TODO: test edit promotions validation - max number, non existent, duplicates
-# TODO: test product delete
+@pytest.mark.django_db
+def test_edit_product_fail_too_much_promotions(auth_admin, products, promotions):
+    payload = {"promotions": [promotions[0].pk, promotions[1].pk]}
+    response = auth_admin.patch(
+        reverse("api:product-detail", kwargs={"pk": products[0].pk}), payload
+    )
+
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert (
+        response.data["errors"][0]["detail"]
+        == ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
+    )
+    assert response.data["errors"][0]["attr"] == "promotions"
+
+
+@pytest.mark.django_db
+def test_edit_product_fail_non_existent_promotions(auth_admin, products):
+    payload = {"promotions": [TEST_NUMBER]}
+    response = auth_admin.patch(
+        reverse("api:product-detail", kwargs={"pk": products[0].pk}), payload
+    )
+
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "does_not_exist"
+    assert response.data["errors"][0]["attr"] == "promotions"
+
+
+@pytest.mark.django_db
+def test_delete_product(auth_admin, products):
+    response = auth_admin.delete(
+        reverse("api:product-detail", kwargs={"pk": products[0].pk})
+    )
+
+    assert response.status_code == 200
+    assert response.data["Success"] == MESSAGE_ON_DELETE
+
+
+@pytest.mark.django_db
+def test_delete_product_fail_if_not_admin(auth_client, products):
+    response = auth_client.delete(
+        reverse("api:product-detail", kwargs={"pk": products[0].pk})
+    )
+
+    assert response.status_code == 403
+    assert response.data["type"] == "client_error"
+    assert response.data["errors"][0]["code"] == "permission_denied"
+
+
+@pytest.mark.django_db
+def test_delete_product_fail_if_not_authenticated(client, products):
+    response = client.delete(
+        reverse("api:product-detail", kwargs={"pk": products[0].pk})
+    )
+
+    assert response.status_code == 401
+    assert response.data["type"] == "client_error"
+    assert response.data["errors"][0]["code"] == "not_authenticated"
