@@ -15,10 +15,10 @@ from rest_framework.viewsets import GenericViewSet
 
 from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
-    OrderCreateSerializer,
+    OrderCreateAnonSerializer,
+    OrderCreateAuthSerializer,
     OrderGetAnonSerializer,
     OrderGetAuthSerializer,
-    OrderSerializer,
     ShoppingCartSerializer,
 )
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
@@ -167,7 +167,7 @@ class ShoppingCartViewSet(
         operation_summary="Create order",
         operation_description="Creates an order of a user (authorized only)",
         responses={
-            201: OrderCreateSerializer,
+            201: OrderCreateAuthSerializer,
             400: ValidationErrorResponseSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
@@ -207,8 +207,8 @@ class OrderViewSet(
                 return OrderGetAuthSerializer
             return OrderGetAnonSerializer
         if self.request.user.is_authenticated:
-            return OrderCreateSerializer
-        return OrderSerializer
+            return OrderCreateAuthSerializer
+        return OrderCreateAnonSerializer
 
     def get_queryset(self):
         if self.request.user.is_authenticated or self.request.user.is_staff:
@@ -236,6 +236,7 @@ class OrderViewSet(
         serializer = self.get_serializer(shopping_data, request.data)
         serializer.is_valid(raise_exception=True)
         comment = None
+        package = 0
         address = None
         user = None
         user_data = None
@@ -247,8 +248,11 @@ class OrderViewSet(
             user_data = request.data["user_data"]
         if "comment" in request.data:
             comment = request.data["comment"]
+        if "package" in request.data:
+            package = request.data["package"]
+
         if "address" in request.data and self.request.user.is_authenticated:
-            address = Address.objects.get(address=request.data["address"])
+            address = Address.objects.get(id=request.data["address"])
         elif "address" in request.data:
             address_anonymous = request.data["address"]
         if "delivery_point" in request.data:
@@ -260,11 +264,11 @@ class OrderViewSet(
             payment_method=request.data["payment_method"],
             delivery_method=request.data["delivery_method"],
             delivery_point=delivery,
-            package=request.data["package"],
+            package=package,
             comment=comment,
             address=address,
             address_anonymous=address_anonymous,
-            total_price=shopping_data["total_price"]
+            total_price=shopping_data["total_price"] + int(package)
         )
 
         products = [
@@ -279,7 +283,7 @@ class OrderViewSet(
         order.order_number = order.id
         order.save()
         shopping_cart.clear()
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
