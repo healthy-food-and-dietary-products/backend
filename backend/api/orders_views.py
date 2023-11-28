@@ -19,6 +19,7 @@ from .orders_serializers import (
     OrderPostDeleteSerializer,
     ShoppingCartSerializer,
 )
+from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.orders import NewOrder
 from orders.shopping_carts import ShopCart
@@ -59,7 +60,7 @@ from products.models import Product
         operation_summary="Delete shopping cart",
         operation_description="Deletes a shopping cart by its id (authorized only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -115,10 +116,13 @@ class ShoppingCartViewSet(
             )
         product_id = int(self.kwargs["pk"])
         products = [
-            product["product_id"] for product in shopping_cart.get_shop_products()]
+            product["product_id"] for product in shopping_cart.get_shop_products()
+        ]
         if product_id not in products:
-            return Response({"errors": "Такого товара нет в корзине!"},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"errors": "Такого товара нет в корзине!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         shopping_cart.remove(product_id)
         return Response(
             {
@@ -178,7 +182,7 @@ class ShoppingCartViewSet(
         operation_summary="Delete order",
         operation_description="Deletes an order by its id (authorized only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,

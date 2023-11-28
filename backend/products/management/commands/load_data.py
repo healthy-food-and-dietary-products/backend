@@ -2,6 +2,7 @@ import os
 from csv import DictReader
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from good_food.settings import BASE_DIR
 from orders.models import Delivery
@@ -108,6 +109,7 @@ def read_products():
                 id=row["id"],
                 name=row["name"],
                 description=row["description"],
+                creation_time=timezone.now(),
                 category_id=row["category_id"],
                 subcategory_id=row["subcategory_id"],
                 producer_id=row["producer_id"],
