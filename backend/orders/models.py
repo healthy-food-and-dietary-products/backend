@@ -143,6 +143,11 @@ class Order(models.Model):
         null=True,
         verbose_name="Anonimus user's data"
     )
+    total_price = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name="Order's total_price"
+    )
 
     class Meta:
         ordering = ["-ordering_date"]
