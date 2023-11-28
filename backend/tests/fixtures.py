@@ -18,6 +18,8 @@ TEST_NAME = "Test"
 TEST_SLUG = "test"
 TEST_ADDRESS = "test address"
 TEST_TIME = "2023-11-26T10:27:08"
+TEST_NUMBER = 275
+TEST_TEXT = "Some text"
 
 INVALID_SLUG = "te st"
 INVALID_SLUG_MESSAGE = (
