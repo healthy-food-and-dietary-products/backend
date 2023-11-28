@@ -59,13 +59,15 @@ class OrderProductSerializer(serializers.ModelSerializer):
         fields = ("id", "quantity")
 
     def validate(self, attrs):
+        quantity_error_message = ("Укажите количество товара.")
+        product_error_message = ("У нас нет таких продуктов. "
+                                 "Выберете из представленных.")
         if attrs["quantity"] < 1 or None:
-            raise serializers.ValidationError("Укажите количество товара.")
+            raise serializers.ValidationError(quantity_error_message)
 
         if not Product.objects.filter(id=attrs["id"]).exists():
-            raise serializers.ValidationError(
-                "У нас нет таких продуктов. Выберете из представленных."
-            )
+            raise serializers.ValidationError(product_error_message)
+
         return attrs
 
 
@@ -82,32 +84,20 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class OrderListSerializer(serializers.ModelSerializer):
     """Serializer for order representation."""
 
-    products = OrderProductSerializer(many=True)
+    # products = OrderProductListSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
     total_price = serializers.SerializerMethodField()
     address = serializers.StringRelatedField()
     delivery_point = serializers.StringRelatedField()
-    order_number = serializers.SerializerMethodField()
+    # order_number = serializers.SerializerMethodField()
 
     @extend_schema_field(int)
     def get_order_number(self, obj):
-        return obj.shopping_cart.id
+        return obj.id
 
     @extend_schema_field(float)
     def get_total_price(self, obj):
-        return (
-            round(
-                sum(
-                    [
-                        (float(Product.objects.get(id=product["id"]).final_price))
-                        * int(product["quantity"])
-                        for product in obj.products
-                    ]
-                ),
-                2,
-            )
-            + obj.package
-        )
+        return obj.total_price
 
     class Meta:
         fields = (
@@ -128,16 +118,18 @@ class OrderListSerializer(serializers.ModelSerializer):
         )
         model = Order
 
-    def get_queryset(self):
-        return Order.objects.filter(user=self.get_user())
+    # def get_queryset(self):
+    #     return Order.objects.filter(user=self.get_user())
 
 
 class OrderPostDeleteSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/delete order."""
+    """Serializer for create/delete authorized order."""
 
     class Meta:
         model = Order
         fields = (
+            "user",
+            "order_number",
             "products",
             "payment_method",
             "delivery_method",
@@ -147,8 +139,83 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    # TODO: allow to create new address during order creation
-    # TODO: if user chooses existing address, check that it is his/her address
+    def validate_address(self, address):
+        """Checks that the user has not entered someone else's address."""
+        error_message = (
+            "Данный адрес доставки принадлежит другому пользователю.")
+        if address.user != self.context["request"].user:
+            raise serializers.ValidationError(error_message)
+        return address
+
+    def validate(self, attrs):
+        """Checks that the payment method matches the delivery method."""
+        no_match_error_message = (
+            "Способ получения заказа не соответствует способу оплаты."
+        )
+        if (
+            attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
+            and attrs["delivery_method"] == Order.COURIER
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+        if (
+            attrs["payment_method"] == Order.COURIER_CASH_PAYMENT
+            and attrs["delivery_method"] == Order.DELIVERY_POINT
+        ):
+            raise serializers.ValidationError(no_match_error_message)
+
+        return super().validate(attrs)
+
+    # def to_representation(self, instance):
+    #     return OrderListSerializer(instance, context=self.context).data
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for create/delete anonim order."""
+
+    class Meta:
+        model = Order
+        fields = (
+            "order_number",
+            "user_data",
+            "products",
+            "payment_method",
+            "delivery_method",
+            "delivery_point",
+            "package",
+            "comment",
+            "address_anonymous",
+        )
+
+    def validate_user_data(self, obj):
+        """Checks user_data in order."""
+        error_first_name = ("Необходимо указать контактные данные, "
+                            "укажите имя!")
+        error_last_name = ("Необходимо указать контактные данные, "
+                           "укажите фамилию!")
+        error_phone_number = ("Необходимо указать контактные данные, "
+                              "укажите номер телефона!")
+        error_email = ("Необходимо указать контактные данные, "
+                       "укажите email!")
+        user_data = obj.split(",")
+        for data in user_data:
+            data = data.split(":")
+            if "first_name" not in data[0] and not data[1]:
+                raise serializers.ValidationError(error_first_name)
+            if "last_name" not in data[0] and not data[1]:
+                raise serializers.ValidationError(error_last_name)
+            if "phone_number" not in data[0] and not data[1]:
+                raise serializers.ValidationError(error_phone_number)
+            if "email" not in data[0] and not data[1]:
+                raise serializers.ValidationError(error_email)
+        return obj
+
+    def validate_address_anonymous(self, obj):
+        """Checks that the user has address when order by courier."""
+        error_message = ("При выборе способа доставки курьером, "
+                         "необходимо указать адрес доставки!")
+        if not obj.address and obj.delivery_method == Order.COURIER:
+            raise serializers.ValidationError(error_message)
+        return obj
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
