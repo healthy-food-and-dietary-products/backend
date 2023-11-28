@@ -9,7 +9,7 @@ from users.models import User
 
 class UserPresentSerializer(UserSerializer):
     class Meta:
-        fields = ("username", "first_name", "last_name")
+        fields = ("username", "first_name", "last_name", "phone_number")
         model = User
 
 
@@ -17,9 +17,9 @@ class OrderProductListSerializer(serializers.ModelSerializer):
     """Serializer products in shopping_cart."""
 
     id = serializers.ReadOnlyField(source="product.id")
-    name = serializers.ReadOnlyField(source="product.name")
-    measure_unit = serializers.ReadOnlyField(source="product.measure_unit")
-    amount = serializers.ReadOnlyField(source="product.amount")
+    name = serializers.SerializerMethodField()
+    measure_unit = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
     price = serializers.ReadOnlyField(source="product.price")
     final_price = serializers.SerializerMethodField()
     is_favorited_by_user = serializers.SerializerMethodField()
@@ -40,12 +40,25 @@ class OrderProductListSerializer(serializers.ModelSerializer):
     @extend_schema_field(bool)
     def get_is_favorited_by_user(self, obj):
         """Checks if this product is in the buyer's favorites."""
-
-        return bool(obj.shopping_cart.user.favorites.filter(product=obj.product))
+        # if self.user.is_authenticated:
+        #     return bool(obj.order.user.favorites.filter(product=obj.product))
+        return False
 
     @extend_schema_field(float)
     def get_final_price(self, obj):
-        return obj.product.final_price
+        return obj.final_price
+
+    @extend_schema_field(str)
+    def get_name(self, obj):
+        return obj.name
+
+    @extend_schema_field(str)
+    def get_measure_unit(self, obj):
+        return obj.measure_unit
+
+    @extend_schema_field(int)
+    def get_amount(self, obj):
+        return obj.amount
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
@@ -81,49 +94,63 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         model = OrderProduct
 
 
-class OrderListSerializer(serializers.ModelSerializer):
-    """Serializer for order representation."""
+class OrderGetAuthSerializer(serializers.ModelSerializer):
+    """Serializer for authorized user order representation."""
 
-    # products = OrderProductListSerializer(many=True)
+    products = OrderProductListSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
-    total_price = serializers.SerializerMethodField()
-    address = serializers.StringRelatedField()
-    delivery_point = serializers.StringRelatedField()
-    # order_number = serializers.SerializerMethodField()
-
-    @extend_schema_field(int)
-    def get_order_number(self, obj):
-        return obj.id
-
-    @extend_schema_field(float)
-    def get_total_price(self, obj):
-        return obj.total_price
 
     class Meta:
         fields = (
             "id",
+            "order_number",
             "user",
             "products",
-            "order_number",
-            "ordering_date",
-            "status",
             "payment_method",
-            "is_paid",
             "delivery_method",
             "address",
             "delivery_point",
             "package",
             "comment",
             "total_price",
+            "is_paid",
+            "status",
+            "ordering_date",
         )
         model = Order
 
-    # def get_queryset(self):
-    #     return Order.objects.filter(user=self.get_user())
+
+class OrderGetAnonSerializer(serializers.ModelSerializer):
+    """Serializer for anonimous user order representation."""
+
+    products = OrderProductListSerializer(many=True)
+    user = serializers.SerializerMethodField()
+
+    def get_user(self, obj):
+        return obj.user_data
+
+    class Meta:
+        fields = (
+            "id",
+            "order_number",
+            "user",
+            "products",
+            "payment_method",
+            "delivery_method",
+            "address",
+            "delivery_point",
+            "package",
+            "comment",
+            "total_price",
+            "is_paid",
+            "status",
+            "ordering_date",
+        )
+        model = Order
 
 
-class OrderPostDeleteSerializer(serializers.ModelSerializer):
-    """Serializer for create/delete authorized order."""
+class OrderCreateSerializer(serializers.ModelSerializer):
+    """Serializer for create authorized order."""
 
     class Meta:
         model = Order
@@ -147,6 +174,12 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error_message)
         return address
 
+    def validate_user(self, obj):
+        error_message = ("Добавьте номер телефона в поле user_data")
+        user_data = obj.split(",")
+        if not self.user.phone_number and not user_data:
+            raise serializers.ValidationError(error_message)
+
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
@@ -165,8 +198,8 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-    # def to_representation(self, instance):
-    #     return OrderListSerializer(instance, context=self.context).data
+    def to_representation(self, instance):
+        return OrderGetAuthSerializer(instance, context=self.context).data
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -209,19 +242,15 @@ class OrderSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(error_email)
         return obj
 
-    def validate_address_anonymous(self, obj):
-        """Checks that the user has address when order by courier."""
-        error_message = ("При выборе способа доставки курьером, "
-                         "необходимо указать адрес доставки!")
-        if not obj.address and obj.delivery_method == Order.COURIER:
-            raise serializers.ValidationError(error_message)
-        return obj
-
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
             "Способ получения заказа не соответствует способу оплаты."
         )
+        error_message = ("При выборе способа доставки курьером, "
+                         "необходимо указать адрес доставки!")
+        if not attrs["address_anonymous"] and attrs["delivery_method"] == Order.COURIER:
+            raise serializers.ValidationError(error_message)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
@@ -234,3 +263,7 @@ class OrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(no_match_error_message)
 
         return super().validate(attrs)
+
+    def to_representation(self, instance):
+        print(instance, self.context.data, "represent")
+        return OrderGetAnonSerializer(instance, context=self.context).data
