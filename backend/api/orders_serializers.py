@@ -13,54 +13,6 @@ class UserPresentSerializer(UserSerializer):
         model = User
 
 
-class OrderProductListSerializer(serializers.ModelSerializer):
-    """Serializer products in shopping_cart."""
-
-    id = serializers.ReadOnlyField(source="product.id")
-    name = serializers.SerializerMethodField()
-    measure_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField()
-    price = serializers.ReadOnlyField(source="product.price")
-    final_price = serializers.SerializerMethodField()
-    is_favorited_by_user = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OrderProduct
-        fields = (
-            "id",
-            "name",
-            "measure_unit",
-            "price",
-            "final_price",
-            "amount",
-            "quantity",
-            "is_favorited_by_user",
-        )
-
-    @extend_schema_field(bool)
-    def get_is_favorited_by_user(self, obj):
-        """Checks if this product is in the buyer's favorites."""
-        # if self.user.is_authenticated:
-        #     return bool(obj.order.user.favorites.filter(product=obj.product))
-        return False
-
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
-        return obj.final_price
-
-    @extend_schema_field(str)
-    def get_name(self, obj):
-        return obj.name
-
-    @extend_schema_field(str)
-    def get_measure_unit(self, obj):
-        return obj.measure_unit
-
-    @extend_schema_field(int)
-    def get_amount(self, obj):
-        return obj.amount
-
-
 class OrderProductSerializer(serializers.ModelSerializer):
     """Serializer for add/update/delete products into shopping_cart."""
 
@@ -82,6 +34,42 @@ class OrderProductSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(product_error_message)
 
         return attrs
+
+
+class OrderProductListSerializer(serializers.ModelSerializer):
+    """Serializer products in order."""
+
+    name = serializers.SerializerMethodField()
+    measure_unit = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField()
+    final_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderProduct
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "quantity",
+            "final_price",
+        )
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
+
+    @extend_schema_field(str)
+    def get_name(self, obj):
+        return obj.name
+
+    @extend_schema_field(str)
+    def get_measure_unit(self, obj):
+        return obj.measure_unit
+
+    @extend_schema_field(int)
+    def get_amount(self, obj):
+        return obj.amount
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -124,20 +112,16 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
     products = OrderProductListSerializer(many=True)
-    user = serializers.SerializerMethodField()
-
-    def get_user(self, obj):
-        return obj.user_data
 
     class Meta:
         fields = (
             "id",
             "order_number",
-            "user",
+            "user_data",
             "products",
             "payment_method",
             "delivery_method",
-            "address",
+            "address_anonymous",
             "delivery_point",
             "package",
             "comment",
@@ -149,15 +133,17 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
         model = Order
 
 
-class OrderCreateSerializer(serializers.ModelSerializer):
+class OrderCreateAuthSerializer(serializers.ModelSerializer):
     """Serializer for create authorized order."""
+
+    user = UserPresentSerializer(read_only=True)
+    address = serializers.ReadOnlyField(source='user.address')
 
     class Meta:
         model = Order
         fields = (
             "user",
             "order_number",
-            "products",
             "payment_method",
             "delivery_method",
             "delivery_point",
@@ -166,25 +152,18 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "address",
         )
 
-    def validate_address(self, address):
-        """Checks that the user has not entered someone else's address."""
-        error_message = (
-            "Данный адрес доставки принадлежит другому пользователю.")
-        if address.user != self.context["request"].user:
+    def validate_user(self, user):
+        error_message = ("Добавьте номер телефона.")
+        if not user.phone_number:
             raise serializers.ValidationError(error_message)
-        return address
-
-    def validate_user(self, obj):
-        error_message = ("Добавьте номер телефона в поле user_data")
-        user_data = obj.split(",")
-        if not self.user.phone_number and not user_data:
-            raise serializers.ValidationError(error_message)
+        return user
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
             "Способ получения заказа не соответствует способу оплаты."
         )
+        error_message = ("Укажите адрес доставки!")
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
@@ -195,14 +174,16 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(no_match_error_message)
+        if attrs["delivery_method"] == Order.COURIER and Order.address is None:
+            raise serializers.ValidationError(error_message)
 
         return super().validate(attrs)
 
-    def to_representation(self, instance):
-        return OrderGetAuthSerializer(instance, context=self.context).data
+    # def to_representation(self, instance):
+    #     return OrderGetAuthSerializer(instance, context=self.context).data
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderCreateAnonSerializer(serializers.ModelSerializer):
     """Serializer for create/delete anonim order."""
 
     class Meta:
@@ -210,7 +191,6 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             "order_number",
             "user_data",
-            "products",
             "payment_method",
             "delivery_method",
             "delivery_point",
@@ -264,6 +244,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-    def to_representation(self, instance):
-        print(instance, self.context.data, "represent")
-        return OrderGetAnonSerializer(instance, context=self.context).data
+    # def to_representation(self, instance):
+    #     return OrderGetAnonSerializer(instance, context=self.context).data
