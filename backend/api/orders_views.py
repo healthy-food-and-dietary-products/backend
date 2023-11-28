@@ -15,8 +15,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from .mixins import DestroyWithPayloadMixin
 from .orders_serializers import (
-    OrderListSerializer,
-    OrderPostDeleteSerializer,
+    OrderCreateSerializer,
+    OrderGetAnonSerializer,
+    OrderGetAuthSerializer,
     OrderSerializer,
     ShoppingCartSerializer,
 )
@@ -139,7 +140,7 @@ class ShoppingCartViewSet(
             "Returns a list of all the orders of a user (admin or authorized user)"
         ),
         responses={
-            200: OrderListSerializer,
+            200: OrderGetAuthSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
         },
@@ -153,7 +154,7 @@ class ShoppingCartViewSet(
             "Retrieves an order of a user by its id (admin or authorized user)"
         ),
         responses={
-            200: OrderListSerializer,
+            200: OrderGetAuthSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -166,7 +167,7 @@ class ShoppingCartViewSet(
         operation_summary="Create order",
         operation_description="Creates an order of a user (authorized only)",
         responses={
-            201: OrderPostDeleteSerializer,
+            201: OrderCreateSerializer,
             400: ValidationErrorResponseSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
@@ -199,31 +200,25 @@ class OrderViewSet(
     http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
     permission_classes = [AllowAny]
-    serializer_class = OrderPostDeleteSerializer
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
-            return OrderListSerializer
+            if self.request.user.is_authenticated:
+                return OrderGetAuthSerializer
+            return OrderGetAnonSerializer
         if self.request.user.is_authenticated:
-            return OrderPostDeleteSerializer
+            return OrderCreateSerializer
         return OrderSerializer
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.is_staff:
-    #         return self.get_user().orders.all()
-    #     return self.request.user.orders.all()
-
-    def list(self, request, **kwargs):
-        serializer = self.get_serializer()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        if self.request.user.is_authenticated or self.request.user.is_staff:
+            return self.request.user.orders.all()
+        return Response({"errors": "Чтобы посмотреть заказ, укажите номер"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, **kwargs):
-        if self.request.user.is_authenticated:
-            return self.request.user.orders
         order = Order.objects.get(id=self.kwargs.get("pk"))
         serializer = self.get_serializer(order)
-        print(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
@@ -256,8 +251,8 @@ class OrderViewSet(
             address = Address.objects.get(address=request.data["address"])
         elif "address" in request.data:
             address_anonymous = request.data["address"]
-        if "delivery" in request.data:
-            delivery = Delivery.objects.get(id=request.data.get("delivery_point"))
+        if "delivery_point" in request.data:
+            delivery = Delivery.objects.get(id=request.data["delivery_point"])
         order = Order.objects.create(
             user=user,
             user_data=user_data,
@@ -268,7 +263,8 @@ class OrderViewSet(
             package=request.data["package"],
             comment=comment,
             address=address,
-            address_anonymous=address_anonymous
+            address_anonymous=address_anonymous,
+            total_price=shopping_data["total_price"]
         )
 
         products = [
@@ -281,8 +277,9 @@ class OrderViewSet(
         ]
         Order.products = products
         order.order_number = order.id
+        order.save()
         shopping_cart.clear()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
@@ -303,7 +300,7 @@ class OrderViewSet(
             return Response(
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
-        serializer_data = self.get_serializer(order).data
-        serializer_data["Success"] = "This object was successfully deleted"
+        # serializer_data = self.get_serializer(order).data
+        # serializer_data["Success"] = "This object was successfully deleted"
         order.delete()
-        return Response(serializer_data, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
