@@ -588,7 +588,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             "Adds a product to a user's favorites (authorized user only)"
         ),
         responses={
-            201: FavoriteProductCreateSerializer,
+            201: FavoriteProductSerializer,
             400: '{"errors": "' + DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
@@ -643,6 +643,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             200: FavoriteProductSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
         },
     ),
 )

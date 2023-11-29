@@ -6,6 +6,7 @@ from orders.models import Delivery, ShoppingCart
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
@@ -253,6 +254,13 @@ def products(subcategories, components, producers):
     )
     cucumbers.components.set(components[1:2])
     return Product.objects.all()
+
+
+@pytest.fixture
+def favorites(user, products):
+    FavoriteProduct.objects.create(user=user, product=products[0])
+    FavoriteProduct.objects.create(user=user, product=products[1])
+    return FavoriteProduct.objects.all()
 
 
 @pytest.fixture
