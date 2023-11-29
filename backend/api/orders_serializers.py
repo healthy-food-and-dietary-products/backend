@@ -82,6 +82,8 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         if isinstance(obj, dict):
             product = Product.objects.get(id=obj["id"])
             return product.measure_unit
+        if isinstance(obj, OrderProduct):
+            return obj.product.measure_unit
         return obj.measure_unit
 
     @extend_schema_field(int)
