@@ -274,7 +274,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "При выборе способа доставки курьером, "
             "необходимо указать адрес доставки!"
         )
-        if not attrs["address_anonymous"] and attrs["delivery_method"] == Order.COURIER:
+        if attrs["delivery_method"] == Order.COURIER and not attrs["address_anonymous"]:
             raise serializers.ValidationError(error_message)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
