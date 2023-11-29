@@ -357,6 +357,11 @@ class FavoriteProduct(models.Model):
 class ProductPromotion(models.Model):
     """Describes connections between products and promotions."""
 
+    MAX_PROMOTIONS_ERROR_MESSAGE = (
+        "The number of promotions for one product "
+        f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+    )
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE)
 
@@ -378,17 +383,11 @@ class ProductPromotion(models.Model):
 def check_promotion_quantity_after_product_save(sender, instance, **kwargs):
     """Checks promotion quantity of a product after product save."""
     if instance.promotions.count() > MAX_PROMOTIONS_NUMBER:
-        raise ValidationError(
-            "The number of promotions for one product "
-            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-        )
+        raise ValidationError(ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE)
 
 
 @receiver(models.signals.post_save, sender=ProductPromotion)
 def check_promotion_quantity_after_product_promotion_save(sender, instance, **kwargs):
     """Checks promotion quantity of a product after product_promotion save."""
     if instance.product.promotions.count() > MAX_PROMOTIONS_NUMBER:
-        raise ValidationError(
-            "The number of promotions for one product "
-            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-        )
+        raise ValidationError(ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE)
