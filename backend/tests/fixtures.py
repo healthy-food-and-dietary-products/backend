@@ -6,6 +6,7 @@ from orders.models import Delivery, ShoppingCart
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
@@ -18,6 +19,8 @@ TEST_NAME = "Test"
 TEST_SLUG = "test"
 TEST_ADDRESS = "test address"
 TEST_TIME = "2023-11-26T10:27:08"
+TEST_NUMBER = 275
+TEST_TEXT = "Some text"
 
 INVALID_SLUG = "te st"
 INVALID_SLUG_MESSAGE = (
@@ -251,6 +254,13 @@ def products(subcategories, components, producers):
     )
     cucumbers.components.set(components[1:2])
     return Product.objects.all()
+
+
+@pytest.fixture
+def favorites(user, products):
+    FavoriteProduct.objects.create(user=user, product=products[0])
+    FavoriteProduct.objects.create(user=user, product=products[1])
+    return FavoriteProduct.objects.all()
 
 
 @pytest.fixture
