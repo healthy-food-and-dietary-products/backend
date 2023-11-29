@@ -1,3 +1,5 @@
+import re
+
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -5,6 +7,9 @@ from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
 from users.models import User
+
+# EMAIL_REGEX = r"\S+@\S+\.\S+$/"
+PHONE_NUMBER_REGEX = r"^(\+7|7|8)\d{10}$"
 
 
 class UserPresentSerializer(UserSerializer):
@@ -43,6 +48,7 @@ class OrderProductListSerializer(serializers.ModelSerializer):
     measure_unit = serializers.SerializerMethodField()
     amount = serializers.SerializerMethodField()
     final_price = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderProduct
@@ -57,19 +63,38 @@ class OrderProductListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(float)
     def get_final_price(self, obj):
+        if isinstance(obj, dict):
+            product = Product.objects.get(id=obj["id"])
+            return product.final_price
         return obj.final_price
 
     @extend_schema_field(str)
     def get_name(self, obj):
+        if isinstance(obj, dict):
+            return obj["name"]
+        if isinstance(obj, OrderProduct):
+            return obj.product.name
         return obj.name
 
     @extend_schema_field(str)
     def get_measure_unit(self, obj):
+        if isinstance(obj, dict):
+            product = Product.objects.get(id=obj["id"])
+            return product.measure_unit
         return obj.measure_unit
 
     @extend_schema_field(int)
     def get_amount(self, obj):
+        if isinstance(obj, dict):
+            product = Product.objects.get(id=obj["id"])
+            return product.amount
         return obj.amount
+
+    @extend_schema_field(int)
+    def get_quantity(self, obj):
+        if isinstance(obj, dict):
+            return obj["quantity"]
+        return None
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -136,9 +161,6 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
 class OrderCreateAuthSerializer(serializers.ModelSerializer):
     """Serializer for create authorized order."""
 
-    user = UserPresentSerializer(read_only=True)
-    address = serializers.ReadOnlyField(source='user.address')
-
     class Meta:
         model = Order
         fields = (
@@ -157,6 +179,12 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         if not user.phone_number:
             raise serializers.ValidationError(error_message)
         return user
+
+    def get_address(self, obj):
+        error_message = ("Добавьте адрес доставки.")
+        if not obj.user.address:
+            raise serializers.ValidationError(error_message)
+        return obj.user.address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
@@ -179,8 +207,8 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-    # def to_representation(self, instance):
-    #     return OrderGetAuthSerializer(instance, context=self.context).data
+    def to_representation(self, instance):
+        return OrderGetAuthSerializer(instance, context=self.context).data
 
 
 class OrderCreateAnonSerializer(serializers.ModelSerializer):
@@ -199,7 +227,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "address_anonymous",
         )
 
-    def validate_user_data(self, obj):
+    def validate_user_data(self, user_data):
         """Checks user_data in order."""
         error_first_name = ("Необходимо указать контактные данные, "
                             "укажите имя!")
@@ -209,18 +237,31 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
                               "укажите номер телефона!")
         error_email = ("Необходимо указать контактные данные, "
                        "укажите email!")
-        user_data = obj.split(",")
-        for data in user_data:
-            data = data.split(":")
-            if "first_name" not in data[0] and not data[1]:
+        validate_phone_error_message = (
+            "Введен некорректный номер телефона. "
+            "Введите номер телефона в форматах "
+            "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.")
+        # validate_email_error_message = ("Проверьте корректность написания "
+        #                                 "электронной почты.")
+
+        u_data = user_data.split(",")
+        for data in u_data:
+            data = data.strip().split(":")
+            if data[0] == "first_name" and not data[1]:
                 raise serializers.ValidationError(error_first_name)
-            if "last_name" not in data[0] and not data[1]:
+            if data[0] == "last_name" and not data[1]:
                 raise serializers.ValidationError(error_last_name)
-            if "phone_number" not in data[0] and not data[1]:
-                raise serializers.ValidationError(error_phone_number)
-            if "email" not in data[0] and not data[1]:
-                raise serializers.ValidationError(error_email)
-        return obj
+            if data[0] == "phone_number":
+                if not data[1]:
+                    raise serializers.ValidationError(error_phone_number)
+                if not re.match(PHONE_NUMBER_REGEX, data[1].strip()):
+                    raise serializers.ValidationError(validate_phone_error_message)
+            if data[0] == "email":
+                if not data[1]:
+                    raise serializers.ValidationError(error_email)
+                # if not re.match(EMAIL_REGEX, data[1].strip()):
+                #     raise serializers.ValidationError(validate_email_error_message)
+        return user_data
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
@@ -244,5 +285,5 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-    # def to_representation(self, instance):
-    #     return OrderGetAnonSerializer(instance, context=self.context).data
+    def to_representation(self, instance):
+        return OrderGetAnonSerializer(instance, context=self.context).data
