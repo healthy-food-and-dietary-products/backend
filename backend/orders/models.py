@@ -132,21 +132,13 @@ class Order(models.Model):
         verbose_name="Delivery Point",
     )
     address_anonymous = models.CharField(
-        max_length=450,
-        blank=True,
-        null=True,
-        verbose_name="Anonimus user's address"
+        max_length=450, blank=True, null=True, verbose_name="Anonimus user's address"
     )
     user_data = models.CharField(
-        max_length=450,
-        blank=True,
-        null=True,
-        verbose_name="Anonimus user's data"
+        max_length=450, blank=True, null=True, verbose_name="Anonimus user's data"
     )
     total_price = models.FloatField(
-        blank=True,
-        null=True,
-        verbose_name="Order's total_price"
+        blank=True, null=True, verbose_name="Order's total_price"
     )
 
     class Meta:

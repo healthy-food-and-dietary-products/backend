@@ -9,6 +9,7 @@ from products.models import (
     FavoriteProduct,
     Producer,
     Product,
+    ProductPromotion,
     Promotion,
     Subcategory,
     Tag,
@@ -63,9 +64,12 @@ class CategorySerializer(CategoryLightSerializer):
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
-        top_three_products_queryset = Product.objects.filter(category=obj).order_by(
-            "-orders_number"
-        )[:3]
+        top_three_products_queryset = (
+            Product.objects.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions")
+            .filter(category=obj)
+            .order_by("-orders_number")[:3]
+        )
         return ProductSerializer(top_three_products_queryset, many=True).data
 
 
@@ -90,9 +94,12 @@ class TagSerializer(TagLightSerializer):
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = Product.objects.filter(tags=obj).order_by(
-            "-orders_number"
-        )[:3]
+        top_three_products_queryset = (
+            Product.objects.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions")
+            .filter(tags=obj)
+            .order_by("-orders_number")[:3]
+        )
         return ProductSerializer(top_three_products_queryset, many=True).data
 
 
@@ -158,11 +165,10 @@ class PromotionSerializer(ProducerLightSerializer):
             "end_time",
         )
 
-    # TODO: This error message is not displayed, another error message is displayed
     def validate_discount(self, value):
         """Checks that the discount is between 0 and 100%."""
         if value < 0 or value > 100:
-            raise serializers.ValidationError("Допустимы числа от 0 до 100.")
+            raise serializers.ValidationError(Promotion.INVALID_DISCOUNT_MESSAGE)
         return value
 
 
@@ -228,6 +234,8 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(ProductSerializer):
     """Serializer for creating products."""
 
+    PRICE_ERROR_MESSAGE = "Отрицательная цена недопустима."
+
     category = serializers.PrimaryKeyRelatedField(read_only=True)
     subcategory = serializers.PrimaryKeyRelatedField(queryset=Subcategory.objects.all())
     producer = serializers.PrimaryKeyRelatedField(queryset=Producer.objects.all())
@@ -265,7 +273,7 @@ class ProductCreateSerializer(ProductSerializer):
     def validate_price(self, value):
         """Checks that the price is more or equals to 0."""
         if value < 0:
-            raise serializers.ValidationError("Отрицательная цена недопустима.")
+            raise serializers.ValidationError(self.PRICE_ERROR_MESSAGE)
         return value
 
 
@@ -304,8 +312,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
         """Checks the number of promotions that apply to a product."""
         if len(value) > MAX_PROMOTIONS_NUMBER:
             raise serializers.ValidationError(
-                "The number of promotions for one product "
-                f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+                ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
             )
         return value
 
@@ -314,10 +321,7 @@ class ProductLightSerializer(ProductSerializer):
     """Serializer for products representation in favorite product serializer."""
 
     class Meta(ProductSerializer.Meta):
-        fields = (
-            "name",
-            "producer",
-        )
+        fields = ("name",)
 
 
 class FavoriteProductSerializer(serializers.ModelSerializer):
