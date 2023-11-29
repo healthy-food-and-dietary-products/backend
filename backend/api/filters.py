@@ -52,7 +52,7 @@ class ProductFilter(rf_filters.FilterSet):
         )
 
     def product_boolean_methods(self, queryset, name, value):
-        if not bool(value):
+        if value not in [0, 1]:
             return queryset
         user = self.request.user
         if user.is_anonymous:
