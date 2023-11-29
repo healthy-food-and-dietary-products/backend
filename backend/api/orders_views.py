@@ -26,45 +26,34 @@ from orders.shopping_carts import ShopCart
 from products.models import Product
 
 
-@method_decorator(  # TODO: Response codes may be changed significantly
+@method_decorator(
     name="list",
     decorator=swagger_auto_schema(
-        operation_summary="List all shopping carts",
-        operation_description=(
-            "Returns a list of all the shopping carts of a user "
-            "(admin or authorized user)"
-        ),
-        responses={
-            200: ShoppingCartSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-        },
+        operation_summary="Retrieve a shopping cart",
+        operation_description="Returns a shopping cart of a user via session",
+        responses={200: "List of products in the cart, quantity and total price"},
     ),
 )
 @method_decorator(
     name="create",
     decorator=swagger_auto_schema(
-        operation_summary="Create shopping cart",
-        operation_description="Creates a shopping cart of a user (authorized only)",
+        operation_summary="Post and edit products in a shopping cart",
+        operation_description=(
+            "Adds new products to the shopping cart or edits the number of products "
+            "already in the shopping cart (zero is not allowed)"
+        ),
         responses={
-            201: ShoppingCartSerializer,
+            201: "List of products in the cart, quantity and total price",
             400: ValidationErrorResponseSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
         },
     ),
 )
 @method_decorator(
     name="destroy",
     decorator=swagger_auto_schema(
-        operation_summary="Delete shopping cart",
-        operation_description="Deletes a shopping cart by its id (authorized only)",
-        responses={
-            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
-        },
+        operation_summary="Remove product from shopping cart",
+        operation_description="Removes a product from the shopping cart using its id",
+        responses={205: "No response body", 404: ErrorResponse404Serializer},
     ),
 )
 class ShoppingCartViewSet(
