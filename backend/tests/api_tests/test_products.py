@@ -12,8 +12,6 @@ from tests.fixtures import (
     TEST_TEXT,
 )
 
-# TODO: test products filters
-
 
 @pytest.mark.django_db
 def test_get_product_list(client, products):
