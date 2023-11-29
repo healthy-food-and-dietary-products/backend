@@ -210,7 +210,7 @@ class OrderViewSet(
         )
 
     def retrieve(self, request, **kwargs):
-        order = Order.objects.get(id=self.kwargs.get("pk"))
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
