@@ -131,8 +131,8 @@ class Order(models.Model):
         null=True,
         verbose_name="Delivery Point",
     )
-    address_anonymous = models.CharField(
-        max_length=450, blank=True, null=True, verbose_name="Anonimus user's address"
+    add_address = models.CharField(
+        max_length=450, blank=True, null=True, verbose_name="Add address"
     )
     user_data = models.CharField(
         max_length=450, blank=True, null=True, verbose_name="Anonimus user's data"
