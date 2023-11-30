@@ -1,23 +1,27 @@
 import os
 from csv import DictReader
+from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 from good_food.settings import BASE_DIR
 from orders.models import Delivery
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
     Subcategory,
     Tag,
 )
-from users.models import User
+from users.models import Address, User
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
 def read_users():
@@ -105,11 +109,18 @@ def read_products():
     with open(os.path.join(DATA_DIR, "products.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
+            if row.get("creation_time"):
+                creation_time = timezone.make_aware(
+                    datetime.strptime(row["creation_time"], DATETIME_FORMAT),
+                    timezone.get_current_timezone(),
+                )
+            else:
+                creation_time = timezone.now()
             product = Product(
                 id=row["id"],
                 name=row["name"],
                 description=row["description"],
-                creation_time=timezone.now(),
+                creation_time=creation_time,
                 category_id=row["category_id"],
                 subcategory_id=row["subcategory_id"],
                 producer_id=row["producer_id"],
@@ -156,6 +167,18 @@ def read_products_promotions():
             product.promotions.add(promotion)
 
 
+def read_favorites():
+    with open(os.path.join(DATA_DIR, "favorites.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            favorite_product = FavoriteProduct(
+                id=row["id"],
+                product_id=row["product_id"],
+                user_id=row["user_id"],
+            )
+            favorite_product.save()
+
+
 def read_delivery_points():
     with open(
         os.path.join(DATA_DIR, "delivery_points.csv"), "r", encoding="utf-8"
@@ -167,6 +190,34 @@ def read_delivery_points():
                 delivery_point=row["delivery_point"],
             )
             delivery_point.save()
+
+
+def read_user_addresses():
+    with open(os.path.join(DATA_DIR, "user_addresses.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            address = Address(
+                id=row["id"],
+                address=row["address"],
+                priority_address=row["priority_address"],
+                user_id=row["user_id"],
+            )
+            address.save()
+
+
+def read_tokens():
+    with open(os.path.join(DATA_DIR, "tokens.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            token = Token(
+                key=row["key"],
+                created=timezone.make_aware(
+                    datetime.strptime(row["created"], DATETIME_FORMAT),
+                    timezone.get_current_timezone(),
+                ),
+                user_id=row["user_id"],
+            )
+            token.save()
 
 
 class Command(BaseCommand):
@@ -193,5 +244,11 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла products_tags.csv загружены")
         read_products_promotions()
         self.stdout.write("Данные из файла products_promotions.csv загружены")
+        read_favorites()
+        self.stdout.write("Данные из файла favorites.csv загружены")
         read_delivery_points()
         self.stdout.write("Данные из файла delivery_points.csv загружены")
+        read_user_addresses()
+        self.stdout.write("Данные из файла user_addresses.csv загружены")
+        read_tokens()
+        self.stdout.write("Данные из файла tokens.csv загружены")
