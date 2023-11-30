@@ -9,6 +9,8 @@ from products.models import Product
 from reviews.models import Review
 
 
+# TODO: Set possible responses for api docs
+# TODO: write tests for reviews and for rating field in product views
 class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for reviews."""
 

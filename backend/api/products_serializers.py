@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -14,6 +15,8 @@ from products.models import (
     Subcategory,
     Tag,
 )
+
+NO_RATING_MESSAGE = "У данного продукта еще нет оценок."
 
 
 class SubcategoryLightSerializer(serializers.ModelSerializer):
@@ -185,6 +188,7 @@ class ProductSerializer(serializers.ModelSerializer):
     promotion_quantity = serializers.SerializerMethodField()
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -205,6 +209,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "promotions",
             "promotion_quantity",
             "photo",
+            "rating",
             "components",
             "kcal",
             "proteins",
@@ -229,6 +234,12 @@ class ProductSerializer(serializers.ModelSerializer):
     @extend_schema_field(float)
     def get_final_price(self, obj):
         return obj.final_price
+
+    def get_rating(self, obj):
+        product_reviews = obj.reviews.all()
+        if product_reviews:
+            return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
+        return NO_RATING_MESSAGE
 
 
 class ProductCreateSerializer(ProductSerializer):
