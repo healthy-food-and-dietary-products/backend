@@ -12,19 +12,21 @@ class Review(models.Model):
         Product,
         on_delete=models.CASCADE,
         related_name="reviews",
-        verbose_name="Review title",
+        verbose_name="Product",
     )
-    text = models.TextField(verbose_name="Review text", blank=True)
+    text = models.TextField(verbose_name="Text", blank=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="reviews",
-        verbose_name="Review author",
+        verbose_name="Author",
     )
     score = models.PositiveSmallIntegerField(
         "Score", validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    pub_date = models.DateTimeField("Publication date", auto_now_add=True)
+    # TODO: if user edit review, pub_date should be updated
+    # (but user can't edit pubdate, it should be updated automaticly on api level)
+    pub_date = models.DateTimeField("Publication Date", auto_now_add=True)
 
     class Meta:
         verbose_name = "Review"
