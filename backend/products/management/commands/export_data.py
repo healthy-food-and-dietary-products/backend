@@ -169,9 +169,6 @@ def export_products_promotions():
             writer.writerow(row)
 
 
-# TODO: for admin user it equals fields is_staff and is_superuser to 0,
-# which makes impossible to enter or perform any actions on Admin panel.
-# We are forced to manually edit these fields to log into the Admin Panel.
 def export_users():
     data = apps.get_model("users", "User")
     field_names = [f.name for f in data._meta.fields]

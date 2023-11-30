@@ -24,9 +24,12 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         "Score", validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    # TODO: if user edit review, pub_date should be updated
-    # (but user can't edit pubdate, it should be updated automaticly on api level)
     pub_date = models.DateTimeField("Publication Date", auto_now_add=True)
+    was_edited = models.BooleanField(
+        "Edited",
+        default=False,
+        help_text="Was this review edited by its author or admin",
+    )
 
     class Meta:
         verbose_name = "Review"

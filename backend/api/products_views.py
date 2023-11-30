@@ -109,7 +109,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Category.objects.prefetch_related("subcategories").all()
+    queryset = Category.objects.prefetch_related("subcategories")
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 

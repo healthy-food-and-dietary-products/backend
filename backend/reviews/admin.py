@@ -7,9 +7,17 @@ from .models import Review
 class ReviewAdmin(admin.ModelAdmin):
     """Class to display product reviews in admin panel."""
 
-    list_display = ["pk", "product", "author", "score", "pub_date", "text"]
-    fields = ["product", "author", "score", "pub_date", "text"]
-    readonly_fields = ["pub_date"]
+    list_display = [
+        "pk",
+        "product",
+        "author",
+        "score",
+        "pub_date",
+        "text",
+        "was_edited",
+    ]
+    fields = ["product", "author", "score", "pub_date", "was_edited", "text"]
+    readonly_fields = ["pub_date", "was_edited"]
     search_fields = ["product", "author", "text"]
-    list_filter = ["score", "pub_date", "product", "author"]
+    list_filter = ["score", "pub_date", "product", "author", "was_edited"]
     ordering = ["pk"]
