@@ -119,7 +119,12 @@ def admin(django_user_model):
 
 @pytest.fixture
 def user():
-    return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
+    return User.objects.create_user(
+        username=USER,
+        email=USER_EMAIL,
+        password=PASSWORD,
+        phone_number=PHONE_NUMBER
+    )
 
 
 @pytest.fixture
@@ -128,6 +133,7 @@ def user1(django_user_model):
         username="Testuser1",
         email="testuser1@good_food.fake",
         password="1234567",
+        phone_number=PHONE_NUMBER
     )
 
 
@@ -294,4 +300,6 @@ def address(user):
 
 @pytest.fixture
 def delivery_points(user):
-    return Delivery.objects.create(delivery_point="Test delivery_point")
+    Delivery.objects.create(delivery_point="Test delivery_point")
+    Delivery.objects.create(delivery_point="Test delivery_point 1")
+    return Delivery.objects.all()
