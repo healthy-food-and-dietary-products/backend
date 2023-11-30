@@ -6,9 +6,9 @@ from rest_framework import serializers
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
-from users.models import User
+from users.models import Address, User
 
-# EMAIL_REGEX = r"\S+@\S+\.\S+$/"
+EMAIL_REGEX = r"\S+@\S+\.\S+"
 PHONE_NUMBER_REGEX = r"^(\+7|7|8)\d{10}$"
 
 
@@ -67,6 +67,8 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         if isinstance(obj, dict):
             product = Product.objects.get(id=obj["id"])
             return product.final_price
+        if isinstance(obj, OrderProduct):
+            return obj.product.final_price
         return obj.final_price
 
     @extend_schema_field(str)
@@ -91,6 +93,8 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         if isinstance(obj, dict):
             product = Product.objects.get(id=obj["id"])
             return product.amount
+        if isinstance(obj, OrderProduct):
+            return obj.product.amount
         return obj.amount
 
     @extend_schema_field(int)
@@ -125,6 +129,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
             "payment_method",
             "delivery_method",
             "address",
+            "add_address",
             "delivery_point",
             "package",
             "comment",
@@ -149,7 +154,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
             "products",
             "payment_method",
             "delivery_method",
-            "address_anonymous",
+            "add_address",
             "delivery_point",
             "package",
             "comment",
@@ -175,26 +180,33 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             "package",
             "comment",
             "address",
+            "add_address"
         )
-
-    def validate_user(self, user):
-        error_message = "Добавьте номер телефона."
-        if not user.phone_number:
-            raise serializers.ValidationError(error_message)
-        return user
-
-    def get_address(self, obj):
-        error_message = "Добавьте адрес доставки."
-        if not obj.user.address:
-            raise serializers.ValidationError(error_message)
-        return obj.user.address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         no_match_error_message = (
             "Способ получения заказа не соответствует способу оплаты."
         )
-        error_message = "Укажите адрес доставки!"
+        error_message = "Укажите адрес доставки."
+        error_delivery_message = ("Укажите способ доставки.")
+        error_delivery_point_message = ("Нужно выбрать пункт выдачи.")
+        error_payment_message = ("Нужно выбрать способ оплаты.")
+        error_address_message = ("Добавьте адрес доставки.")
+        error_phone_number_message = ("Добавьте номер телефона.")
+        user = self.context["request"].user
+        if not user.phone_number:
+            raise serializers.ValidationError(error_phone_number_message)
+        address = Address.objects.filter(user=user)
+        if not address and "add_address" not in attrs:
+            raise serializers.ValidationError(error_address_message)
+        if "delivery_method" not in attrs:
+            raise serializers.ValidationError(error_delivery_message)
+        if "payment_method" not in attrs:
+            raise serializers.ValidationError(error_payment_message)
+        if (attrs["delivery_method"] == Order.DELIVERY_POINT
+                and "delivery_point" not in attrs):
+            raise serializers.ValidationError(error_delivery_point_message)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
@@ -227,24 +239,23 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "delivery_point",
             "package",
             "comment",
-            "address_anonymous",
+            "add_address",
         )
 
     def validate_user_data(self, user_data):
         """Checks user_data in order."""
         error_first_name = "Необходимо указать контактные данные, " "укажите имя!"
         error_last_name = "Необходимо указать контактные данные, " "укажите фамилию!"
-        error_phone_number = (
-            "Необходимо указать контактные данные, " "укажите номер телефона!"
-        )
+        error_phone_number = ("Необходимо указать контактные данные, "
+                              "укажите номер телефона!")
         error_email = "Необходимо указать контактные данные, " "укажите email!"
         validate_phone_error_message = (
             "Введен некорректный номер телефона. "
             "Введите номер телефона в форматах "
             "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
         )
-        # validate_email_error_message = ("Проверьте корректность написания "
-        #                                 "электронной почты.")
+        validate_email_error_message = ("Проверьте корректность написания "
+                                        "электронной почты.")
 
         u_data = user_data.split(",")
         for data in u_data:
@@ -261,8 +272,8 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             if data[0] == "email":
                 if not data[1]:
                     raise serializers.ValidationError(error_email)
-                # if not re.match(EMAIL_REGEX, data[1].strip()):
-                #     raise serializers.ValidationError(validate_email_error_message)
+                if not re.match(EMAIL_REGEX, data[1].strip()):
+                    raise serializers.ValidationError(validate_email_error_message)
         return user_data
 
     def validate(self, attrs):
@@ -274,8 +285,19 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "При выборе способа доставки курьером, "
             "необходимо указать адрес доставки!"
         )
-        if attrs["delivery_method"] == Order.COURIER and not attrs["address_anonymous"]:
+        error_delivery_message = ("Укажите способ доставки.")
+        error_payment_message = ("Нужно выбрать способ оплаты.")
+        error_delivery_point_message = ("Нужно выбрать пункт выдачи.")
+        if "delivery_method" not in attrs:
+            raise serializers.ValidationError(error_delivery_message)
+        if "payment_method" not in attrs:
+            raise serializers.ValidationError(error_payment_message)
+        if (attrs["delivery_method"] == Order.COURIER
+                and "add_address" not in attrs):
             raise serializers.ValidationError(error_message)
+        if (attrs["delivery_method"] == Order.DELIVERY_POINT
+                and "delivery_point" not in attrs):
+            raise serializers.ValidationError(error_delivery_point_message)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
