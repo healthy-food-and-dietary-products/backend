@@ -26,9 +26,7 @@ class TestShoppingCart:
                 {"id": products[1].id, "quantity": 3},
             ]
         }
-        response = client.post(
-            "/api/shopping_cart/", shopping_cart_data, format="json"
-        )
+        response = client.post("/api/shopping_cart/", shopping_cart_data, format="json")
         data = response.json()
         assert "products" in data
         assert len(data["products"]) == 2
@@ -40,9 +38,7 @@ class TestShoppingCart:
             "products": [{"id": products[0].id, "quantity": updated_quantity}]
         }
         endpoint = "/api/shopping_cart/"
-        response = auth_client.post(
-            endpoint, updated_shopping_cart_data, format="json"
-        )
+        response = auth_client.post(endpoint, updated_shopping_cart_data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         response = auth_client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
@@ -57,9 +53,7 @@ class TestShoppingCart:
             "products": [{"id": products[0].id, "quantity": updated_quantity}]
         }
         endpoint = "/api/shopping_cart/"
-        response = client.post(
-            endpoint, updated_shopping_cart_data, format="json"
-        )
+        response = client.post(endpoint, updated_shopping_cart_data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
 
         response = client.get("/api/shopping_cart/")
@@ -84,18 +78,14 @@ class TestShoppingCart:
                 {"id": products[1].id, "quantity": 3},
             ]
         }
-        response = client.post(
-            "/api/shopping_cart/", shopping_cart_data, format="json"
-        )
+        response = client.post("/api/shopping_cart/", shopping_cart_data, format="json")
         data = response.json()
         assert "products" in data
         assert len(data["products"]) == 2
         assert response.status_code == status.HTTP_201_CREATED
         product_remove = products[0].id
         endpoint = f"/api/shopping_cart/{product_remove}"
-        response = client.delete(
-            endpoint, product_remove, format="json"
-        )
+        response = client.delete(endpoint, product_remove, format="json")
         response = client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -117,9 +107,7 @@ class TestShoppingCart:
         assert response.status_code == status.HTTP_201_CREATED
         product_remove = products[0].id
         endpoint = f"/api/shopping_cart/{product_remove}"
-        response = auth_client.delete(
-            endpoint, product_remove, format="json"
-        )
+        response = auth_client.delete(endpoint, product_remove, format="json")
         response = auth_client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

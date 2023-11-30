@@ -277,7 +277,10 @@ class OrderViewSet(
         order.order_number = order.id
         order.save()
         shopping_cart.clear()
-        message = f"Ваш заказ №{order.order_number} успешно оформлен!"
+        message = (
+            f"Ваш заказ №{order.order_number} успешно оформлен. "
+            f"Заказ имеет id={order.id}."
+        )
         return Response(message, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
