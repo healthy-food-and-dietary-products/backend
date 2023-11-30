@@ -270,8 +270,9 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
                          " Емайл(email)"
                          )
         u_data = user_data.split(",")
-        if (("first_name" or "last_name" or "phone_number" or "email")
-                not in user_data or not u_data):
+        if (("first_name" not in user_data or "last_name" not in user_data
+             or "phone_number" not in user_data or "email" not in user_data)
+           or not u_data):
             raise serializers.ValidationError(error_message)
         for data in u_data:
             data = data.strip().split(":")
