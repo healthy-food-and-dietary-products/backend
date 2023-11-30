@@ -209,6 +209,11 @@ class OrderViewSet(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    def list(self, request):
+        self.get_queryset()
+        serializer = self.get_serializer()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def retrieve(self, request, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         serializer = self.get_serializer(order)
@@ -243,12 +248,12 @@ class OrderViewSet(
             comment = request.data["comment"]
         if "package" in request.data:
             package = request.data["package"]
-        if "add_address" in request.data:
-            add_address = request.data["add_address"]
-        else:
-            address = Address.objects.get(user=self.request.user)
         if "delivery_point" in request.data:
             delivery = Delivery.objects.get(id=request.data["delivery_point"])
+        if "add_address" in request.data:
+            add_address = request.data["add_address"]
+        elif self.request.user.is_authenticated:
+            address = Address.objects.get(user=self.request.user)
         order = Order.objects.create(
             user=user,
             user_data=user_data,
@@ -274,8 +279,9 @@ class OrderViewSet(
         Order.products = products
         order.order_number = order.id
         order.save()
-        shopping_cart.clear()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # shopping_cart.clear()
+        message = f"Ваш заказ №{order.order_number} успешно оформлен!"
+        return Response(message, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
@@ -296,7 +302,5 @@ class OrderViewSet(
             return Response(
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
-        # serializer_data = self.get_serializer(order).data
-        # serializer_data["Success"] = "This object was successfully deleted"
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
