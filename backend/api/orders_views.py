@@ -201,23 +201,20 @@ class OrderViewSet(
             return OrderCreateAuthSerializer
         return OrderCreateAnonSerializer
 
-    def get_queryset(self):
-        if self.request.user.is_authenticated or self.request.user.is_staff:
-            return self.request.user.orders.all()
-        return Response(
-            {"errors": "Чтобы посмотреть заказ, укажите номер"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    def list(self, request):
-        self.get_queryset()
-        serializer = self.get_serializer()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     def retrieve(self, request, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def list(self, request, **kwargs):
+        if self.request.user.is_authenticated:
+            queryset = Order.objects.all()
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            {"errors": "method not allowed"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     def create(self, request, *args, **kwargs):
         shopping_cart = ShopCart(request)
