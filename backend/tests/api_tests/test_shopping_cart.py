@@ -2,7 +2,6 @@ import pytest
 from rest_framework import status
 
 
-# @pytest.mark.skip(reason="Not passing now, need to fix")
 @pytest.mark.django_db(transaction=True)
 class TestShoppingCart:
     def test_create_shopping_cart_auth_client(self, auth_client, products):
