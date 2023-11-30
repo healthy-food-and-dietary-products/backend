@@ -17,6 +17,7 @@ def export_products():
         "id",
         "name",
         "description",
+        "creation_time",
         "photo",
         "category_id",
         "subcategory_id",
@@ -245,6 +246,22 @@ def export_tokens():
             writer.writerow(row)
 
 
+def export_reviews():
+    data = apps.get_model("reviews", "Review")
+    field_names = ["id", "text", "score", "pub_date", "author_id", "product_id"]
+    with open(
+        os.path.join(DATA_DIR, "reviews.csv"),
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
 def export_orders():
     data = apps.get_model("orders", "Order")
     field_names = [
@@ -372,6 +389,10 @@ class Command(BaseCommand):
         export_tokens()
         self.stdout.write(
             self.style.SUCCESS("Экспорт данных модели Token прошёл успешно!")
+        )
+        export_reviews()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт данных модели Review прошёл успешно!")
         )
         # export_orders()
         # self.stdout.write(
