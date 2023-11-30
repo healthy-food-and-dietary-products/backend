@@ -217,6 +217,11 @@ class OrderViewSet(
         )
 
     def create(self, request, *args, **kwargs):
+        error_message = ("Укажите контактные данные:"
+                         " Имя (first_name), Фамилия(last_name),"
+                         " Номер телефона(phone_number),"
+                         " Емайл(email)"
+                         )
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             return Response(
@@ -240,6 +245,9 @@ class OrderViewSet(
         if self.request.user.is_authenticated:
             user = self.request.user
         else:
+            if "user_data" not in request.data:
+                return Response({"errors": error_message},
+                                status=status.HTTP_400_BAD_REQUEST)
             user_data = request.data["user_data"]
         if "comment" in request.data:
             comment = request.data["comment"]
@@ -276,7 +284,7 @@ class OrderViewSet(
         Order.products = products
         order.order_number = order.id
         order.save()
-        shopping_cart.clear()
+        # shopping_cart.clear()
         message = f"Ваш заказ №{order.order_number} успешно оформлен!"
         return Response(message, status=status.HTTP_201_CREATED)
 
