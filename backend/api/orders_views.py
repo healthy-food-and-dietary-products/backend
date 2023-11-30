@@ -279,7 +279,7 @@ class OrderViewSet(
         Order.products = products
         order.order_number = order.id
         order.save()
-        # shopping_cart.clear()
+        shopping_cart.clear()
         message = f"Ваш заказ №{order.order_number} успешно оформлен!"
         return Response(message, status=status.HTTP_201_CREATED)
 
