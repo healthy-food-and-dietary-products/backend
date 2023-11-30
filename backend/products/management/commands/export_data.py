@@ -168,6 +168,9 @@ def export_products_promotions():
             writer.writerow(row)
 
 
+# TODO: for admin user it equals fields is_staff and is_superuser to 0,
+# which makes impossible to enter or perform any actions on Admin panel.
+# We are forced to manually edit these fields to log into the Admin Panel.
 def export_users():
     data = apps.get_model("users", "User")
     field_names = [f.name for f in data._meta.fields]
@@ -185,7 +188,7 @@ def export_user_address():
     data = apps.get_model("users", "Address")
     field_names = ["id", "address", "priority_address", "user_id"]
     with open(
-        os.path.join(DATA_DIR, "user_address.csv"),
+        os.path.join(DATA_DIR, "user_addresses.csv"),
         "w",
         newline="",
         encoding="utf-8",
@@ -214,7 +217,23 @@ def export_favorites():
     data = apps.get_model("products", "FavoriteProduct")
     field_names = ["id", "product_id", "user_id"]
     with open(
-        os.path.join(DATA_DIR, "favorite_products.csv"),
+        os.path.join(DATA_DIR, "favorites.csv"),
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
+def export_tokens():
+    data = apps.get_model("authtoken", "Token")
+    field_names = ["key", "created", "user_id"]
+    with open(
+        os.path.join(DATA_DIR, "tokens.csv"),
         "w",
         newline="",
         encoding="utf-8",
@@ -292,73 +311,79 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         export_products()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Product прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Product прошёл успешно!")
         )
         export_products_components()
         self.stdout.write(
             self.style.SUCCESS(
-                "Экспорт даных поля components модели Product прошёл успешно!"
+                "Экспорт данных поля components модели Product прошёл успешно!"
             )
         )
         export_products_tags()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных поля tags модели Product прошёл успешно!")
+            self.style.SUCCESS(
+                "Экспорт данных поля tags модели Product прошёл успешно!"
+            )
         )
         export_categories()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Category прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Category прошёл успешно!")
         )
         export_subcategories()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Subcategory прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Subcategory прошёл успешно!")
         )
         export_components()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Component прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Component прошёл успешно!")
         )
         export_tags()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Tag прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Tag прошёл успешно!")
         )
         export_producers()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Producer прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Producer прошёл успешно!")
         )
         export_promotions()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Promotion прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Promotion прошёл успешно!")
         )
         export_products_promotions()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели ProductPromoton прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели ProductPromoton прошёл успешно!")
         )
         export_users()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели User прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели User прошёл успешно!")
         )
         export_delivery_points()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Delivery прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Delivery прошёл успешно!")
         )
         export_favorites()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели FavoriteProduct прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели FavoriteProduct прошёл успешно!")
         )
         export_user_address()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Address прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Address прошёл успешно!")
         )
-        export_orders()
+        export_tokens()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели Order прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Token прошёл успешно!")
         )
-        export_shopping_cart()
-        self.stdout.write(
-            self.style.SUCCESS("Экспорт даных модели ShoppingCart прошёл успешно!")
-        )
-        export_shopping_cart_products()
-        self.stdout.write(
-            self.style.SUCCESS(
-                "Экспорт даных модели ShoppingCartProduct прошёл успешно!"
-            )
-        )
+        # export_orders()
+        # self.stdout.write(
+        #     self.style.SUCCESS("Экспорт данных модели Order прошёл успешно!")
+        # )
+        # export_shopping_cart()
+        # self.stdout.write(
+        #     self.style.SUCCESS("Экспорт данных модели ShoppingCart прошёл успешно!")
+        # )
+        # export_shopping_cart_products()
+        # self.stdout.write(
+        #     self.style.SUCCESS(
+        #         "Экспорт данных модели ShoppingCartProduct прошёл успешно!"
+        #     )
+        # )
