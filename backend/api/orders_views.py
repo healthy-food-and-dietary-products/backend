@@ -21,51 +21,41 @@ from .orders_serializers import (
     OrderGetAuthSerializer,
     ShoppingCartSerializer,
 )
+from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
 from users.models import Address
 
 
-@method_decorator(  # TODO: Response codes may be changed significantly
+@method_decorator(
     name="list",
     decorator=swagger_auto_schema(
-        operation_summary="List all shopping carts",
-        operation_description=(
-            "Returns a list of all the shopping carts of a user "
-            "(admin or authorized user)"
-        ),
-        responses={
-            200: ShoppingCartSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-        },
+        operation_summary="Retrieve a shopping cart",
+        operation_description="Returns a shopping cart of a user via session",
+        responses={200: "List of products in the cart, quantity and total price"},
     ),
 )
 @method_decorator(
     name="create",
     decorator=swagger_auto_schema(
-        operation_summary="Create shopping cart",
-        operation_description="Creates a shopping cart of a user (authorized only)",
+        operation_summary="Post and edit products in a shopping cart",
+        operation_description=(
+            "Adds new products to the shopping cart or edits the number of products "
+            "already in the shopping cart (zero is not allowed)"
+        ),
         responses={
-            201: ShoppingCartSerializer,
+            201: "List of products in the cart, quantity and total price",
             400: ValidationErrorResponseSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
         },
     ),
 )
 @method_decorator(
     name="destroy",
     decorator=swagger_auto_schema(
-        operation_summary="Delete shopping cart",
-        operation_description="Deletes a shopping cart by its id (authorized only)",
-        responses={
-            200: "Detailed information about the deleted object and a success message",
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
-            404: ErrorResponse404Serializer,
-        },
+        operation_summary="Remove product from shopping cart",
+        operation_description="Removes a product from the shopping cart using its id",
+        responses={205: "No response body", 404: ErrorResponse404Serializer},
     ),
 )
 class ShoppingCartViewSet(
@@ -116,11 +106,12 @@ class ShoppingCartViewSet(
                 status=status.HTTP_404_NOT_FOUND,
             )
         product_id = int(self.kwargs["pk"])
-        products = [
-            product["id"] for product in shopping_cart.get_shop_products()]
+        products = [product["id"] for product in shopping_cart.get_shop_products()]
         if product_id not in products:
-            return Response({"errors": "Такого товара нет в корзине!"},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"errors": "Такого товара нет в корзине!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         shopping_cart.remove(product_id)
         return Response(
             {
@@ -180,7 +171,7 @@ class ShoppingCartViewSet(
         operation_summary="Delete order",
         operation_description="Deletes an order by its id (authorized only)",
         responses={
-            200: "Detailed information about the deleted object and a success message",
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
@@ -213,8 +204,10 @@ class OrderViewSet(
     def get_queryset(self):
         if self.request.user.is_authenticated or self.request.user.is_staff:
             return self.request.user.orders.all()
-        return Response({"errors": "Чтобы посмотреть заказ, укажите номер"},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"errors": "Чтобы посмотреть заказ, укажите номер"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     def retrieve(self, request, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
@@ -238,10 +231,10 @@ class OrderViewSet(
         comment = None
         package = 0
         address = None
+        add_address = None
         user = None
         user_data = None
         delivery = None
-        address_anonymous = None
         if self.request.user.is_authenticated:
             user = self.request.user
         else:
@@ -250,11 +243,10 @@ class OrderViewSet(
             comment = request.data["comment"]
         if "package" in request.data:
             package = request.data["package"]
-
-        if "address" in request.data and self.request.user.is_authenticated:
-            address = Address.objects.get(id=request.data["address"])
-        elif "address" in request.data:
-            address_anonymous = request.data["address"]
+        if "add_address" in request.data:
+            add_address = request.data["add_address"]
+        else:
+            address = Address.objects.get(user=self.request.user)
         if "delivery_point" in request.data:
             delivery = Delivery.objects.get(id=request.data["delivery_point"])
         order = Order.objects.create(
@@ -267,8 +259,8 @@ class OrderViewSet(
             package=package,
             comment=comment,
             address=address,
-            address_anonymous=address_anonymous,
-            total_price=shopping_data["total_price"] + int(package)
+            add_address=add_address,
+            total_price=shopping_data["total_price"] + int(package),
         )
 
         products = [
