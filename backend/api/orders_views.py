@@ -231,10 +231,10 @@ class OrderViewSet(
         comment = None
         package = 0
         address = None
+        add_address = None
         user = None
         user_data = None
         delivery = None
-        address_anonymous = None
         if self.request.user.is_authenticated:
             user = self.request.user
         else:
@@ -243,11 +243,10 @@ class OrderViewSet(
             comment = request.data["comment"]
         if "package" in request.data:
             package = request.data["package"]
-
-        if "address" in request.data and self.request.user.is_authenticated:
-            address = Address.objects.get(id=request.data["address"])
-        elif "address" in request.data:
-            address_anonymous = request.data["address"]
+        if "add_address" in request.data:
+            add_address = request.data["add_address"]
+        else:
+            address = Address.objects.get(user=self.request.user)
         if "delivery_point" in request.data:
             delivery = Delivery.objects.get(id=request.data["delivery_point"])
         order = Order.objects.create(
@@ -260,7 +259,7 @@ class OrderViewSet(
             package=package,
             comment=comment,
             address=address,
-            address_anonymous=address_anonymous,
+            add_address=add_address,
             total_price=shopping_data["total_price"] + int(package),
         )
 
