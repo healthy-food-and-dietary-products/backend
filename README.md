@@ -567,7 +567,18 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "delivery_method": "Point of delivery",
     "delivery_point": 1,
     "package": 100
+}
 
+{
+    "user_data": 
+        "first_name: Misha,
+         last_name: Ivanov,
+         phone_number: +79610092186,
+         email: misha@yandex.ru",
+    "payment_method": "In getting by cash",
+    "delivery_method": "By courier",
+    "package": 100,
+    "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11"
 }
 ```
 
@@ -575,10 +586,10 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 
 ```
 {
-    "payment_method": "Payment at the point of delivery",
-    "delivery_method": "Point of delivery",
-    "delivery_point": 1,
-    "package": 100
+    "payment_method": "In getting by cash",
+    "delivery_method": "By courier",
+    "package": 100б
+    "add_address": "Санкт-Петербург, Невский прспект д.18, оф. 3
 }
 ```
 
