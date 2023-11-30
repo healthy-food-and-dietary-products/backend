@@ -119,12 +119,7 @@ def admin(django_user_model):
 
 @pytest.fixture
 def user():
-    return User.objects.create_user(
-        username=USER,
-        email=USER_EMAIL,
-        password=PASSWORD,
-        phone_number=PHONE_NUMBER
-    )
+    return User.objects.create_user(username=USER, email=USER_EMAIL, password=PASSWORD)
 
 
 @pytest.fixture
@@ -133,7 +128,6 @@ def user1(django_user_model):
         username="Testuser1",
         email="testuser1@good_food.fake",
         password="1234567",
-        phone_number=PHONE_NUMBER
     )
 
 
