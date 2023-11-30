@@ -173,7 +173,6 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         model = Order
         fields = (
             "user",
-            "order_number",
             "payment_method",
             "delivery_method",
             "delivery_point",
@@ -222,9 +221,6 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-    def to_representation(self, instance):
-        return OrderGetAuthSerializer(instance, context=self.context).data
-
 
 class OrderCreateAnonSerializer(serializers.ModelSerializer):
     """Serializer for create/delete anonim order."""
@@ -232,7 +228,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            "order_number",
             "user_data",
             "payment_method",
             "delivery_method",
@@ -242,6 +237,25 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "add_address",
         )
 
+    def validate_phone_number(self, phone_number):
+        """Checks phone_number in user_data."""
+        validate_phone_error_message = (
+            "Введен некорректный номер телефона. "
+            "Введите номер телефона в форматах "
+            "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
+        )
+        if not re.match(PHONE_NUMBER_REGEX, phone_number):
+            raise serializers.ValidationError(validate_phone_error_message)
+        return phone_number
+
+    def validate_email(self, email):
+        """Checks email in user_data."""
+        validate_email_error_message = ("Проверьте корректность написания "
+                                        "электронной почты.")
+        if not re.match(EMAIL_REGEX, email):
+            raise serializers.ValidationError(validate_email_error_message)
+        return email
+
     def validate_user_data(self, user_data):
         """Checks user_data in order."""
         error_first_name = "Необходимо указать контактные данные, " "укажите имя!"
@@ -249,31 +263,30 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
         error_phone_number = ("Необходимо указать контактные данные, "
                               "укажите номер телефона!")
         error_email = "Необходимо указать контактные данные, " "укажите email!"
-        validate_phone_error_message = (
-            "Введен некорректный номер телефона. "
-            "Введите номер телефона в форматах "
-            "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
-        )
-        validate_email_error_message = ("Проверьте корректность написания "
-                                        "электронной почты.")
 
+        error_message = ("Укажите контактные данные:"
+                         " Имя (first_name), Фамилия(last_name),"
+                         " Номер телефона(phone_number),"
+                         " Емайл(email)"
+                         )
         u_data = user_data.split(",")
+        if (("first_name" or "last_name" or "phone_number" or "email")
+                not in user_data or not u_data):
+            raise serializers.ValidationError(error_message)
         for data in u_data:
             data = data.strip().split(":")
-            if data[0] == "first_name" and not data[1]:
+            if data[0] == "first_name" and len(data) == 1:
                 raise serializers.ValidationError(error_first_name)
-            if data[0] == "last_name" and not data[1]:
+            if data[0] == "last_name" and len(data) == 1:
                 raise serializers.ValidationError(error_last_name)
             if data[0] == "phone_number":
-                if not data[1]:
+                if len(data) == 1:
                     raise serializers.ValidationError(error_phone_number)
-                if not re.match(PHONE_NUMBER_REGEX, data[1].strip()):
-                    raise serializers.ValidationError(validate_phone_error_message)
+                self.validate_phone_number(data[1].strip())
             if data[0] == "email":
-                if not data[1]:
+                if len(data) == 1:
                     raise serializers.ValidationError(error_email)
-                if not re.match(EMAIL_REGEX, data[1].strip()):
-                    raise serializers.ValidationError(validate_email_error_message)
+                self.validate_email(data[1].strip())
         return user_data
 
     def validate(self, attrs):
@@ -310,6 +323,3 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(no_match_error_message)
 
         return super().validate(attrs)
-
-    def to_representation(self, instance):
-        return OrderGetAnonSerializer(instance, context=self.context).data
