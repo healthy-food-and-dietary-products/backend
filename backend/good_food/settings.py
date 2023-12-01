@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
+    "reviews.apps.ReviewsConfig",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
