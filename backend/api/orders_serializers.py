@@ -8,8 +8,7 @@ from orders.models import Order, OrderProduct
 from products.models import Product
 from users.models import PHONE_NUMBER_ERROR, PHONE_NUMBER_REGEX, Address, User
 
-# EMAIL_REGEX = r"\S+@\S+\.\S+"
-# PHONE_NUMBER_REGEX = r"^(\+7|7|8)\d{10}$"
+EMAIL_REGEX = r"\S+@\S+\.\S+"
 
 
 class UserPresentSerializer(UserSerializer):
@@ -238,6 +237,14 @@ class AnonUserDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(PHONE_NUMBER_ERROR)
         return phone_number
 
+    def validate_email(self, email):
+        """Checks email in user_data."""
+        validate_email_error_message = ("Проверьте корректность написания "
+                                        "электронной почты.")
+        if not re.match(EMAIL_REGEX, email):
+            raise serializers.ValidationError(validate_email_error_message)
+        return email
+
 
 class OrderCreateAnonSerializer(serializers.ModelSerializer):
     """Serializer for create/delete anonim order."""
@@ -255,58 +262,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "comment",
             "add_address",
         )
-
-    # def validate_phone_number(self, phone_number):
-    #     """Checks phone_number in user_data."""
-    #     validate_phone_error_message = (
-    #         "Введен некорректный номер телефона. "
-    #         "Введите номер телефона в форматах "
-    #         "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
-    #     )
-    #     if not re.match(PHONE_NUMBER_REGEX, phone_number):
-    #         raise serializers.ValidationError(validate_phone_error_message)
-    #     return phone_number
-
-    # def validate_email(self, email):
-    #     """Checks email in user_data."""
-    #     validate_email_error_message = ("Проверьте корректность написания "
-    #                                     "электронной почты.")
-    #     if not re.match(EMAIL_REGEX, email):
-    #         raise serializers.ValidationError(validate_email_error_message)
-    #     return email
-
-    # def validate_user_data(self, user_data):
-    #     """Checks user_data in order."""
-    #     error_first_name = "Необходимо указать контактные данные, " "укажите имя!"
-    #     error_last_name = "Необходимо указать контактные данные, " "укажите фамилию!"
-    #     error_phone_number = ("Необходимо указать контактные данные, "
-    #                           "укажите номер телефона!")
-    #     error_email = "Необходимо указать контактные данные, " "укажите email!"
-
-    #     error_message = ("Укажите контактные данные:"
-    #                      " Имя (first_name), Фамилия(last_name),"
-    #                      " Номер телефона(phone_number),"
-    #                      " Емайл(email)"
-    #                      )
-    #     u_data = user_data.split(",")
-    #     if (("first_name" or "last_name" or "phone_number" or "email")
-    #             not in user_data or not u_data):
-    #         raise serializers.ValidationError(error_message)
-    #     for data in u_data:
-    #         data = data.strip().split(":")
-    #         if data[0] == "first_name" and len(data) == 1:
-    #             raise serializers.ValidationError(error_first_name)
-    #         if data[0] == "last_name" and len(data) == 1:
-    #             raise serializers.ValidationError(error_last_name)
-    #         if data[0] == "phone_number":
-    #             if len(data) == 1:
-    #                 raise serializers.ValidationError(error_phone_number)
-    #             self.validate_phone_number(data[1].strip())
-    #         if data[0] == "email":
-    #             if len(data) == 1:
-    #                 raise serializers.ValidationError(error_email)
-    #             self.validate_email(data[1].strip())
-    #     return user_data
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
