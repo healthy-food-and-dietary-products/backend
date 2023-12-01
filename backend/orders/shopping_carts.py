@@ -21,7 +21,7 @@ class ShopCart(object):
         p = Product.objects.get(id=product["id"])
         if p_id not in self.shopping_cart:
             self.shopping_cart[p_id] = {
-                "product_id": p.id,
+                "id": p.id,
                 "name": p.name,
                 "quantity": quantity,
                 "final_price": p.final_price,
@@ -55,7 +55,7 @@ class ShopCart(object):
         products = []
         for item in self.shopping_cart.values():
             product = {}
-            product["product_id"] = item["product_id"]
+            product["id"] = item["id"]
             product["name"] = item["name"]
             product["quantity"] = item["quantity"]
             products.append(product)

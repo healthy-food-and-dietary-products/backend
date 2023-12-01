@@ -12,6 +12,7 @@ PHONE_NUMBER_ERROR = (
     "Введен некорректный номер телефона. Введите номер телефона в "
     "форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
 )
+PHONE_NUMBER_REGEX = r"^(\+7|7|8)\d{10}$"
 
 
 @cleanup.select
@@ -36,7 +37,7 @@ class User(AbstractUser):
     birth_date = models.DateField("Birth_date", blank=True, null=True)
     phone_number = models.CharField(
         validators=[
-            RegexValidator(regex=r"^(\+7|7|8)\d{10}$", message=PHONE_NUMBER_ERROR)
+            RegexValidator(regex=PHONE_NUMBER_REGEX, message=PHONE_NUMBER_ERROR)
         ],
         max_length=17,
         blank=True,

@@ -294,4 +294,6 @@ def address(user):
 
 @pytest.fixture
 def delivery_points(user):
-    return Delivery.objects.create(delivery_point="Test delivery_point")
+    Delivery.objects.create(delivery_point="Test delivery_point")
+    Delivery.objects.create(delivery_point="Test delivery_point 1")
+    return Delivery.objects.all()
