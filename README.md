@@ -558,11 +558,12 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 
 ```
 {
-    "user_data": 
-        "first_name: Misha,
-         last_name: Ivanov,
-         phone_number: +79610921836,
-         email: ada@mail.ru",
+    "user_data": {
+        "first_name": "Vasya",
+        "last_name": "Kovin",
+        "phone_number": "89764563456",
+        "email": "user@example.com"
+    },
     "payment_method": "Payment at the point of delivery",
     "delivery_method": "Point of delivery",
     "delivery_point": 1,
