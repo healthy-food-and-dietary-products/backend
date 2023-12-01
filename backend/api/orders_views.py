@@ -13,7 +13,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from .mixins import DestroyWithPayloadMixin
+from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
     OrderCreateAnonSerializer,
     OrderCreateAuthSerializer,
@@ -26,6 +26,12 @@ from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
 from users.models import Address
+
+SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
+ORDER_NUMBER_ERROR_MESSAGE = "Укажите верный номер заказа."
+METHOD_ERROR_MESSAGE = "Укажите номер заказа."
+SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните ее."
+DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
 
 
 @method_decorator(
@@ -109,7 +115,7 @@ class ShoppingCartViewSet(
         products = [product["id"] for product in shopping_cart.get_shop_products()]
         if product_id not in products:
             return Response(
-                {"errors": "Такого товара нет в корзине!"},
+                {"errors": SHOP_CART_ERROR_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_cart.remove(product_id)
@@ -205,7 +211,7 @@ class OrderViewSet(
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if user.is_authenticated and order.user != user:
-            return Response({"errors": "Укажите верный номер заказа."})
+            return Response({"errors": ORDER_NUMBER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -215,7 +221,7 @@ class OrderViewSet(
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
-            {"errors": "method not allowed"},
+            {"errors": METHOD_ERROR_MESSAGE},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -223,7 +229,7 @@ class OrderViewSet(
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             return Response(
-                {"errors": "no shopping_cart available"},
+                {"errors": SHOP_CART_ERROR},
                 status=status.HTTP_204_NO_CONTENT,
             )
         shopping_data = {
@@ -301,7 +307,7 @@ class OrderViewSet(
 
         if order.status in order_restricted_deletion_statuses:
             return Response(
-                {"errors": "Отмена заказа после комплектования невозможна."}
+                {"errors": DELIVERY_ERROR_MESSAGE}
             )
         response_serializer = (
             OrderGetAuthSerializer
@@ -310,6 +316,6 @@ class OrderViewSet(
 
         )
         serializer_data = response_serializer(order).data
-        serializer_data["Succes"] = "This object was successfully deleted"
+        serializer_data["Success"] = MESSAGE_ON_DELETE
         order.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
