@@ -20,6 +20,7 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
+from .reviews_views import ReviewViewSet
 from .users_views import (
     AddressViewSet,
     CustomTokenCreateView,
@@ -37,6 +38,9 @@ router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
 router.register("products", ProductViewSet)
+router.register(
+    r"products/(?P<product_id>\d+)/reviews", ReviewViewSet, basename="reviews"
+)
 router.register("favorite-products", FavoriteProductViewSet)
 router.register("users", CustomUserViewSet)
 router.register(

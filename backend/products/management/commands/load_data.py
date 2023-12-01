@@ -1,6 +1,5 @@
 import os
 from csv import DictReader
-from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -18,6 +17,7 @@ from products.models import (
     Subcategory,
     Tag,
 )
+from reviews.models import Review
 from users.models import Address, User
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -30,12 +30,20 @@ def read_users():
         for row in reader:
             user = User(
                 id=row["id"],
-                username=row["username"],
-                email=row["email"],
                 password=row["password"],
+                last_login=None if row["last_login"] == "" else row["last_login"],
+                is_superuser=row["is_superuser"],
                 first_name=row["first_name"],
                 last_name=row["last_name"],
-                city="Moscow",
+                is_staff=row["is_staff"],
+                is_active=row["is_active"],
+                date_joined=row["date_joined"],
+                username=row["username"],
+                email=row["email"],
+                city=row["city"],
+                birth_date=None if row["birth_date"] == "" else row["birth_date"],
+                phone_number=row["phone_number"],
+                photo=row["photo"],
             )
             user.save()
 
@@ -110,10 +118,7 @@ def read_products():
         reader = DictReader(f)
         for row in reader:
             if row.get("creation_time"):
-                creation_time = timezone.make_aware(
-                    datetime.strptime(row["creation_time"], DATETIME_FORMAT),
-                    timezone.get_current_timezone(),
-                )
+                creation_time = row["creation_time"]
             else:
                 creation_time = timezone.now()
             product = Product(
@@ -210,14 +215,24 @@ def read_tokens():
         reader = DictReader(f)
         for row in reader:
             token = Token(
-                key=row["key"],
-                created=timezone.make_aware(
-                    datetime.strptime(row["created"], DATETIME_FORMAT),
-                    timezone.get_current_timezone(),
-                ),
-                user_id=row["user_id"],
+                key=row["key"], created=row["created"], user_id=row["user_id"]
             )
             token.save()
+
+
+def read_reviews():
+    with open(os.path.join(DATA_DIR, "reviews.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            review = Review(
+                id=row["id"],
+                text=row["text"],
+                score=row["score"],
+                pub_date=row["pub_date"],
+                author_id=row["author_id"],
+                product_id=row["product_id"],
+            )
+            review.save()
 
 
 class Command(BaseCommand):
@@ -252,3 +267,5 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла user_addresses.csv загружены")
         read_tokens()
         self.stdout.write("Данные из файла tokens.csv загружены")
+        read_reviews()
+        self.stdout.write("Данные из файла reviews.csv загружены")
