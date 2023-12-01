@@ -570,11 +570,12 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 }
 
 {
-    "user_data": 
-        "first_name: Misha,
-         last_name: Ivanov,
-         phone_number: +79610092186,
-         email: misha@yandex.ru",
+    "user_data": {
+        "first_name": "Vasya",
+        "last_name": "Kovin",
+        "phone_number": "89764563456",
+        "email": "user@example.com"
+    },
     "payment_method": "In getting by cash",
     "delivery_method": "By courier",
     "package": 100,
