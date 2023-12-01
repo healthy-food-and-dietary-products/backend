@@ -149,6 +149,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
     products = OrderProductListSerializer(many=True)
+    # TODO: make user_data as SerializerMethodField
 
     class Meta:
         fields = (
