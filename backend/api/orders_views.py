@@ -202,13 +202,16 @@ class OrderViewSet(
         return OrderCreateAnonSerializer
 
     def retrieve(self, request, **kwargs):
+        user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if user.is_authenticated and order.user != user:
+            return Response({"errors": "Укажите верный номер заказа."})
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            queryset = Order.objects.all()
+            queryset = Order.objects.filter(user=self.request.user)
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
@@ -235,12 +238,10 @@ class OrderViewSet(
         address = None
         add_address = None
         user = None
-        user_data = None
         delivery = None
         if self.request.user.is_authenticated:
             user = self.request.user
-        else:
-            user_data = request.data["user_data"]
+        user_data = request.data["user_data"]
         if "comment" in request.data:
             comment = request.data["comment"]
         if "package" in request.data:
