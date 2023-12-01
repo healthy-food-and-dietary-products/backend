@@ -84,7 +84,7 @@ MIDDLEWARE = [
 
 SHOPPING_CART_SESSION_ID = "shopping_cart_id"
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 ROOT_URLCONF = "good_food.urls"
 
