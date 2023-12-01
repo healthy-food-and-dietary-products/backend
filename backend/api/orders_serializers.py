@@ -8,7 +8,14 @@ from orders.models import Order, OrderProduct
 from products.models import Product
 from users.models import PHONE_NUMBER_ERROR, PHONE_NUMBER_REGEX, Address, User
 
-EMAIL_REGEX = r"\S+@\S+\.\S+"
+NO_MATCH_ERROR_MESSAGE = "Способ получения заказа не соответствует способу оплаты."
+COURIER_DELIVERY_ERROR_MESSAGE = (
+    "При выборе способа доставки курьером, "
+    "необходимо указать адрес доставки!"
+)
+DELIVERY_ERROR_MESSAGE = "Укажите способ доставки."
+PAYMENT_ERROR_MESSAGE = "Нужно выбрать способ оплаты."
+DELIVERY_POINT_ERROR_MESSAGE = "Нужно выбрать пункт выдачи."
 
 
 class UserPresentSerializer(UserSerializer):
@@ -183,15 +190,9 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
-        no_match_error_message = (
-            "Способ получения заказа не соответствует способу оплаты."
-        )
-        error_message = "Укажите адрес доставки."
-        error_delivery_message = "Укажите способ доставки."
-        error_delivery_point_message = "Нужно выбрать пункт выдачи."
-        error_payment_message = "Нужно выбрать способ оплаты."
         error_address_message = "Добавьте адрес доставки."
-        error_phone_number_message = "Добавьте номер телефона."
+        error_phone_number_message = ("Добавьте номер телефона в своем "
+                                      "Личном кабинете/Профиле.")
         user = self.context["request"].user
         if not user.phone_number:
             raise serializers.ValidationError(error_phone_number_message)
@@ -199,26 +200,26 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         if not address and "add_address" not in attrs:
             raise serializers.ValidationError(error_address_message)
         if "delivery_method" not in attrs:
-            raise serializers.ValidationError(error_delivery_message)
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         if "payment_method" not in attrs:
-            raise serializers.ValidationError(error_payment_message)
+            raise serializers.ValidationError(PAYMENT_ERROR_MESSAGE)
         if (
             attrs["delivery_method"] == Order.DELIVERY_POINT
             and "delivery_point" not in attrs
         ):
-            raise serializers.ValidationError(error_delivery_point_message)
+            raise serializers.ValidationError(DELIVERY_POINT_ERROR_MESSAGE)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
         ):
-            raise serializers.ValidationError(no_match_error_message)
+            raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if (
             attrs["payment_method"] == Order.COURIER_CASH_PAYMENT
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
-            raise serializers.ValidationError(no_match_error_message)
+            raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
-            raise serializers.ValidationError(error_message)
+            raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
 
         return super().validate(attrs)
 
@@ -236,14 +237,6 @@ class AnonUserDataSerializer(serializers.Serializer):
         if not re.match(PHONE_NUMBER_REGEX, phone_number):
             raise serializers.ValidationError(PHONE_NUMBER_ERROR)
         return phone_number
-
-    def validate_email(self, email):
-        """Checks email in user_data."""
-        validate_email_error_message = ("Проверьте корректность написания "
-                                        "электронной почты.")
-        if not re.match(EMAIL_REGEX, email):
-            raise serializers.ValidationError(validate_email_error_message)
-        return email
 
 
 class OrderCreateAnonSerializer(serializers.ModelSerializer):
@@ -265,36 +258,27 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
-        no_match_error_message = (
-            "Способ получения заказа не соответствует способу оплаты."
-        )
-        error_message = (
-            "При выборе способа доставки курьером, "
-            "необходимо указать адрес доставки!"
-        )
-        error_delivery_message = "Укажите способ доставки."
-        error_payment_message = "Нужно выбрать способ оплаты."
-        error_delivery_point_message = "Нужно выбрать пункт выдачи."
+
         if "delivery_method" not in attrs:
-            raise serializers.ValidationError(error_delivery_message)
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         if "payment_method" not in attrs:
-            raise serializers.ValidationError(error_payment_message)
+            raise serializers.ValidationError(PAYMENT_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and "add_address" not in attrs:
-            raise serializers.ValidationError(error_message)
+            raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
         if (
             attrs["delivery_method"] == Order.DELIVERY_POINT
             and "delivery_point" not in attrs
         ):
-            raise serializers.ValidationError(error_delivery_point_message)
+            raise serializers.ValidationError(DELIVERY_POINT_ERROR_MESSAGE)
         if (
             attrs["payment_method"] == Order.DELIVERY_POINT_PAYMENT
             and attrs["delivery_method"] == Order.COURIER
         ):
-            raise serializers.ValidationError(no_match_error_message)
+            raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if (
             attrs["payment_method"] == Order.COURIER_CASH_PAYMENT
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
-            raise serializers.ValidationError(no_match_error_message)
+            raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
 
         return super().validate(attrs)
