@@ -108,7 +108,7 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(response.data["errors"][0]["detail"], PHONE_NUMBER_ERROR)
 
-    def test_user_add_birthdate(self):
+    def test_user_add_birthdate_correct(self):
         """Check add birthdate for user."""
         data = {"birth_date": "10.12.2004"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
@@ -130,7 +130,7 @@ class UsersTest(TestCase):
             "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY.",
         )
 
-    def test_user_add_phone_number(self):
+    def test_user_add_phone_number_correct(self):
         """Check add phone_number for user."""
         data = {"phone_number": "89999999999"}
         response = self.authorized_client.patch("/api/users/me/", data=data)
@@ -149,7 +149,8 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(
             response.data["errors"][0]["detail"],
-            "Введен некорректный номер телефона. Введите номер телефона в форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
+            "Введен некорректный номер телефона. Введите номер телефона в форматах "
+            "'+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'.",
         )
 
     def test_check_user_creation(self):
