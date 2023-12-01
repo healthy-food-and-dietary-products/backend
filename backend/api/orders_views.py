@@ -239,9 +239,11 @@ class OrderViewSet(
         add_address = None
         user = None
         delivery = None
+        user_data = None
         if self.request.user.is_authenticated:
             user = self.request.user
-        user_data = request.data["user_data"]
+        else:
+            user_data = request.data["user_data"]
         if "comment" in request.data:
             comment = request.data["comment"]
         if "package" in request.data:
@@ -265,24 +267,22 @@ class OrderViewSet(
             add_address=add_address,
             total_price=shopping_data["total_price"] + int(package),
         )
-
-        products = [
+        for prod in shopping_data["products"]:
             OrderProduct.objects.create(
                 product=Product.objects.get(id=prod["id"]),
                 quantity=prod["quantity"],
                 order=order,
             )
-            for prod in shopping_data["products"]
-        ]
-        Order.products = products
         order.order_number = order.id
         order.save()
         shopping_cart.clear()
-        message = (
-            f"Ваш заказ №{order.order_number} успешно оформлен. "
-            f"Заказ имеет id={order.id}."
+        response_serializer = (
+            OrderGetAuthSerializer
+            if self.request.user.is_authenticated
+            else OrderGetAnonSerializer
         )
-        return Response(message, status=status.HTTP_201_CREATED)
+        response_serializer = response_serializer(order)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         order_restricted_deletion_statuses = [
@@ -303,5 +303,13 @@ class OrderViewSet(
             return Response(
                 {"errors": "Отмена заказа после комплектования невозможна."}
             )
+        response_serializer = (
+            OrderGetAuthSerializer
+            if self.request.user.is_authenticated
+            else OrderGetAnonSerializer
+
+        )
+        serializer_data = response_serializer(order).data
+        serializer_data["Succes"] = "This object was successfully deleted"
         order.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer_data, status=status.HTTP_200_OK)
