@@ -30,7 +30,7 @@ from users.models import Address
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
 ORDER_NUMBER_ERROR_MESSAGE = "Укажите верный номер заказа."
 METHOD_ERROR_MESSAGE = "Укажите номер заказа."
-SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните ее."
+SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
 
 
@@ -306,14 +306,11 @@ class OrderViewSet(
             raise PermissionDenied()
 
         if order.status in order_restricted_deletion_statuses:
-            return Response(
-                {"errors": DELIVERY_ERROR_MESSAGE}
-            )
+            return Response({"errors": DELIVERY_ERROR_MESSAGE})
         response_serializer = (
             OrderGetAuthSerializer
             if self.request.user.is_authenticated
             else OrderGetAnonSerializer
-
         )
         serializer_data = response_serializer(order).data
         serializer_data["Success"] = MESSAGE_ON_DELETE

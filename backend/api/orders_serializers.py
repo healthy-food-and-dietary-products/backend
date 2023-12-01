@@ -10,22 +10,16 @@ from users.models import PHONE_NUMBER_ERROR, PHONE_NUMBER_REGEX, Address, User
 
 NO_MATCH_ERROR_MESSAGE = "Способ получения заказа не соответствует способу оплаты."
 COURIER_DELIVERY_ERROR_MESSAGE = (
-    "При выборе способа доставки курьером, "
-    "необходимо указать адрес доставки!"
+    "При выборе способа доставки курьером необходимо указать адрес доставки."
 )
 DELIVERY_ERROR_MESSAGE = "Укажите способ доставки."
 PAYMENT_ERROR_MESSAGE = "Нужно выбрать способ оплаты."
 DELIVERY_POINT_ERROR_MESSAGE = "Нужно выбрать пункт выдачи."
 ADDRESS_ERROR_MESSAGE = "Добавьте адрес доставки."
 QUANTITY_ERROR_MESSAGE = "Укажите количество товара."
-PRODUCT_ERROR_MESSAGE = (
-    "У нас нет таких продуктов. " "Выберете из представленных."
-)
+PRODUCT_ERROR_MESSAGE = "У нас нет таких продуктов, выберите из представленных."
 
-PHONE_NUMBER_ERROR_MESSAGE = (
-    "Добавьте номер телефона в своем "
-    "Личном кабинете/Профиле."
-)
+PHONE_NUMBER_ERROR_MESSAGE = "Добавьте номер телефона в своем Личном кабинете/Профиле."
 
 
 class UserPresentSerializer(UserSerializer):
@@ -238,12 +232,6 @@ class AnonUserDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(PHONE_NUMBER_ERROR)
         return phone_number
 
-    def validate_add_addres(self, add_address):
-        """Check add_address in user_data."""
-        if add_address == "":
-            raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
-        return add_address
-
 
 class OrderCreateAnonSerializer(serializers.ModelSerializer):
     """Serializer for create/delete anonim order."""
@@ -261,6 +249,12 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             "comment",
             "add_address",
         )
+
+    def validate_add_address(self, add_address):
+        """Check add_address in user_data."""
+        if add_address == "":
+            raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
+        return add_address
 
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
