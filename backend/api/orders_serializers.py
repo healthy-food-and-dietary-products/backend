@@ -7,7 +7,7 @@ from rest_framework import serializers
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
-from users.models import PHONE_NUMBER_ERROR, PHONE_NUMBER_REGEX, Address, User
+from users.models import PHONE_NUMBER_ERROR, PHONE_NUMBER_REGEX, User
 
 NO_MATCH_ERROR_MESSAGE = "Способ получения заказа не соответствует способу оплаты."
 COURIER_DELIVERY_ERROR_MESSAGE = (
@@ -191,13 +191,18 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             "add_address",
         )
 
+    def validate_add_address(self, add_address):
+        """Check add_address field for authorized user."""
+        if add_address == "":
+            raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
+        return add_address
+
     def validate(self, attrs):
         """Checks that the payment method matches the delivery method."""
         user = self.context["request"].user
         if not user.phone_number:
             raise serializers.ValidationError(PHONE_NUMBER_ERROR_MESSAGE)
-        address = Address.objects.filter(user=user)
-        if not address and "add_address" not in attrs:
+        if "address" not in attrs and "add_address" not in attrs:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         if "delivery_method" not in attrs:
             raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
@@ -256,7 +261,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
         )
 
     def validate_add_address(self, add_address):
-        """Check add_address in user_data."""
+        """Check add_address field for anonymous user."""
         if add_address == "":
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address

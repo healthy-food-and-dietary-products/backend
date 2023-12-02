@@ -230,7 +230,7 @@ class OrderViewSet(
         if not shopping_cart:
             return Response(
                 {"errors": SHOP_CART_ERROR},
-                status=status.HTTP_204_NO_CONTENT,
+                status=status.HTTP_404_NOT_FOUND,
             )
         shopping_data = {
             "products": shopping_cart.get_shop_products(),
@@ -259,7 +259,7 @@ class OrderViewSet(
         if "add_address" in request.data:
             add_address = request.data["add_address"]
         elif self.request.user.is_authenticated:
-            address = Address.objects.get(user=self.request.user)
+            address = Address.objects.get(id=request.data["address"])
         order = Order.objects.create(
             user=user,
             user_data=user_data,
