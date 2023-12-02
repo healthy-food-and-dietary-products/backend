@@ -19,7 +19,6 @@ from reviews.models import Review
 
 
 # TODO: write tests for reviews and for rating field in product views
-# TODO: add reviews to users/me (profile)
 @method_decorator(
     name="list",
     decorator=swagger_auto_schema(

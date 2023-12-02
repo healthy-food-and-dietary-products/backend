@@ -21,7 +21,6 @@ from reviews.models import Review
 from users.models import Address, User
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 
 def read_users():
