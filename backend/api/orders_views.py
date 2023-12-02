@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.db.models import Prefetch
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -138,7 +139,7 @@ class ShoppingCartViewSet(
         ),
         responses={
             200: OrderGetAuthSerializer,
-            401: ErrorResponse401Serializer,
+            401: METHOD_ERROR_MESSAGE,
             403: ErrorResponse403Serializer,
         },
     ),
@@ -215,7 +216,16 @@ class OrderViewSet(
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            queryset = Order.objects.filter(user=self.request.user)
+            queryset = (
+                Order.objects.select_related("user", "address", "delivery_point")
+                .prefetch_related(
+                    Prefetch(
+                        "products",
+                        queryset=Product.objects.prefetch_related("promotions"),
+                    )
+                )
+                .filter(user=self.request.user)
+            )
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
