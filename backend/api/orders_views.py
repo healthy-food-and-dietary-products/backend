@@ -185,7 +185,6 @@ class ShoppingCartViewSet(
     ),
 )
 class OrderViewSet(
-    DestroyWithPayloadMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -258,6 +257,8 @@ class OrderViewSet(
             delivery = Delivery.objects.get(id=request.data["delivery_point"])
         if "add_address" in request.data:
             add_address = request.data["add_address"]
+            if request.user.is_authenticated:
+                Address.objects.create(address=add_address, user=request.user)
         elif self.request.user.is_authenticated:
             address = Address.objects.get(id=request.data["address"])
         order = Order.objects.create(
