@@ -1,3 +1,4 @@
+import json
 import re
 
 from drf_spectacular.utils import extend_schema_field
@@ -149,7 +150,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
     products = OrderProductListSerializer(many=True)
-    # TODO: make user_data as SerializerMethodField
+    user_data = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -169,6 +170,9 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
             "ordering_date",
         )
         model = Order
+
+    def get_user_data(self, obj):
+        return json.loads(obj.user_data.replace("'", '"'))
 
 
 class OrderCreateAuthSerializer(serializers.ModelSerializer):

@@ -29,7 +29,7 @@ from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
 ORDER_NUMBER_ERROR_MESSAGE = "Укажите верный номер заказа."
-METHOD_ERROR_MESSAGE = "Укажите номер заказа."
+METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
 
@@ -222,7 +222,7 @@ class OrderViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
             {"errors": METHOD_ERROR_MESSAGE},
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
     def create(self, request, *args, **kwargs):
