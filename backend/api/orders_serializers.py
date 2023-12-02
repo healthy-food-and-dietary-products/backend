@@ -172,7 +172,9 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
         model = Order
 
     def get_user_data(self, obj):
-        return json.loads(obj.user_data.replace("'", '"'))
+        if obj.user_data is not None:
+            return json.loads(str(obj.user_data).replace("'", '"'))
+        return None
 
 
 class OrderCreateAuthSerializer(serializers.ModelSerializer):

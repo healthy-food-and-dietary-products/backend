@@ -193,7 +193,6 @@ class OrderViewSet(
 ):
     """Viewset for Order."""
 
-    http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
     permission_classes = [AllowAny]
 
@@ -275,8 +274,11 @@ class OrderViewSet(
             total_price=shopping_data["total_price"] + int(package),
         )
         for prod in shopping_data["products"]:
+            product = Product.objects.get(id=prod["id"])
+            product.orders_number += 1
+            product.save()
             OrderProduct.objects.create(
-                product=Product.objects.get(id=prod["id"]),
+                product=product,
                 quantity=prod["quantity"],
                 order=order,
             )
