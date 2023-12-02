@@ -22,6 +22,12 @@ load_data:
 export_data:
 	cd backend; python3 manage.py export_data
 
+load_recipes:
+	cd backend; python3 manage.py load_recipes
+
+export_recipes:
+	cd backend; python3 manage.py export_recipes
+
 dumpdb:
 	cd backend; python3 manage.py dumpdata --output dump.json
 

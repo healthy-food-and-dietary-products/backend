@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.db.models import Prefetch
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -29,7 +30,7 @@ from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
 ORDER_NUMBER_ERROR_MESSAGE = "Укажите верный номер заказа."
-METHOD_ERROR_MESSAGE = "Укажите номер заказа."
+METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
 
@@ -138,7 +139,7 @@ class ShoppingCartViewSet(
         ),
         responses={
             200: OrderGetAuthSerializer,
-            401: ErrorResponse401Serializer,
+            401: METHOD_ERROR_MESSAGE,
             403: ErrorResponse403Serializer,
         },
     ),
@@ -185,7 +186,6 @@ class ShoppingCartViewSet(
     ),
 )
 class OrderViewSet(
-    DestroyWithPayloadMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -194,7 +194,6 @@ class OrderViewSet(
 ):
     """Viewset for Order."""
 
-    http_method_names = ["get", "post", "delete"]
     queryset = Order.objects.all()
     permission_classes = [AllowAny]
 
@@ -217,12 +216,21 @@ class OrderViewSet(
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            queryset = Order.objects.filter(user=self.request.user)
+            queryset = (
+                Order.objects.select_related("user", "address", "delivery_point")
+                .prefetch_related(
+                    Prefetch(
+                        "products",
+                        queryset=Product.objects.prefetch_related("promotions"),
+                    )
+                )
+                .filter(user=self.request.user)
+            )
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
             {"errors": METHOD_ERROR_MESSAGE},
-            status=status.HTTP_400_BAD_REQUEST,
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
     def create(self, request, *args, **kwargs):
@@ -230,7 +238,7 @@ class OrderViewSet(
         if not shopping_cart:
             return Response(
                 {"errors": SHOP_CART_ERROR},
-                status=status.HTTP_204_NO_CONTENT,
+                status=status.HTTP_404_NOT_FOUND,
             )
         shopping_data = {
             "products": shopping_cart.get_shop_products(),
@@ -258,8 +266,10 @@ class OrderViewSet(
             delivery = Delivery.objects.get(id=request.data["delivery_point"])
         if "add_address" in request.data:
             add_address = request.data["add_address"]
+            if request.user.is_authenticated:
+                Address.objects.create(address=add_address, user=request.user)
         elif self.request.user.is_authenticated:
-            address = Address.objects.get(user=self.request.user)
+            address = Address.objects.get(id=request.data["address"])
         order = Order.objects.create(
             user=user,
             user_data=user_data,
@@ -274,8 +284,11 @@ class OrderViewSet(
             total_price=shopping_data["total_price"] + int(package),
         )
         for prod in shopping_data["products"]:
+            product = Product.objects.get(id=prod["id"])
+            product.orders_number += 1
+            product.save()
             OrderProduct.objects.create(
-                product=Product.objects.get(id=prod["id"]),
+                product=product,
                 quantity=prod["quantity"],
                 order=order,
             )
