@@ -8,6 +8,8 @@ from api.products_views import (
 )
 from tests.fixtures import TEST_NUMBER
 
+# TODO: test is_favorited in top_3_products field
+
 
 @pytest.mark.django_db
 def test_get_favorite_list(auth_admin, favorites, user, products):
