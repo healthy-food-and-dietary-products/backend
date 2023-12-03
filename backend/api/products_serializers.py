@@ -73,7 +73,9 @@ class CategorySerializer(CategoryLightSerializer):
             .filter(category=obj)
             .order_by("-orders_number")[:3]
         )
-        return ProductSerializer(top_three_products_queryset, many=True).data
+        return ProductSerializer(
+            top_three_products_queryset, many=True, context=self.context
+        ).data
 
 
 class TagLightSerializer(serializers.ModelSerializer):
@@ -103,7 +105,9 @@ class TagSerializer(TagLightSerializer):
             .filter(tags=obj)
             .order_by("-orders_number")[:3]
         )
-        return ProductSerializer(top_three_products_queryset, many=True).data
+        return ProductSerializer(
+            top_three_products_queryset, context=self.context, many=True
+        ).data
 
 
 class ComponentLightSerializer(serializers.ModelSerializer):
