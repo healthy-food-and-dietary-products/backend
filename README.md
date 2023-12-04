@@ -583,7 +583,46 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11"
 }
 ```
+Пример ответа:
+```
+{
+    "id": 32,
+    "order_number": "32",
+    "user_data": "{'first_name': 'Vasya',
+                   'last_name': 'Kovin',
+                   'phone_number': '89764563456',
+                    'email': 'user@example.com'}",
+    "products": [
+        {
+            "id": 2,
+            "name": "Фундук",
+            "measure_unit": "г.",
+            "amount": 100,
+            "quantity": null,
+            "final_price": 150.0
+        },
+        {
+            "id": 5,
+            "name": "Сыр Гауда",
+            "measure_unit": "г.",
+            "amount": 100,
+            "quantity": null,
+            "final_price": 75.0
+        }
+    ],
+    "payment_method": "Payment at the point of delivery",
+    "delivery_method": "Point of delivery",
+    "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11",
+    "delivery_point": 2,
+    "package": 0.0,
+    "comment": "string",
+    "total_price": 300.0,
+    "is_paid": false,
+    "status": "Ordered",
+    "ordering_date": "2023-12-01T12:32:18.152993+03:00"
+}
 
+```
 Пример POST запроса на создание заказа авторизированного пользователя:
 
 ```
@@ -594,7 +633,40 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "add_address": "Санкт-Петербург, Невский прспект д.18, оф. 3
 }
 ```
-
+Пример ответа:
+```
+{
+    "id": 34,
+    "order_number": "34",
+    "user": {
+        "username": "Kostya.Smirny",
+        "first_name": "Константин",
+        "last_name": "Смирнов",
+        "phone_number": "+79803456745"
+    },
+    "products": [
+        {
+            "id": 4,
+            "name": "Молоко коровье 1.5%",
+            "measure_unit": "мл.",
+            "amount": 1000,
+            "quantity": null,
+            "final_price": 75.0
+        }
+    ],
+    "payment_method": "In getting by cash",
+    "delivery_method": "By courier",
+    "address": null,
+    "add_address": "str",
+    "delivery_point": null,
+    "package": 100.0,
+    "comment": null,
+    "total_price": 250.0,
+    "is_paid": false,
+    "status": "Ordered",
+    "ordering_date": "2023-12-04T10:52:20.324335+03:00"
+}
+```
 ### Просмотр созданного заказа
 
 Просмотр заказа доступен всем пользователям по эндпойнту /api/order/{order_id}/

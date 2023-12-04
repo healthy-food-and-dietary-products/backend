@@ -26,6 +26,7 @@ from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
+from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
 ORDER_USER_ERROR_MESSAGE = "Укажите номер вашего заказа."
@@ -226,7 +227,12 @@ class OrderViewSet(
             order_data["delivery"] = Delivery.objects.get(id=data["delivery_point"])
         if "add_address" in data:
             order_data["add_address"] = data["add_address"]
-
+            if self.request.user.is_authenticated:
+                Address.objects.create(
+                    address=order_data["add_address"],
+                    user=order_data["user"])
+        elif self.request.user.is_authenticated:
+            order_data["address"] = Address.objects.get(id=data["address"])
         return order_data
 
     def retrieve(self, request, **kwargs):
