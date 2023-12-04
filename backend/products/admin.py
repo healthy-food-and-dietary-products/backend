@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Avg
 
 from .models import (
     Category,
@@ -145,7 +146,7 @@ class ProductAdmin(admin.ModelAdmin):
         "producer",
         "price",
         "final_price",
-        "promotion_quantity",
+        "rating",
         "views_number",
         "orders_number",
     ]
@@ -160,6 +161,7 @@ class ProductAdmin(admin.ModelAdmin):
         "producer",
         "price",
         "final_price",
+        "rating",
         "measure_unit",
         "amount",
         "promotion_quantity",
@@ -173,7 +175,7 @@ class ProductAdmin(admin.ModelAdmin):
         "photo",
     ]
     search_fields = ["name", "description", "producer"]
-    readonly_fields = ["creation_time", "promotion_quantity", "final_price"]
+    readonly_fields = ["creation_time", "promotion_quantity", "final_price", "rating"]
     ordering = ["pk"]
     list_filter = [
         "category",
@@ -190,6 +192,15 @@ class ProductAdmin(admin.ModelAdmin):
     def promotion_quantity(self, obj):
         """Shows the number of promotions for this product."""
         return obj.promotions.count()
+
+    @admin.display(description="Rating")
+    def rating(self, obj):
+        """Shows the product rating."""
+
+        product_reviews = obj.reviews.all()
+        if product_reviews:
+            return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
+        return "-empty-"
 
 
 @admin.register(ProductPromotion)

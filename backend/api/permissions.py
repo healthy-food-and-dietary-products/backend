@@ -12,15 +12,19 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         )
 
 
-class IsAdmin(permissions.BasePermission):
-    """Allows only admins to view objects."""
+class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
+    """Allows only the author to post/edit/delete the review."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_staff
+        return (
+            request.method in permissions.SAFE_METHODS or request.user.is_authenticated
+        )
 
-
-class IsAuthorOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return request.user.is_authenticated and (
-            request.user == obj.user or request.user.is_staff
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
+            and obj.author == request.user
+            or request.user.is_authenticated
+            and request.user.is_staff
         )

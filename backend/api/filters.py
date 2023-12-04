@@ -7,7 +7,7 @@ from products.models import Product
 class ProductFilter(rf_filters.FilterSet):
     """Class for filtering products."""
 
-    name = rf_filters.AllValuesMultipleFilter(method="startswith_contains_union_method")
+    name = rf_filters.CharFilter(method="startswith_contains_union_method")
     category = rf_filters.AllValuesMultipleFilter(field_name="category__slug")
     subcategory = rf_filters.AllValuesMultipleFilter(field_name="subcategory__slug")
     producer = rf_filters.AllValuesMultipleFilter(field_name="producer__slug")
@@ -34,24 +34,25 @@ class ProductFilter(rf_filters.FilterSet):
         ]
 
     def startswith_contains_union_method(self, queryset, name, value):
+        """
+        When using sqlite DB, filtering by name will be case-sensitive;
+        when using PostgreSQL DB, filtering by name will be case-insensitive
+        as it should be.
+        """
         if not bool(value):
             return queryset
-        startswith_lookup = "__".join([name, "istartswith"])
-        contains_lookup = "__".join([name, "icontains"])
         return (
-            queryset.filter(
-                Q(**{startswith_lookup: value}) | Q(**{contains_lookup: value})
-            )
+            queryset.filter(Q(name__istartswith=value) | Q(name__icontains=value))
             .annotate(
                 is_start=ExpressionWrapper(
-                    Q(**{startswith_lookup: value}), output_field=BooleanField()
+                    Q(name__istartswith=value), output_field=BooleanField()
                 )
             )
             .order_by("-is_start")
         )
 
     def product_boolean_methods(self, queryset, name, value):
-        if not bool(value):
+        if value not in [0, 1]:
             return queryset
         user = self.request.user
         if user.is_anonymous:

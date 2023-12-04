@@ -2,19 +2,23 @@ import os
 from csv import DictReader
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 from good_food.settings import BASE_DIR
 from orders.models import Delivery
 from products.models import (
     Category,
     Component,
+    FavoriteProduct,
     Producer,
     Product,
     Promotion,
     Subcategory,
     Tag,
 )
-from users.models import User
+from reviews.models import Review
+from users.models import Address, User
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
@@ -25,12 +29,20 @@ def read_users():
         for row in reader:
             user = User(
                 id=row["id"],
-                username=row["username"],
-                email=row["email"],
                 password=row["password"],
+                last_login=None if row["last_login"] == "" else row["last_login"],
+                is_superuser=row["is_superuser"],
                 first_name=row["first_name"],
                 last_name=row["last_name"],
-                city="Moscow",
+                is_staff=row["is_staff"],
+                is_active=row["is_active"],
+                date_joined=row["date_joined"],
+                username=row["username"],
+                email=row["email"],
+                city=row["city"],
+                birth_date=None if row["birth_date"] == "" else row["birth_date"],
+                phone_number=row["phone_number"],
+                photo=row["photo"],
             )
             user.save()
 
@@ -104,10 +116,15 @@ def read_products():
     with open(os.path.join(DATA_DIR, "products.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
+            if row.get("creation_time"):
+                creation_time = row["creation_time"]
+            else:
+                creation_time = timezone.now()
             product = Product(
                 id=row["id"],
                 name=row["name"],
                 description=row["description"],
+                creation_time=creation_time,
                 category_id=row["category_id"],
                 subcategory_id=row["subcategory_id"],
                 producer_id=row["producer_id"],
@@ -154,6 +171,18 @@ def read_products_promotions():
             product.promotions.add(promotion)
 
 
+def read_favorites():
+    with open(os.path.join(DATA_DIR, "favorites.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            favorite_product = FavoriteProduct(
+                id=row["id"],
+                product_id=row["product_id"],
+                user_id=row["user_id"],
+            )
+            favorite_product.save()
+
+
 def read_delivery_points():
     with open(
         os.path.join(DATA_DIR, "delivery_points.csv"), "r", encoding="utf-8"
@@ -165,6 +194,44 @@ def read_delivery_points():
                 delivery_point=row["delivery_point"],
             )
             delivery_point.save()
+
+
+def read_user_addresses():
+    with open(os.path.join(DATA_DIR, "user_addresses.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            address = Address(
+                id=row["id"],
+                address=row["address"],
+                priority_address=row["priority_address"],
+                user_id=row["user_id"],
+            )
+            address.save()
+
+
+def read_tokens():
+    with open(os.path.join(DATA_DIR, "tokens.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            token = Token(
+                key=row["key"], created=row["created"], user_id=row["user_id"]
+            )
+            token.save()
+
+
+def read_reviews():
+    with open(os.path.join(DATA_DIR, "reviews.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            review = Review(
+                id=row["id"],
+                text=row["text"],
+                score=row["score"],
+                pub_date=row["pub_date"],
+                author_id=row["author_id"],
+                product_id=row["product_id"],
+            )
+            review.save()
 
 
 class Command(BaseCommand):
@@ -191,5 +258,13 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла products_tags.csv загружены")
         read_products_promotions()
         self.stdout.write("Данные из файла products_promotions.csv загружены")
+        read_favorites()
+        self.stdout.write("Данные из файла favorites.csv загружены")
         read_delivery_points()
         self.stdout.write("Данные из файла delivery_points.csv загружены")
+        read_user_addresses()
+        self.stdout.write("Данные из файла user_addresses.csv загружены")
+        read_tokens()
+        self.stdout.write("Данные из файла tokens.csv загружены")
+        read_reviews()
+        self.stdout.write("Данные из файла reviews.csv загружены")

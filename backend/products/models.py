@@ -146,6 +146,8 @@ class Promotion(models.Model):
         (MULTIPLE_ITEMS, "Скидка при покупке нескольких штук"),
     ]
 
+    INVALID_DISCOUNT_MESSAGE = "Допустимы числа от 0 до 100"
+
     # TODO: make slug field after MVP?
 
     promotion_type = models.CharField(
@@ -159,7 +161,7 @@ class Promotion(models.Model):
         default=0,
         validators=[MaxValueValidator(100)],
         help_text="Percentage of a product price",
-        error_messages={"invalid": "Допустимы числа от 0 до 100"},
+        error_messages={"invalid": INVALID_DISCOUNT_MESSAGE},
     )
     conditions = models.TextField(
         "Conditions", blank=True, help_text="Conditions of the promotion"
@@ -242,9 +244,11 @@ class Product(models.Model):
     measure_unit = models.CharField(
         "Measure unit", max_length=11, choices=CHOISES, default=ITEMS
     )
-    # TODO: add MinValueValidator(1)
     amount = models.PositiveSmallIntegerField(
-        "Amount", default=1, help_text="Number of grams, milliliters or items"
+        "Amount",
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Number of grams, milliliters or items",
     )
     price = models.FloatField(
         "Price",
@@ -265,19 +269,25 @@ class Product(models.Model):
         verbose_name="Components that the product consists of",
     )
     kcal = models.PositiveSmallIntegerField(
-        "Kcal", help_text="Number of kcal per 100 g of product"
+        "Kcal", default=0, help_text="Number of kcal per 100 g of product"
     )
-    # TODO: make them float
-    proteins = models.PositiveSmallIntegerField(
-        "Proteins", help_text="Number of proteins per 100 g of product"
+    proteins = models.FloatField(
+        "Proteins",
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Number of proteins per 100 g of product",
     )
-    # TODO: make them float
-    fats = models.PositiveSmallIntegerField(
-        "Fats", help_text="Number of fats per 100 g of product"
+    fats = models.FloatField(
+        "Fats",
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Number of fats per 100 g of product",
     )
-    # TODO: make them float
-    carbohydrates = models.PositiveSmallIntegerField(
-        "Carbohydrates", help_text="Number of carbohydrates per 100 g of product"
+    carbohydrates = models.FloatField(
+        "Carbohydrates",
+        validators=[MinValueValidator(0)],
+        default=0,
+        help_text="Number of carbohydrates per 100 g of product",
     )
     views_number = models.PositiveIntegerField(
         "Views number", default=0, help_text="Number of product page views"
@@ -296,14 +306,10 @@ class Product(models.Model):
         """
         Calculates the product price, including the max discount from its promotions.
         """
-        max_discount = self.promotions.aggregate(models.Max("discount"))[
-            "discount__max"
-        ]
-        return (
-            round(self.price * (1 - max_discount / 100), 2)
-            if max_discount
-            else self.price
-        )
+        if not self.promotions.all():
+            return self.price
+        discount = self.promotions.all()[0].discount
+        return round(self.price * (1 - discount / 100), 2) if discount else self.price
 
     def is_favorited(self, user):
         """Checks whether the product is in the user's favorites."""
@@ -351,6 +357,11 @@ class FavoriteProduct(models.Model):
 class ProductPromotion(models.Model):
     """Describes connections between products and promotions."""
 
+    MAX_PROMOTIONS_ERROR_MESSAGE = (
+        "The number of promotions for one product "
+        f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
+    )
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE)
 
@@ -372,17 +383,11 @@ class ProductPromotion(models.Model):
 def check_promotion_quantity_after_product_save(sender, instance, **kwargs):
     """Checks promotion quantity of a product after product save."""
     if instance.promotions.count() > MAX_PROMOTIONS_NUMBER:
-        raise ValidationError(
-            "The number of promotions for one product "
-            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-        )
+        raise ValidationError(ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE)
 
 
 @receiver(models.signals.post_save, sender=ProductPromotion)
 def check_promotion_quantity_after_product_promotion_save(sender, instance, **kwargs):
     """Checks promotion quantity of a product after product_promotion save."""
     if instance.product.promotions.count() > MAX_PROMOTIONS_NUMBER:
-        raise ValidationError(
-            "The number of promotions for one product "
-            f"cannot exceed {MAX_PROMOTIONS_NUMBER}."
-        )
+        raise ValidationError(ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE)

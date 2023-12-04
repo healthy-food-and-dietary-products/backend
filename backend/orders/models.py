@@ -131,6 +131,15 @@ class Order(models.Model):
         null=True,
         verbose_name="Delivery Point",
     )
+    add_address = models.CharField(
+        max_length=450, blank=True, null=True, verbose_name="Add address"
+    )
+    user_data = models.CharField(
+        max_length=450, blank=True, null=True, verbose_name="Anonimus user's data"
+    )
+    total_price = models.FloatField(
+        blank=True, null=True, verbose_name="Order's total_price"
+    )
 
     class Meta:
         ordering = ["-ordering_date"]
@@ -138,7 +147,7 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"{self.ordering_date} - {self.order_number}."
+        return f"Order {self.order_number} of {self.user.username}"
 
 
 class OrderProduct(models.Model):
@@ -176,9 +185,4 @@ class OrderProduct(models.Model):
         ]
 
     def __str__(self):
-        return (
-            f"{self.product.name}: "
-            f"{self.product.measure_unit}"
-            f"{self.product.price} "
-            f"{self.quantity}."
-        )
+        return f"{self.product.name} - {self.order.pk}."
