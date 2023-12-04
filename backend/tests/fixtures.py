@@ -137,7 +137,7 @@ def user2(django_user_model):
         username="Testuser2",
         email="testuser2@good_food.fake",
         password="1234567",
-        phone_number="89876543456"
+        phone_number="89876543456",
     )
 
 

@@ -205,7 +205,7 @@ class OrderViewSet(
             return OrderCreateAuthSerializer
         return OrderCreateAnonSerializer
 
-    def chek_request_data(self, data):
+    def check_request_data(self, data):
         order_data = {}
         order_data["comment"] = None
         order_data["package"] = 0
@@ -270,7 +270,7 @@ class OrderViewSet(
         }
         serializer = self.get_serializer(shopping_data, request.data)
         serializer.is_valid(raise_exception=True)
-        order_data = self.chek_request_data(request.data)
+        order_data = self.check_request_data(request.data)
 
         order = Order.objects.create(
             user=order_data["user"],
