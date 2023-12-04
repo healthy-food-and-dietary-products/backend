@@ -229,8 +229,8 @@ class OrderViewSet(
             order_data["add_address"] = data["add_address"]
             if self.request.user.is_authenticated:
                 Address.objects.create(
-                    address=order_data["add_address"],
-                    user=order_data["user"])
+                    address=order_data["add_address"], user=order_data["user"]
+                )
         elif self.request.user.is_authenticated:
             order_data["address"] = Address.objects.get(id=data["address"])
         return order_data
