@@ -8,7 +8,6 @@ from tests.fixtures import ADDRESS1, FIRST_NAME, LAST_NAME, PHONE_NUMBER, USER_E
 
 @pytest.mark.django_db(transaction=True)
 class TestOrder:
-
     def create_shopping_cart_authorized(self, auth_client1, products):
         shopping_cart_data = {
             "products": [
@@ -55,7 +54,7 @@ class TestOrder:
             "first_name": FIRST_NAME,
             "last_name": LAST_NAME,
             "phone_number": PHONE_NUMBER,
-            "email": USER_EMAIL
+            "email": USER_EMAIL,
         }
         order_data = {
             "user_data": user_data,
@@ -80,7 +79,7 @@ class TestOrder:
             "first_name": FIRST_NAME,
             "last_name": LAST_NAME,
             "phone_number": PHONE_NUMBER,
-            "email": USER_EMAIL
+            "email": USER_EMAIL,
         }
         order_data = {
             "user_data": user_data,
@@ -134,7 +133,7 @@ class TestOrder:
             "first_name": FIRST_NAME,
             "last_name": LAST_NAME,
             "phone_number": PHONE_NUMBER,
-            "email": USER_EMAIL
+            "email": USER_EMAIL,
         }
         order_data = {
             "user_data": user_data,
