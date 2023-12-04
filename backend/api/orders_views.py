@@ -26,10 +26,9 @@ from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
-from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
-ORDER_NUMBER_ERROR_MESSAGE = "Укажите верный номер заказа."
+ORDER_USER_ERROR_MESSAGE = "Укажите номер вашего заказа."
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
@@ -206,11 +205,35 @@ class OrderViewSet(
             return OrderCreateAuthSerializer
         return OrderCreateAnonSerializer
 
+    def chek_request_data(self, data):
+        order_data = {}
+        order_data["comment"] = None
+        order_data["package"] = 0
+        order_data["address"] = None
+        order_data["add_address"] = None
+        order_data["user"] = None
+        order_data["delivery"] = None
+        order_data["user_data"] = None
+        if self.request.user.is_authenticated:
+            order_data["user"] = self.request.user
+        else:
+            order_data["user_data"] = data["user_data"]
+        if "comment" in data:
+            order_data["comment"] = data["comment"]
+        if "package" in data:
+            order_data["package"] = data["package"]
+        if "delivery_point" in data:
+            order_data["delivery"] = Delivery.objects.get(id=data["delivery_point"])
+        if "add_address" in data:
+            order_data["add_address"] = data["add_address"]
+
+        return order_data
+
     def retrieve(self, request, **kwargs):
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if user.is_authenticated and order.user != user:
-            return Response({"errors": ORDER_NUMBER_ERROR_MESSAGE})
+            return Response({"errors": ORDER_USER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -247,41 +270,20 @@ class OrderViewSet(
         }
         serializer = self.get_serializer(shopping_data, request.data)
         serializer.is_valid(raise_exception=True)
-        comment = None
-        package = 0
-        address = None
-        add_address = None
-        user = None
-        delivery = None
-        user_data = None
-        if self.request.user.is_authenticated:
-            user = self.request.user
-        else:
-            user_data = request.data["user_data"]
-        if "comment" in request.data:
-            comment = request.data["comment"]
-        if "package" in request.data:
-            package = request.data["package"]
-        if "delivery_point" in request.data:
-            delivery = Delivery.objects.get(id=request.data["delivery_point"])
-        if "add_address" in request.data:
-            add_address = request.data["add_address"]
-            if request.user.is_authenticated:
-                Address.objects.create(address=add_address, user=request.user)
-        elif self.request.user.is_authenticated:
-            address = Address.objects.get(id=request.data["address"])
+        order_data = self.chek_request_data(request.data)
+
         order = Order.objects.create(
-            user=user,
-            user_data=user_data,
+            user=order_data["user"],
+            user_data=order_data["user_data"],
             status=Order.ORDERED,
             payment_method=request.data["payment_method"],
             delivery_method=request.data["delivery_method"],
-            delivery_point=delivery,
-            package=package,
-            comment=comment,
-            address=address,
-            add_address=add_address,
-            total_price=shopping_data["total_price"] + int(package),
+            delivery_point=order_data["delivery"],
+            package=order_data["package"],
+            comment=order_data["comment"],
+            address=order_data["address"],
+            add_address=order_data["add_address"],
+            total_price=shopping_data["total_price"] + int(order_data["package"]),
         )
         for prod in shopping_data["products"]:
             product = Product.objects.get(id=prod["id"])
