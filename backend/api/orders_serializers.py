@@ -195,7 +195,7 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
 
     def validate_add_address(self, add_address):
         """Check add_address field for authorized user."""
-        if add_address == "":
+        if len(add_address) < 1:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address
 
