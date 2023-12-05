@@ -225,7 +225,7 @@ class OrderViewSet(
             order_data["package"] = data["package"]
         if "delivery_point" in data:
             order_data["delivery"] = Delivery.objects.get(id=data["delivery_point"])
-        if "add_address" in data:
+        if "add_address" in data and not order_data["delivery"]:
             order_data["add_address"] = data["add_address"]
             if self.request.user.is_authenticated:
                 Address.objects.create(
