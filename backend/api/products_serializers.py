@@ -332,6 +332,28 @@ class ProductUpdateSerializer(ProductCreateSerializer):
         return value
 
 
+class ProductPresentSerializer(serializers.ModelSerializer):
+    """Serializer for short presentation products."""
+
+    photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "photo",
+        )
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
+
+
 class ProductLightSerializer(ProductSerializer):
     """Serializer for products representation in favorite product serializer."""
 
