@@ -152,7 +152,11 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         if not user.phone_number:
             raise serializers.ValidationError(PHONE_NUMBER_ERROR_MESSAGE)
-        if "address" not in attrs and "add_address" not in attrs:
+        if (
+            attrs["delivery_method"] == Order.COURIER
+            and "address" not in attrs
+            and "add_address" not in attrs
+        ):
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         if "delivery_method" not in attrs:
             raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
@@ -212,7 +216,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
 
     def validate_add_address(self, add_address):
         """Check add_address field for anonymous user."""
-        if add_address == "":
+        if len(add_address) < 1:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address
 
