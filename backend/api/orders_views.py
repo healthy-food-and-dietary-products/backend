@@ -29,7 +29,10 @@ from products.models import Product
 from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
-ORDER_USER_ERROR_MESSAGE = "Укажите номер вашего заказа."
+ORDER_USER_ERROR_MESSAGE = (
+    "Заказ с данным номером принадлежит другому пользователю. "
+    "Укажите номер вашего заказа."
+)
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
@@ -225,19 +228,24 @@ class OrderViewSet(
             order_data["package"] = data["package"]
         if "delivery_point" in data:
             order_data["delivery"] = Delivery.objects.get(id=data["delivery_point"])
-        if "add_address" in data:
+        if "add_address" in data and data["delivery_method"] == Order.COURIER:
             order_data["add_address"] = data["add_address"]
             if self.request.user.is_authenticated:
                 Address.objects.create(
                     address=order_data["add_address"], user=order_data["user"]
                 )
-        elif self.request.user.is_authenticated:
+        elif (
+            self.request.user.is_authenticated
+            and data["delivery_method"] == Order.COURIER
+        ):
             order_data["address"] = Address.objects.get(id=data["address"])
         return order_data
 
     def retrieve(self, request, **kwargs):
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if user.is_anonymous and order.user is not None:
+            raise PermissionDenied()
         if user.is_authenticated and order.user != user:
             return Response({"errors": ORDER_USER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
