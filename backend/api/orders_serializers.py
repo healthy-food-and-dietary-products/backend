@@ -47,6 +47,16 @@ class OrderProductSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class OrderProductDisplaySerializer(serializers.ModelSerializer):
+    """Serializer to display order products in order."""
+
+    product = ProductPresentSerializer()
+
+    class Meta:
+        model = OrderProduct
+        fields = ("product", "quantity")
+
+
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete shopping_cart."""
 
@@ -60,7 +70,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class OrderGetAuthSerializer(serializers.ModelSerializer):
     """Serializer for authorized user order representation."""
 
-    products = ProductPresentSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user = UserPresentSerializer(read_only=True)
 
     class Meta:
@@ -87,7 +97,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
-    products = ProductPresentSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user_data = serializers.SerializerMethodField()
 
     class Meta:

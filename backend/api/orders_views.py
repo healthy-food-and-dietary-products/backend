@@ -29,7 +29,10 @@ from products.models import Product
 from users.models import Address
 
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
-ORDER_USER_ERROR_MESSAGE = "Укажите номер вашего заказа."
+ORDER_USER_ERROR_MESSAGE = (
+    "Заказ с данным номером принадлежит другому пользователю. "
+    "Укажите номер вашего заказа."
+)
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
@@ -238,6 +241,8 @@ class OrderViewSet(
     def retrieve(self, request, **kwargs):
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if user.is_anonymous and order.user is not None:
+            raise PermissionDenied()
         if user.is_authenticated and order.user != user:
             return Response({"errors": ORDER_USER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
