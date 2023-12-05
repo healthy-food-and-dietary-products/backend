@@ -624,7 +624,6 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     ],
     "payment_method": "Payment at the point of delivery",
     "delivery_method": "Point of delivery",
-    "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11",
     "delivery_point": 2,
     "package": 0.0,
     "comment": "string",
