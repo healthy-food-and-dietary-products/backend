@@ -60,7 +60,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class OrderGetAuthSerializer(serializers.ModelSerializer):
     """Serializer for authorized user order representation."""
 
-    # products = OrderProductListSerializer(many=True)
     products = ProductPresentSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
 
@@ -88,7 +87,6 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
-    # products = OrderProductListSerializer(many=True)
     products = ProductPresentSerializer(many=True)
     user_data = serializers.SerializerMethodField()
 
