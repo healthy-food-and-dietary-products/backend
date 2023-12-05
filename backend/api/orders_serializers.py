@@ -1,9 +1,9 @@
 import json
 import re
 
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from .products_serializers import ProductPresentSerializer
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
@@ -47,78 +47,6 @@ class OrderProductSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class OrderProductListSerializer(serializers.ModelSerializer):
-    """Serializer products in order."""
-
-    name = serializers.SerializerMethodField()
-    measure_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField()
-    final_price = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
-    photo = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OrderProduct
-        fields = (
-            "id",
-            "name",
-            "photo",
-            "measure_unit",
-            "amount",
-            "quantity",
-            "final_price",
-        )
-
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.final_price
-        if isinstance(obj, OrderProduct):
-            return obj.product.final_price
-        return obj.final_price
-
-    @extend_schema_field(str)
-    def get_name(self, obj):
-        if isinstance(obj, dict):
-            return obj["name"]
-        if isinstance(obj, OrderProduct):
-            return obj.product.name
-        return obj.name
-
-    @extend_schema_field(str)
-    def get_measure_unit(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.measure_unit
-        if isinstance(obj, OrderProduct):
-            return obj.product.measure_unit
-        return obj.measure_unit
-
-    @extend_schema_field(int)
-    def get_amount(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.amount
-        if isinstance(obj, OrderProduct):
-            return obj.product.amount
-        return obj.amount
-
-    @extend_schema_field(int)
-    def get_quantity(self, obj):
-        if isinstance(obj, dict):
-            return obj["quantity"]
-        return None
-
-    def get_photo(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.photo
-        if isinstance(obj, OrderProduct):
-            return obj.product.photo
-        return obj.photo
-
-
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete shopping_cart."""
 
@@ -132,7 +60,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class OrderGetAuthSerializer(serializers.ModelSerializer):
     """Serializer for authorized user order representation."""
 
-    products = OrderProductListSerializer(many=True)
+    # products = OrderProductListSerializer(many=True)
+    products = ProductPresentSerializer(many=True)
     user = UserPresentSerializer(read_only=True)
 
     class Meta:
@@ -159,7 +88,8 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
-    products = OrderProductListSerializer(many=True)
+    # products = OrderProductListSerializer(many=True)
+    products = ProductPresentSerializer(many=True)
     user_data = serializers.SerializerMethodField()
 
     class Meta:
