@@ -19,7 +19,6 @@ DELIVERY_POINT_ERROR_MESSAGE = "Нужно выбрать пункт выдач�
 ADDRESS_ERROR_MESSAGE = "Добавьте адрес доставки."
 QUANTITY_ERROR_MESSAGE = "Укажите количество товара."
 PRODUCT_ERROR_MESSAGE = "У нас нет таких продуктов, выберите из представленных."
-
 PHONE_NUMBER_ERROR_MESSAGE = "Добавьте номер телефона в своем Личном кабинете/Профиле."
 
 
@@ -47,6 +46,16 @@ class OrderProductSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class OrderProductDisplaySerializer(serializers.ModelSerializer):
+    """Serializer to display order products in order."""
+
+    product = ProductPresentSerializer()
+
+    class Meta:
+        model = OrderProduct
+        fields = ("product", "quantity")
+
+
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete shopping_cart."""
 
@@ -60,7 +69,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 class OrderGetAuthSerializer(serializers.ModelSerializer):
     """Serializer for authorized user order representation."""
 
-    products = ProductPresentSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user = UserPresentSerializer(read_only=True)
 
     class Meta:
@@ -87,7 +96,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
-    products = ProductPresentSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -142,7 +151,11 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         if not user.phone_number:
             raise serializers.ValidationError(PHONE_NUMBER_ERROR_MESSAGE)
-        if "address" not in attrs and "add_address" not in attrs:
+        if (
+            attrs["delivery_method"] == Order.COURIER
+            and "address" not in attrs
+            and "add_address" not in attrs
+        ):
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         if "delivery_method" not in attrs:
             raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
@@ -165,6 +178,8 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
             raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
+        if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 
@@ -202,7 +217,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
 
     def validate_add_address(self, add_address):
         """Check add_address field for anonymous user."""
-        if add_address == "":
+        if len(add_address) < 1:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address
 
@@ -229,5 +244,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
-
+        if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
