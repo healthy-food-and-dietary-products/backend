@@ -55,12 +55,14 @@ class OrderProductListSerializer(serializers.ModelSerializer):
     amount = serializers.SerializerMethodField()
     final_price = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
+    photo = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderProduct
         fields = (
             "id",
             "name",
+            "photo",
             "measure_unit",
             "amount",
             "quantity",
@@ -107,6 +109,14 @@ class OrderProductListSerializer(serializers.ModelSerializer):
         if isinstance(obj, dict):
             return obj["quantity"]
         return None
+
+    def get_photo(self, obj):
+        if isinstance(obj, dict):
+            product = Product.objects.get(id=obj["id"])
+            return product.photo
+        if isinstance(obj, OrderProduct):
+            return obj.product.photo
+        return obj.photo
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
