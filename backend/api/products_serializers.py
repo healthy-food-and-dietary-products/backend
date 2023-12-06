@@ -68,9 +68,8 @@ class CategorySerializer(CategoryLightSerializer):
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
         top_three_products_queryset = (
-            Product.objects.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions")
-            .filter(category=obj)
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
             .order_by("-orders_number")[:3]
         )
         return ProductSerializer(
@@ -100,9 +99,8 @@ class TagSerializer(TagLightSerializer):
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
         top_three_products_queryset = (
-            Product.objects.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions")
-            .filter(tags=obj)
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
             .order_by("-orders_number")[:3]
         )
         return ProductSerializer(
