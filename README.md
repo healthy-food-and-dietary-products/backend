@@ -608,28 +608,22 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "user_data": "{'first_name': 'Vasya',
                    'last_name': 'Kovin',
                    'phone_number': '89764563456',
-                    'email': 'user@example.com'}",
+                   'email': 'user@example.com'}",
     "products": [
         {
-            "id": 2,
-            "name": "Фундук",
-            "measure_unit": "г.",
-            "amount": 100,
-            "quantity": null,
-            "final_price": 150.0
+        "product": {
+            "id": 12,
+            "name": "Перец болгарский",
+            "measure_unit": "grams",
+            "amount": 1000,
+            "final_price": 120,
+            "photo": "/media/images/products/12.jpg"
         },
-        {
-            "id": 5,
-            "name": "Сыр Гауда",
-            "measure_unit": "г.",
-            "amount": 100,
-            "quantity": null,
-            "final_price": 75.0
+      "quantity": 10
         }
     ],
     "payment_method": "Payment at the point of delivery",
     "delivery_method": "Point of delivery",
-    "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11",
     "delivery_point": 2,
     "package": 0.0,
     "comment": "string",
@@ -667,8 +661,11 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
             "name": "Молоко коровье 1.5%",
             "measure_unit": "мл.",
             "amount": 1000,
-            "quantity": null,
-            "final_price": 75.0
+            "final_price": 75.0,
+            "photo": "/media/images/products/4.jpg"
+        },
+        "quantity": 10
+            
         }
     ],
     "payment_method": "In getting by cash",

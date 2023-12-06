@@ -19,7 +19,6 @@ DELIVERY_POINT_ERROR_MESSAGE = "Нужно выбрать пункт выдач�
 ADDRESS_ERROR_MESSAGE = "Добавьте адрес доставки."
 QUANTITY_ERROR_MESSAGE = "Укажите количество товара."
 PRODUCT_ERROR_MESSAGE = "У нас нет таких продуктов, выберите из представленных."
-
 PHONE_NUMBER_ERROR_MESSAGE = "Добавьте номер телефона в своем Личном кабинете/Профиле."
 
 
@@ -179,6 +178,8 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
             raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
+        if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 
@@ -243,5 +244,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
-
+        if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+            raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
