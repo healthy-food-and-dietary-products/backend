@@ -15,6 +15,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     author = serializers.SlugRelatedField(slug_field="username", read_only=True)
     product = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    was_edited = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Review
