@@ -10,7 +10,7 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source="ingredient.name")
     measure_unit = serializers.ReadOnlyField(source="ingredient.measure_unit")
     quantity = serializers.ReadOnlyField(source="amount")
-    
+
     class Meta:
         model = ProductsInRecipe
         fields = ("id", "name", "measure_unit", "quantity")
