@@ -23,6 +23,8 @@ class ShopCart(object):
             self.shopping_cart[p_id] = {
                 "id": p.id,
                 "name": p.name,
+                "photo": str(p.photo),
+                "category": p.category.slug,
                 "quantity": quantity,
                 "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp()),
@@ -43,10 +45,13 @@ class ShopCart(object):
         Iterate over the items in the cart and get the products
         from the database.
         """
+
         for item in self.shopping_cart.values():
+            item["id"] = item["id"]
             item["name"] = item["name"]
             item["quantity"] = int(item["quantity"])
             item["total_price"] = item["quantity"] * item["final_price"]
+            item["category"] = item["category"]
 
             yield item
 
