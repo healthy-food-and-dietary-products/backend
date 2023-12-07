@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
+from django.http import HttpResponsePermanentRedirect
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -9,6 +10,7 @@ from drf_standardized_errors.openapi_serializers import (
 )
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -329,3 +331,14 @@ class OrderViewSet(
         serializer_data["Success"] = MESSAGE_ON_DELETE
         order.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['GET',],
+        detail=True,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def pay(self, request, *args, **kwargs):
+        order = Order.objects.get(id=self.kwargs.get("pk"))
+        if self.request.user.is_authenticated and order.user == self.request.user:
+            return HttpResponsePermanentRedirect(f"/pay/{order.id}")
+        raise PermissionDenied()

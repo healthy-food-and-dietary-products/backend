@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
     "reviews.apps.ReviewsConfig",
+    "payments.apps.PaymentsConfig",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
@@ -83,6 +84,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart_id"
+ORDER_SESSION_ID = 'order_id'
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
@@ -91,7 +93,7 @@ ROOT_URLCONF = "good_food.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [BASE_DIR / 'templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -165,7 +167,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -257,3 +260,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
+
+STRIPE_PUBLISHABLE_KEY = "pk_test_51OGSdmI99MZwyE0FwGcL7I41mhzmOCHU8Uq1HJsYakW02AY69uZSalbFgzY4gFVl6XZM9ffiUllgIjXZ4rNI6MJh00ssOpSXxt"
+STRIPE_SECRET_KEY = "sk_test_51OGSdmI99MZwyE0FQdvBqB91pV4D5p7iRy8iZcyM1ftOacyfws3qvgjQDBRKJer9c8jyQMkQ8NG09DU0t1nC0wmX0097OrBpUi"
