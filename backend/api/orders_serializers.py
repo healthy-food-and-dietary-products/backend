@@ -57,13 +57,13 @@ class OrderProductDisplaySerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/delete shopping_cart."""
+    """Serializer for create/update/ shopping_cart."""
 
     products = OrderProductSerializer(many=True)
 
     class Meta:
-        fields = ("products",)
-        model = OrderProduct
+        fields = ("products", )
+        model = Product
 
 
 class OrderGetAuthSerializer(serializers.ModelSerializer):
