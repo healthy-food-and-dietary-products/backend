@@ -1,32 +1,25 @@
-from django.db.models import F
 from rest_framework import serializers
 
-from api.products_serializers import ProductSerializer
 from recipes.models import ProductsInRecipe, Recipe
-
-
-class ProductLightSerializer(ProductSerializer):
-    """Serializer for products representation in favorite product serializer."""
-
-    class Meta(ProductSerializer.Meta):
-        fields = ("name", "measure_unit")
 
 
 class ProductsInRecipeSerializer(serializers.ModelSerializer):
     """Serializer for products in recipe representation recipe serializer."""
 
-    ingredient = ProductLightSerializer()
-
+    id = serializers.ReadOnlyField(source="ingredient.id")
+    name = serializers.ReadOnlyField(source="ingredient.name")
+    measure_unit = serializers.ReadOnlyField(source="ingredient.measure_unit")
+    quantity = serializers.ReadOnlyField(source="amount")
     class Meta:
         model = ProductsInRecipe
-        fields = ("id", "ingredient", "amount")
+        fields = ("id", "name", "measure_unit", "quantity")
 
 
 # TODO: Implement ingredient output via serializer ProductsInRecipeSerializer
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipe representation."""
 
-    ingredients = serializers.SerializerMethodField()
+    ingredients = ProductsInRecipeSerializer(source='recipeingredient', many=True)
     total_ingredients = serializers.SerializerMethodField()
     recipe_nutrients = serializers.SerializerMethodField()
 
@@ -43,15 +36,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             "recipe_nutrients",
             "cooking_time",
         )
-
-    def get_ingredients(self, obj):
-        ingredients = obj.ingredients.values(
-            "id",
-            "name",
-            "measure_unit",
-            quantity=F("productsinrecipe__amount"),
-        )
-        return ingredients
 
     def get_total_ingredients(self, obj):
         return obj.ingredients.count()
