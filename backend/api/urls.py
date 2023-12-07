@@ -20,6 +20,7 @@ from .products_views import (
     SubcategoryViewSet,
     TagViewSet,
 )
+from .recipes_views import RecipeViewSet
 from .reviews_views import ReviewViewSet
 from .users_views import (
     AddressViewSet,
@@ -48,6 +49,7 @@ router.register(
 )
 router.register("shopping_cart", ShoppingCartViewSet, basename="shopping_carts")
 router.register("order", OrderViewSet, basename="orders")
+router.register("recipes", RecipeViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

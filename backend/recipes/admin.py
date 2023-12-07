@@ -22,6 +22,7 @@ class RecipeAdmin(admin.ModelAdmin):
     fields = (
         "name",
         "author",
+        "image",
         "text",
         "cooking_time",
         "pub_date",
@@ -43,9 +44,13 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(ProductsInRecipe)
 class ProductsInRecipeAdmin(admin.ModelAdmin):
-    list_display = ("pk", "recipe", "ingredient", "amount")
+    list_display = ("pk", "recipe", "ingredient", "amount", "measure")
     list_display_links = ("recipe", "ingredient")
     empty_value_display = "-empty-"
+
+    @admin.display(description="Measure units")
+    def measure(self, obj):
+        return obj.ingredient.measure_unit
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
