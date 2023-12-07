@@ -506,7 +506,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Product.objects.select_related(
         "category", "subcategory", "producer"
-    ).prefetch_related("components", "tags", "promotions")
+    ).prefetch_related("components", "tags", "promotions", "reviews")
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [rf_filters.DjangoFilterBackend]
@@ -523,9 +523,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return ProductSerializer
 
     def get_queryset(self):
-        return (
-            super().get_queryset().prefetch_related("components", "tags", "promotions")
-        )
+        return Product.objects.select_related(
+            "category", "subcategory", "producer"
+        ).prefetch_related("components", "tags", "promotions", "reviews")
 
     @transaction.atomic
     def create_delete_or_scold(self, model, product, request):
