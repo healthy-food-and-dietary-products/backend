@@ -51,7 +51,7 @@ class ShopCart(object):
             item["name"] = item["name"]
             item["quantity"] = int(item["quantity"])
             item["total_price"] = item["quantity"] * item["final_price"]
-            item["category"] = item["category"]
+            item["category"] = item.get("category",  None)
 
             yield item
 
