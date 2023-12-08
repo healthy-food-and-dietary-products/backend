@@ -19,7 +19,7 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipe representation."""
 
-    ingredients = ProductsInRecipeSerializer(source='recipeingredient', many=True)
+    ingredients = ProductsInRecipeSerializer(source="recipeingredient", many=True)
     total_ingredients = serializers.SerializerMethodField()
     recipe_nutrients = serializers.SerializerMethodField()
 
