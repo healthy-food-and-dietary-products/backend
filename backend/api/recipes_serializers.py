@@ -56,7 +56,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient.carbohydrates
                 * ingredient.productsinrecipe.get(recipe=obj).amount
             ) / 100
-        kcal = proteins * 4 + fats * 9 + carbohydrates * 4
+        kcal = round(proteins * 4 + fats * 9 + carbohydrates * 4, 0)
 
         return {
             "proteins": proteins,
