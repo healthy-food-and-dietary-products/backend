@@ -76,6 +76,15 @@ dumpdb-compose:
 loaddb-compose:
 	cd infra; sudo docker compose exec -it web python manage.py loaddata dump.json
 
+load_data-compose:
+	cd infra; sudo docker compose exec -it web python manage.py load_data
+
+export_data-compose:
+	cd infra; sudo docker compose exec -it web python manage.py export_data
+
+flush-compose:
+	cd infra; sudo docker compose exec -it web python manage.py flush
+
 down-all-compose:
 	cd infra; sudo docker compose down -v --rmi all
 

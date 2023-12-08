@@ -62,7 +62,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     products = OrderProductSerializer(many=True)
 
     class Meta:
-        fields = ("products", )
+        fields = ("products",)
         model = Product
 
 
