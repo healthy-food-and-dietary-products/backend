@@ -32,6 +32,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 #     DEBUG = True
 # else:
 #     DEBUG = False
+# TODO: restore debug settings
 DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
