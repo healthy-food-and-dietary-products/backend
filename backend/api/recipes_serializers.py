@@ -46,14 +46,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         carbohydrates = 0
 
         for ingredient in obj.ingredients.all():
-            proteins += (
-                ingredient.proteins * ingredient.productsinrecipe.get().amount
-            ) / 100
-            fats += (ingredient.fats * ingredient.productsinrecipe.get().amount) / 100
-            carbohydrates += (
-                ingredient.carbohydrates * ingredient.productsinrecipe.get().amount
-            ) / 100
-        kcal = proteins * 4 + fats * 9 + carbohydrates * 4
+            proteins += round(
+                (
+                    ingredient.proteins
+                    * ingredient.productsinrecipe.get(recipe=obj).amount
+                )
+                / 100,
+                1,
+            )
+            fats += round(
+                (ingredient.fats * ingredient.productsinrecipe.get(recipe=obj).amount)
+                / 100,
+                1,
+            )
+            carbohydrates += round(
+                (
+                    ingredient.carbohydrates
+                    * ingredient.productsinrecipe.get(recipe=obj).amount
+                )
+                / 100,
+                1,
+            )
+        kcal = round(proteins * 4 + fats * 9 + carbohydrates * 4, 0)
 
         return {
             "proteins": proteins,
