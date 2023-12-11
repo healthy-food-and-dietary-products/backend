@@ -2,6 +2,9 @@ from rest_framework import serializers
 
 from recipes.models import ProductsInRecipe, Recipe
 
+RECIPE_KCAL_DECIMAL_PLACES = 0
+RECIPE_NUTRIENTS_DECIMAL_PLACES = 1
+
 
 class ProductsInRecipeSerializer(serializers.ModelSerializer):
     """Serializer for products in recipe representation recipe serializer."""
@@ -46,32 +49,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         carbohydrates = 0
 
         for ingredient in obj.ingredients.all():
-            proteins += round(
-                (
-                    ingredient.proteins
-                    * ingredient.productsinrecipe.get(recipe=obj).amount
-                )
-                / 100,
-                1,
-            )
-            fats += round(
-                (ingredient.fats * ingredient.productsinrecipe.get(recipe=obj).amount)
-                / 100,
-                1,
-            )
-            carbohydrates += round(
-                (
-                    ingredient.carbohydrates
-                    * ingredient.productsinrecipe.get(recipe=obj).amount
-                )
-                / 100,
-                1,
-            )
-        kcal = round(proteins * 4 + fats * 9 + carbohydrates * 4, 0)
+            proteins += (
+                ingredient.proteins * ingredient.productsinrecipe.get(recipe=obj).amount
+            ) / 100
+            fats += (
+                ingredient.fats * ingredient.productsinrecipe.get(recipe=obj).amount
+            ) / 100
+            carbohydrates += (
+                ingredient.carbohydrates
+                * ingredient.productsinrecipe.get(recipe=obj).amount
+            ) / 100
+        kcal = proteins * 4 + fats * 9 + carbohydrates * 4
 
         return {
-            "proteins": proteins,
-            "fats": fats,
-            "carbohydrates": carbohydrates,
-            "kcal": kcal,
+            "proteins": round(proteins, RECIPE_NUTRIENTS_DECIMAL_PLACES),
+            "fats": round(fats, RECIPE_NUTRIENTS_DECIMAL_PLACES),
+            "carbohydrates": round(carbohydrates, RECIPE_NUTRIENTS_DECIMAL_PLACES),
+            "kcal": round(kcal, RECIPE_KCAL_DECIMAL_PLACES),
         }
