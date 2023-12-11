@@ -153,7 +153,7 @@ def auth_client(client, user):
 
 
 @pytest.fixture
-def auth_client1(client, user2):
+def auth_client_first(client, user2):
     client.force_authenticate(user=user2)
     return client
 
