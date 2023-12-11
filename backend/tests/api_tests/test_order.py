@@ -8,14 +8,14 @@ from tests.fixtures import ADDRESS1, FIRST_NAME, LAST_NAME, PHONE_NUMBER, USER_E
 
 @pytest.mark.django_db(transaction=True)
 class TestOrder:
-    def create_shopping_cart_authorized(self, auth_client1, products):
+    def create_shopping_cart_authorized(self, auth_client_first, products):
         shopping_cart_data = {
             "products": [
                 {"id": products[0].id, "quantity": 2},
                 {"id": products[1].id, "quantity": 4},
             ]
         }
-        response = auth_client1.post(
+        response = auth_client_first.post(
             "/api/shopping_cart/", shopping_cart_data, format="json"
         )
         return response.json()
@@ -30,7 +30,7 @@ class TestOrder:
         response = client.post("/api/shopping_cart/", shopping_cart_data, format="json")
         return response.json()
 
-    def test_create_order_auth_client(self, auth_client1, products):
+    def test_create_order_auth_client(self, auth_client_first, products):
         order_data = {
             "payment_method": "In getting by cash",
             "delivery_method": "By courier",
@@ -38,8 +38,8 @@ class TestOrder:
             "comment": "After 14:00",
             "add_address": "Saint-Peterburg",
         }
-        self.create_shopping_cart_authorized(auth_client1, products)
-        response = auth_client1.post("/api/order/", order_data, format="json")
+        self.create_shopping_cart_authorized(auth_client_first, products)
+        response = auth_client_first.post("/api/order/", order_data, format="json")
         assert response.status_code == status.HTTP_201_CREATED
         order = Order.objects.get()
         assert order.status == "Ordered"
@@ -96,7 +96,8 @@ class TestOrder:
         assert order.delivery_method == "Point of delivery"
         assert order.payment_method == "Payment at the point of delivery"
 
-    def test_delete_order_auth_client(self, auth_client1, products, delivery_points):
+    def test_delete_order_auth_client(
+            self, auth_client_first, products, delivery_points):
         order_data = {
             "payment_method": "In getting by cash",
             "delivery_method": "By courier",
@@ -104,14 +105,14 @@ class TestOrder:
             "comment": "After 14:00",
             "add_address": "Saint-Peterburg",
         }
-        self.create_shopping_cart_authorized(auth_client1, products)
-        auth_client1.post("/api/order/", order_data, format="json")
+        self.create_shopping_cart_authorized(auth_client_first, products)
+        auth_client_first.post("/api/order/", order_data, format="json")
         order = Order.objects.get()
-        response = auth_client1.delete(f"/api/order/{order.id}/", format="json")
+        response = auth_client_first.delete(f"/api/order/{order.id}/", format="json")
         assert response.status_code == status.HTTP_200_OK
 
     def test_delete_order_another_auth_client(
-        self, auth_client1, user1, user, delivery_points, products
+        self, auth_client_first, user1, user, delivery_points, products
     ):
         order_data = {
             "payment_method": "In getting by cash",
@@ -120,8 +121,8 @@ class TestOrder:
             "comment": "After 14:00",
             "add_address": "Saint-Peterburg",
         }
-        self.create_shopping_cart_authorized(auth_client1, products)
-        auth_client1.post("/api/order/", order_data, format="json")
+        self.create_shopping_cart_authorized(auth_client_first, products)
+        auth_client_first.post("/api/order/", order_data, format="json")
         order = Order.objects.get()
         client = APIClient()
         client.force_authenticate(user=user1)
