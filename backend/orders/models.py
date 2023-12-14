@@ -147,7 +147,9 @@ class Order(models.Model):
         verbose_name_plural = "Заказы"
 
     def __str__(self):
-        return f"Order {self.order_number} of {self.user.username}"
+        if self.user is not None:
+            return f"Order {self.order_number} of {self.user.username}"
+        return f"Order {self.order_number} of Anonymous User"
 
 
 class OrderProduct(models.Model):

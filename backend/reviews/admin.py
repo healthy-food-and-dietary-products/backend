@@ -16,6 +16,7 @@ class ReviewAdmin(admin.ModelAdmin):
         "text",
         "was_edited",
     ]
+    list_display_links = ("product",)
     fields = ["product", "author", "score", "pub_date", "was_edited", "text"]
     readonly_fields = ["pub_date", "was_edited"]
     search_fields = ["product", "author", "text"]

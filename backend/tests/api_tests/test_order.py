@@ -97,7 +97,8 @@ class TestOrder:
         assert order.payment_method == "Payment at the point of delivery"
 
     def test_delete_order_auth_client(
-            self, auth_client_first, products, delivery_points):
+        self, auth_client_first, products, delivery_points
+    ):
         order_data = {
             "payment_method": "In getting by cash",
             "delivery_method": "By courier",
