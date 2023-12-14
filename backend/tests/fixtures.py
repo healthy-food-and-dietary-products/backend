@@ -132,6 +132,16 @@ def user1(django_user_model):
 
 
 @pytest.fixture
+def user2(django_user_model):
+    return django_user_model.objects.create_user(
+        username="Testuser2",
+        email="testuser2@good_food.fake",
+        password="1234567",
+        phone_number="89876543456",
+    )
+
+
+@pytest.fixture
 def client():
     return APIClient()
 
@@ -139,6 +149,12 @@ def client():
 @pytest.fixture
 def auth_client(client, user):
     client.force_authenticate(user=user)
+    return client
+
+
+@pytest.fixture
+def auth_client_first(client, user2):
+    client.force_authenticate(user=user2)
     return client
 
 

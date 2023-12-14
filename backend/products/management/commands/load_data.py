@@ -2,6 +2,8 @@ import os
 from csv import DictReader
 
 from django.core.management.base import BaseCommand
+from django.core.management.color import no_style
+from django.db import connection
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
@@ -268,3 +270,23 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла tokens.csv загружены")
         read_reviews()
         self.stdout.write("Данные из файла reviews.csv загружены")
+
+        model_list = [
+            Delivery,
+            Category,
+            Component,
+            FavoriteProduct,
+            Producer,
+            Product,
+            Promotion,
+            Subcategory,
+            Tag,
+            Review,
+            Address,
+            User,
+            Token,
+        ]
+        sequence_sql = connection.ops.sequence_reset_sql(no_style(), model_list)
+        with connection.cursor() as cursor:
+            for sql in sequence_sql:
+                cursor.execute(sql)

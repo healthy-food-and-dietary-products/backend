@@ -32,6 +32,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 #     DEBUG = True
 # else:
 #     DEBUG = False
+# TODO: restore debug settings
 DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
@@ -236,6 +237,7 @@ DJOSER = {
 }
 
 # CORS
+# TODO: change before presentation
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_URLS_REGEX = r"^/api/.*$"
@@ -247,11 +249,13 @@ SWAGGER_SETTINGS = {
     }
 }
 
-# Security
+# Security & sessions
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+# TODO: change before presentation
+SESSION_COOKIE_SAMESITE = "None"
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
