@@ -203,7 +203,6 @@ class ProductAdmin(admin.ModelAdmin):
     @admin.display(description="Rating")
     def rating(self, obj):
         """Shows the product rating."""
-
         product_reviews = obj.reviews.all()
         if product_reviews:
             return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
