@@ -49,6 +49,7 @@ class CategoryAdmin(admin.ModelAdmin):
     """Class to display categories in admin panel."""
 
     list_display = ["pk", "name", "slug", "number_subcategories"]
+    list_display_links = ("name",)
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
     readonly_fields = ["number_subcategories"]
@@ -66,6 +67,7 @@ class SubcategoryAdmin(admin.ModelAdmin):
     """Class to display subcategories in admin panel."""
 
     list_display = ["pk", "name", "slug", "parent_category"]
+    list_display_links = ("name",)
     fields = ["parent_category", "name", "slug"]
     search_fields = ["name", "slug"]
     list_filter = ["parent_category"]
@@ -77,6 +79,7 @@ class ComponentAdmin(admin.ModelAdmin):
     """Class to display product components in admin panel."""
 
     list_display = ["pk", "name", "slug"]
+    list_display_links = ("name",)
     fields = ["name", "slug"]
     search_fields = ["name"]
     ordering = ["pk"]
@@ -87,6 +90,7 @@ class TagAdmin(admin.ModelAdmin):
     """Class to display product tags in admin panel."""
 
     list_display = ["pk", "name", "slug"]
+    list_display_links = ("name",)
     fields = ["name", "slug"]
     search_fields = ["name", "slug"]
     ordering = ["pk"]
@@ -97,6 +101,7 @@ class ProducerAdmin(admin.ModelAdmin):
     """Class to display product producers in admin panel."""
 
     list_display = ["pk", "producer_type", "name", "slug", "address", "description"]
+    list_display_links = ("name",)
     fields = ["producer_type", "name", "slug", "address", "description"]
     search_fields = ["name", "slug", "address", "description"]
     ordering = ["pk"]
@@ -118,6 +123,7 @@ class PromotionAdmin(admin.ModelAdmin):
         "start_time",
         "end_time",
     ]
+    list_display_links = ("name",)
     fields = [
         "name",
         "promotion_type",
@@ -150,6 +156,7 @@ class ProductAdmin(admin.ModelAdmin):
         "views_number",
         "orders_number",
     ]
+    list_display_links = ("name",)
     fields = [
         "name",
         "description",
@@ -196,7 +203,6 @@ class ProductAdmin(admin.ModelAdmin):
     @admin.display(description="Rating")
     def rating(self, obj):
         """Shows the product rating."""
-
         product_reviews = obj.reviews.all()
         if product_reviews:
             return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
@@ -208,6 +214,7 @@ class ProductPromotionAdmin(admin.ModelAdmin):
     """Class to display connections between products and promotions."""
 
     list_display = ["pk", "promotion", "product"]
+    list_display_links = ("promotion",)
     fields = ["promotion", "product"]
 
 
@@ -215,7 +222,8 @@ class ProductPromotionAdmin(admin.ModelAdmin):
 class FavoriteProductAdmin(admin.ModelAdmin):
     """Class to display favorite products of users in admin panel."""
 
-    list_display = ["pk", "user", "product"]
+    list_display = ["pk", "product", "user"]
+    list_display_links = ("product",)
     fields = ["user", "product"]
     search_fields = ["user", "product"]
     list_filter = ["product"]

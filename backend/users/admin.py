@@ -49,6 +49,7 @@ class UserAdmin(admin.ModelAdmin):
         "date_joined",
         "last_login",
     ]
+    list_display_links = ("username",)
     readonly_fields = ["preview"]
     search_fields = ["username", "email"]
     ordering = ["id"]
@@ -64,6 +65,7 @@ class AddressAdmin(admin.ModelAdmin):
     """Class to display addresses in admin panel."""
 
     list_display = ["id", "address", "user", "priority_address"]
+    list_display_links = ("address",)
     search_fields = ["address"]
     list_filter = ["priority_address", "user"]
     ordering = ["id"]

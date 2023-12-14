@@ -1,9 +1,9 @@
 import json
 import re
 
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from .products_serializers import ProductPresentSerializer
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
@@ -19,7 +19,6 @@ DELIVERY_POINT_ERROR_MESSAGE = "Нужно выбрать пункт выдач�
 ADDRESS_ERROR_MESSAGE = "Добавьте адрес доставки."
 QUANTITY_ERROR_MESSAGE = "Укажите количество товара."
 PRODUCT_ERROR_MESSAGE = "У нас нет таких продуктов, выберите из представленных."
-
 PHONE_NUMBER_ERROR_MESSAGE = "Добавьте номер телефона в своем Личном кабинете/Профиле."
 
 
@@ -47,82 +46,30 @@ class OrderProductSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class OrderProductListSerializer(serializers.ModelSerializer):
-    """Serializer products in order."""
+class OrderProductDisplaySerializer(serializers.ModelSerializer):
+    """Serializer to display order products in order."""
 
-    name = serializers.SerializerMethodField()
-    measure_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField()
-    final_price = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
+    product = ProductPresentSerializer()
 
     class Meta:
         model = OrderProduct
-        fields = (
-            "id",
-            "name",
-            "measure_unit",
-            "amount",
-            "quantity",
-            "final_price",
-        )
-
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.final_price
-        if isinstance(obj, OrderProduct):
-            return obj.product.final_price
-        return obj.final_price
-
-    @extend_schema_field(str)
-    def get_name(self, obj):
-        if isinstance(obj, dict):
-            return obj["name"]
-        if isinstance(obj, OrderProduct):
-            return obj.product.name
-        return obj.name
-
-    @extend_schema_field(str)
-    def get_measure_unit(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.measure_unit
-        if isinstance(obj, OrderProduct):
-            return obj.product.measure_unit
-        return obj.measure_unit
-
-    @extend_schema_field(int)
-    def get_amount(self, obj):
-        if isinstance(obj, dict):
-            product = Product.objects.get(id=obj["id"])
-            return product.amount
-        if isinstance(obj, OrderProduct):
-            return obj.product.amount
-        return obj.amount
-
-    @extend_schema_field(int)
-    def get_quantity(self, obj):
-        if isinstance(obj, dict):
-            return obj["quantity"]
-        return None
+        fields = ("product", "quantity")
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/delete shopping_cart."""
+    """Serializer for create/update/ shopping_cart."""
 
     products = OrderProductSerializer(many=True)
 
     class Meta:
         fields = ("products",)
-        model = OrderProduct
+        model = Product
 
 
 class OrderGetAuthSerializer(serializers.ModelSerializer):
     """Serializer for authorized user order representation."""
 
-    products = OrderProductListSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user = UserPresentSerializer(read_only=True)
 
     class Meta:
@@ -149,7 +96,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""
 
-    products = OrderProductListSerializer(many=True)
+    products = OrderProductDisplaySerializer(source="orders", many=True)
     user_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -195,7 +142,7 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
 
     def validate_add_address(self, add_address):
         """Check add_address field for authorized user."""
-        if add_address == "":
+        if len(add_address) < 1:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address
 
@@ -204,7 +151,11 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         if not user.phone_number:
             raise serializers.ValidationError(PHONE_NUMBER_ERROR_MESSAGE)
-        if "address" not in attrs and "add_address" not in attrs:
+        if (
+            attrs["delivery_method"] == Order.COURIER
+            and "address" not in attrs
+            and "add_address" not in attrs
+        ):
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         if "delivery_method" not in attrs:
             raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
@@ -227,6 +178,8 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
             raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
+        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 
@@ -264,7 +217,7 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
 
     def validate_add_address(self, add_address):
         """Check add_address field for anonymous user."""
-        if add_address == "":
+        if len(add_address) < 1:
             raise serializers.ValidationError(ADDRESS_ERROR_MESSAGE)
         return add_address
 
@@ -291,5 +244,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
-
+        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
+        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)

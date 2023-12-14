@@ -6,7 +6,7 @@ from orders.models import Delivery, Order, OrderProduct
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
     list_display = ("id", "delivery_point")
-    list_editable = ("delivery_point",)
+    list_display_links = ("delivery_point",)
 
 
 class OrderProductInline(admin.TabularInline):
@@ -29,6 +29,7 @@ class OrderAdmin(admin.ModelAdmin):
         "delivery_method",
         "address",
     )
+    list_display_links = ("ordering_date",)
     list_editable = (
         "payment_method",
         "delivery_method",

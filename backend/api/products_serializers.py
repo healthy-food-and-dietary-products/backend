@@ -68,12 +68,13 @@ class CategorySerializer(CategoryLightSerializer):
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
         top_three_products_queryset = (
-            Product.objects.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions")
-            .filter(category=obj)
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
             .order_by("-orders_number")[:3]
         )
-        return ProductSerializer(top_three_products_queryset, many=True).data
+        return ProductSerializer(
+            top_three_products_queryset, many=True, context=self.context
+        ).data
 
 
 class TagLightSerializer(serializers.ModelSerializer):
@@ -98,12 +99,13 @@ class TagSerializer(TagLightSerializer):
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
         top_three_products_queryset = (
-            Product.objects.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions")
-            .filter(tags=obj)
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
             .order_by("-orders_number")[:3]
         )
-        return ProductSerializer(top_three_products_queryset, many=True).data
+        return ProductSerializer(
+            top_three_products_queryset, context=self.context, many=True
+        ).data
 
 
 class ComponentLightSerializer(serializers.ModelSerializer):
@@ -326,6 +328,28 @@ class ProductUpdateSerializer(ProductCreateSerializer):
                 ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
             )
         return value
+
+
+class ProductPresentSerializer(serializers.ModelSerializer):
+    """Serializer for short presentation products."""
+
+    photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "photo",
+        )
+
+    @extend_schema_field(float)
+    def get_final_price(self, obj):
+        return obj.final_price
 
 
 class ProductLightSerializer(ProductSerializer):
