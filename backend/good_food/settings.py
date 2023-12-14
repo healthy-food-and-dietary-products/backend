@@ -84,7 +84,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart_id"
-ORDER_SESSION_ID = 'order_id'
+ORDER_SESSION_ID = "order_id"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
@@ -93,7 +93,7 @@ ROOT_URLCONF = "good_food.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / 'templates'],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -168,7 +168,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 # STATIC_ROOT = os.path.join(BASE_DIR, "static")
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

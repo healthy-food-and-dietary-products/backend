@@ -333,9 +333,11 @@ class OrderViewSet(
         return Response(serializer_data, status=status.HTTP_200_OK)
 
     @action(
-        methods=['GET',],
+        methods=[
+            "GET",
+        ],
         detail=True,
-        permission_classes=(permissions.IsAuthenticated,)
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def pay(self, request, *args, **kwargs):
         order = Order.objects.get(id=self.kwargs.get("pk"))
