@@ -13,6 +13,7 @@ class ProductFilter(rf_filters.FilterSet):
     producer = rf_filters.AllValuesMultipleFilter(field_name="producer__slug")
     components = rf_filters.AllValuesMultipleFilter(field_name="components__slug")
     tags = rf_filters.AllValuesMultipleFilter(field_name="tags__slug")
+    promotions = rf_filters.AllValuesMultipleFilter(field_name="promotions__slug")
     is_favorited = rf_filters.NumberFilter(method="product_boolean_methods")
     min_price = rf_filters.NumberFilter(method="get_min_price")
     max_price = rf_filters.NumberFilter(method="get_max_price")

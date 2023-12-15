@@ -53,7 +53,12 @@ def read_category():
     with open(os.path.join(DATA_DIR, "category.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
-            category = Category(id=row["id"], name=row["name"], slug=row["slug"])
+            category = Category(
+                id=row["id"],
+                name=row["name"],
+                slug=row["slug"],
+                image=row["image"],
+            )
             category.save()
 
 
@@ -66,6 +71,7 @@ def read_subcategory():
                 parent_category_id=row["parent_category_id"],
                 name=row["name"],
                 slug=row["slug"],
+                image=row["image"],
             )
             subcategory.save()
 
@@ -74,7 +80,9 @@ def read_tags():
     with open(os.path.join(DATA_DIR, "tags.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
-            tag = Tag(id=row["id"], name=row["name"], slug=row["slug"])
+            tag = Tag(
+                id=row["id"], name=row["name"], slug=row["slug"], image=row["image"]
+            )
             tag.save()
 
 
@@ -89,6 +97,7 @@ def read_producer():
                 producer_type=row["producer_type"],
                 description=row["description"],
                 address=row["address"],
+                image=row["image"],
             )
             producer.save()
 
@@ -109,7 +118,14 @@ def read_promotions():
                 id=row["id"],
                 promotion_type=row["promotion_type"],
                 name=row["name"],
+                slug=row["slug"],
                 discount=row["discount"],
+                conditions=row["conditions"],
+                is_active=row["is_active"],
+                is_constant=row["is_constant"],
+                start_time=row["start_time"],
+                end_time=row["end_time"],
+                image=row["image"],
             )
             promotion.save()
 
