@@ -50,7 +50,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug", "number_subcategories"]
     list_display_links = ("name",)
-    fields = ["name", "slug"]
+    fields = ["name", "slug", "image"]
     search_fields = ["name", "slug"]
     readonly_fields = ["number_subcategories"]
     ordering = ["pk"]
@@ -68,7 +68,7 @@ class SubcategoryAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug", "parent_category"]
     list_display_links = ("name",)
-    fields = ["parent_category", "name", "slug"]
+    fields = ["parent_category", "name", "slug", "image"]
     search_fields = ["name", "slug"]
     list_filter = ["parent_category"]
     ordering = ["pk"]
@@ -91,7 +91,7 @@ class TagAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug"]
     list_display_links = ("name",)
-    fields = ["name", "slug"]
+    fields = ["name", "slug", "image"]
     search_fields = ["name", "slug"]
     ordering = ["pk"]
 
@@ -102,7 +102,7 @@ class ProducerAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "producer_type", "name", "slug", "address", "description"]
     list_display_links = ("name",)
-    fields = ["producer_type", "name", "slug", "address", "description"]
+    fields = ["producer_type", "name", "slug", "address", "description", "image"]
     search_fields = ["name", "slug", "address", "description"]
     ordering = ["pk"]
     list_filter = ["producer_type"]
@@ -116,6 +116,7 @@ class PromotionAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
         "name",
+        "slug",
         "promotion_type",
         "discount",
         "is_active",
@@ -126,6 +127,7 @@ class PromotionAdmin(admin.ModelAdmin):
     list_display_links = ("name",)
     fields = [
         "name",
+        "slug",
         "promotion_type",
         "discount",
         "is_active",
@@ -133,6 +135,7 @@ class PromotionAdmin(admin.ModelAdmin):
         "start_time",
         "end_time",
         "conditions",
+        "image",
     ]
     search_fields = ["name", "discount", "conditions", "start_time", "end_time"]
     ordering = ["pk"]

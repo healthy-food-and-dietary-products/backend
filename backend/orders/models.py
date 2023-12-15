@@ -5,6 +5,7 @@ from products.models import Product
 from users.models import Address, User
 
 
+# TODO: seems this model is not used now (all shopcarts are in sessions)
 class ShoppingCart(models.Model):
     """Model for creating a shopping cart."""
 
