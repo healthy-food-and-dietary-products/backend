@@ -17,9 +17,8 @@ class OrderPayView(TemplateView):
         template = "home.html"
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        user_order = Order.objects.filter(user=user.id).first()
-        if order != user_order:
-            raise PermissionDenied()
+        if order.user is not None and order.user != user:
+            raise PermissionDenied()  # TODO: don't make django down
         return render(request, template)
 
 
