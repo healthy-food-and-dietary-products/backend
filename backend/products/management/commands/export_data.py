@@ -273,8 +273,10 @@ def export_orders():
         "package",
         "address_id",
         "delivery_point_id",
-        "shopping_cart_id",
         "user_id",
+        "add_address",
+        "total_price",
+        "user_data",
     ]
     with open(
         os.path.join(DATA_DIR, "orders.csv"),
@@ -291,7 +293,7 @@ def export_orders():
 
 def export_shopping_cart():
     data = apps.get_model("orders", "ShoppingCart")
-    field_names = ["id", "status", "total_price", "created", "user_id"]
+    field_names = ["id", "created", "product_id", "user_id"]
     with open(
         os.path.join(DATA_DIR, "shopping_cart.csv"),
         "w",
@@ -305,11 +307,27 @@ def export_shopping_cart():
             writer.writerow(row)
 
 
-def export_shopping_cart_products():
-    data = apps.get_model("orders", "ShoppingCartProduct")
-    field_names = ["id", "quantity", "product_id", "shopping_cart_id"]
+def export_order_products():
+    data = apps.get_model("orders", "OrderProduct")
+    field_names = ["id", "quantity", "order_id", "product_id"]
     with open(
-        os.path.join(DATA_DIR, "shopping_cart_products.csv"),
+        os.path.join(DATA_DIR, "order_products.csv"),
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
+def export_sessions():
+    data = apps.get_model("sessions", "Session")
+    field_names = ["_state", "session_key", "session_data", "expire_date"]
+    with open(
+        os.path.join(DATA_DIR, "sessions.csv"),
         "w",
         newline="",
         encoding="utf-8",
@@ -391,17 +409,19 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS("Экспорт данных модели Review прошёл успешно!")
         )
-        # export_orders()
-        # self.stdout.write(
-        #     self.style.SUCCESS("Экспорт данных модели Order прошёл успешно!")
-        # )
+        export_orders()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт данных модели Order прошёл успешно!")
+        )
         # export_shopping_cart()
         # self.stdout.write(
         #     self.style.SUCCESS("Экспорт данных модели ShoppingCart прошёл успешно!")
         # )
-        # export_shopping_cart_products()
-        # self.stdout.write(
-        #     self.style.SUCCESS(
-        #         "Экспорт данных модели ShoppingCartProduct прошёл успешно!"
-        #     )
-        # )
+        export_order_products()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт данных модели OrderProduct прошёл успешно!")
+        )
+        export_sessions()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт данных модели Session прошёл успешно!")
+        )
