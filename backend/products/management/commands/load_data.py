@@ -124,10 +124,12 @@ def read_promotions():
                 conditions=row["conditions"],
                 is_active=row["is_active"],
                 is_constant=row["is_constant"],
-                start_time=row["start_time"],
-                end_time=row["end_time"],
                 image=row["image"],
             )
+            if row.get("start_time"):
+                promotion.start_time = row["start_time"]
+            if row.get("end_time"):
+                promotion.start_time = row["end_time"]
             promotion.save()
 
 
