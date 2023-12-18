@@ -346,6 +346,7 @@ class ProductPresentSerializer(serializers.ModelSerializer):
 
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
 
     class Meta:
         model = Product
