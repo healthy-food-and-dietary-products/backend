@@ -357,7 +357,7 @@ class ProductPresentSerializer(serializers.ModelSerializer):
             "amount",
             "final_price",
             "photo",
-            "category"
+            "category",
         )
 
     @extend_schema_field(float)
