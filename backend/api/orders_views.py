@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
 from django.http import HttpResponsePermanentRedirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -348,15 +349,13 @@ class OrderViewSet(
         order.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
 
-    @action(
-        methods=[
-            "GET",
-        ],
-        detail=True,
-        permission_classes=(permissions.IsAuthenticated,),
-    )
+    @action(methods=["GET"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
         order = Order.objects.get(id=self.kwargs.get("pk"))
-        if self.request.user.is_authenticated and order.user == self.request.user:
-            return HttpResponsePermanentRedirect(f"/pay/{order.id}")
+        if order.user is None or (
+            self.request.user.is_authenticated and order.user == self.request.user
+        ):
+            return HttpResponsePermanentRedirect(
+                reverse("payments:pay", kwargs={"pk": order.id})
+            )
         raise PermissionDenied()
