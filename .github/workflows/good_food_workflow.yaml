@@ -10,6 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: send start message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.workflow }} started!
+
+            Repository: ${{ github.repository }}.
+            Branch name: ${{ github.ref_name }}.
+            Commit author: ${{ github.actor }}.
+            Commit message: ${{ github.event.commits[0].message }}.
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -94,6 +106,9 @@ jobs:
             echo DOCKER=${{ secrets.DOCKER }} >> .env
             echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
             echo CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }} >> .env
+            echo STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} >> .env
+            echo STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} >> .env
+            echo STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} >> .env
             sudo docker compose up -d
             sudo docker image prune -f
             sudo docker compose exec -T web python manage.py collectstatic --no-input

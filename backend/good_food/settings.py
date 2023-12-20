@@ -46,13 +46,14 @@ if os.getenv("MODE") == "dev":
 # Application definition
 
 INSTALLED_APPS = [
+    # Default Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+    # Local apps
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
     "recipes.apps.RecipesConfig",
@@ -60,6 +61,9 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
     "reviews.apps.ReviewsConfig",
+    "payments.apps.PaymentsConfig",
+    # Third parties apps
+    "rest_framework",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
@@ -84,6 +88,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart_id"
+ORDER_SESSION_ID = "order_id"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
@@ -92,7 +97,7 @@ ROOT_URLCONF = "good_food.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -261,3 +266,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
+
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
