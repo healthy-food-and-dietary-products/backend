@@ -34,7 +34,7 @@ class SubcategorySerializer(SubcategoryLightSerializer):
     """Serializer for subcategories representation."""
 
     class Meta(SubcategoryLightSerializer.Meta):
-        fields = ("id", "parent_category", "name", "slug")
+        fields = ("id", "parent_category", "name", "slug", "image")
 
 
 class CategoryLightSerializer(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class CategoryCreateSerializer(CategoryLightSerializer):
 
     class Meta:
         model = Category
-        fields = ("id", "category_name", "slug")
+        fields = ("id", "category_name", "slug", "image")
 
 
 class CategorySerializer(CategoryLightSerializer):
@@ -63,7 +63,7 @@ class CategorySerializer(CategoryLightSerializer):
     top_three_products = serializers.SerializerMethodField()
 
     class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "subcategories", "top_three_products")
+        fields = ("id", "name", "slug", "image", "subcategories", "top_three_products")
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
@@ -94,7 +94,7 @@ class TagSerializer(TagLightSerializer):
     top_three_products = serializers.SerializerMethodField()
 
     class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug", "top_three_products")
+        fields = ("id", "name", "slug", "image", "top_three_products")
 
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
@@ -141,17 +141,26 @@ class ProducerSerializer(ProducerLightSerializer):
     """Serializer for produsers representation."""
 
     class Meta(ProducerLightSerializer.Meta):
-        fields = ("id", "name", "slug", "producer_type", "description", "address")
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "producer_type",
+            "description",
+            "address",
+            "image",
+        )
 
 
 class PromotionLightSerializer(serializers.ModelSerializer):
     """Serializer for promotions representation in product serializer."""
 
     promotion_name = serializers.CharField(source="name")
+    promotion_slug = serializers.CharField(source="slug")
 
     class Meta:
         model = Promotion
-        fields = ("promotion_name", "discount")
+        fields = ("promotion_name", "promotion_slug", "discount")
 
 
 class PromotionSerializer(ProducerLightSerializer):
@@ -162,12 +171,14 @@ class PromotionSerializer(ProducerLightSerializer):
             "id",
             "promotion_type",
             "name",
+            "slug",
             "discount",
             "conditions",
             "is_active",
             "is_constant",
             "start_time",
             "end_time",
+            "image",
         )
 
     def validate_discount(self, value):
@@ -335,6 +346,7 @@ class ProductPresentSerializer(serializers.ModelSerializer):
 
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
 
     class Meta:
         model = Product
@@ -345,6 +357,7 @@ class ProductPresentSerializer(serializers.ModelSerializer):
             "amount",
             "final_price",
             "photo",
+            "category",
         )
 
     @extend_schema_field(float)

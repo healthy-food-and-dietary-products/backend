@@ -13,6 +13,12 @@ MAX_PROMOTIONS_NUMBER = 1
 class Category(CategoryModel):
     """Describes product categories."""
 
+    def category_directory_path(self, filename):
+        """Constructs the path which the category image will be saved."""
+        return f"images/categories/{self.pk}.jpg"
+
+    image = models.ImageField("Image", blank=True, upload_to=category_directory_path)
+
     class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
@@ -22,12 +28,17 @@ class Category(CategoryModel):
 class Subcategory(CategoryModel):
     """Describes product subcategories."""
 
+    def subcategory_directory_path(self, filename):
+        """Constructs the path which the subcategory image will be saved."""
+        return f"images/subcategories/{self.pk}.jpg"
+
     parent_category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name="subcategories",
         verbose_name="Category",
     )
+    image = models.ImageField("Image", blank=True, upload_to=subcategory_directory_path)
 
     class Meta:
         verbose_name = "Subcategory"
@@ -63,10 +74,15 @@ class Component(models.Model):
 class Tag(models.Model):
     """Describes product tags."""
 
+    def tag_directory_path(self, filename):
+        """Constructs the path which the tag image will be saved."""
+        return f"images/tags/{self.pk}.jpg"
+
     name = models.CharField("Name", max_length=100, unique=True, help_text="Tag name")
     slug = models.SlugField(
         "Slug", max_length=100, unique=True, blank=True, help_text="Tag slug"
     )
+    image = models.ImageField("Image", blank=True, upload_to=tag_directory_path)
 
     class Meta:
         verbose_name = "Tag"
@@ -94,6 +110,10 @@ class Producer(models.Model):
         (ENTREPRENEUR, "Индивидуальный предприниматель"),
     ]
 
+    def producer_directory_path(self, filename):
+        """Constructs the path which the producer image will be saved."""
+        return f"images/producers/{self.pk}.jpg"
+
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Producer name"
     )
@@ -109,6 +129,7 @@ class Producer(models.Model):
         help_text="Brief information about the company or entrepreneur",
     )
     address = models.TextField("Address", help_text="Legal address of the producers")
+    image = models.ImageField("Image", blank=True, upload_to=producer_directory_path)
 
     class Meta:
         verbose_name = "Producer"
@@ -148,7 +169,9 @@ class Promotion(models.Model):
 
     INVALID_DISCOUNT_MESSAGE = "Допустимы числа от 0 до 100"
 
-    # TODO: make slug field after MVP?
+    def promotion_directory_path(self, filename):
+        """Constructs the path which the promotion image will be saved."""
+        return f"images/promotions/{self.pk}.jpg"
 
     promotion_type = models.CharField(
         "Promotion type", max_length=14, choices=CHOISES, default=SIMPLE
@@ -156,6 +179,10 @@ class Promotion(models.Model):
     name = models.CharField(
         "Name", max_length=100, unique=True, help_text="Promotion name"
     )
+    slug = models.SlugField(
+        "Slug", max_length=100, unique=True, blank=True, help_text="Promotion slug"
+    )
+
     discount = models.PositiveSmallIntegerField(
         "Discount",
         default=0,
@@ -176,11 +203,18 @@ class Promotion(models.Model):
     )
     start_time = models.DateTimeField("Promotion start time", null=True, blank=True)
     end_time = models.DateTimeField("Promotion end time", null=True, blank=True)
+    image = models.ImageField("Image", blank=True, upload_to=promotion_directory_path)
 
     class Meta:
         verbose_name = "Promotion"
         verbose_name_plural = "Promotions"
         ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        """Makes slug from a promotion name."""
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

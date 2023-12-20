@@ -12,11 +12,12 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="ingredient.id")
     name = serializers.ReadOnlyField(source="ingredient.name")
     measure_unit = serializers.ReadOnlyField(source="ingredient.measure_unit")
+    ingredient_photo = serializers.ImageField(source="ingredient.photo")
     quantity = serializers.ReadOnlyField(source="amount")
 
     class Meta:
         model = ProductsInRecipe
-        fields = ("id", "name", "measure_unit", "quantity")
+        fields = ("id", "name", "measure_unit", "ingredient_photo", "quantity")
 
 
 class RecipeSerializer(serializers.ModelSerializer):
