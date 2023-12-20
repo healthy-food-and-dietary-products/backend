@@ -94,4 +94,4 @@ class SuccessView(TemplateView):
 
 
 class CancelledView(TemplateView):
-    template_name = "cancelled.html"
+    template_name = "cancel.html"
