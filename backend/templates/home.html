@@ -5,17 +5,24 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Django + Stripe Checkout</title>
+    <title>Оплата заказа</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <script src="https://js.stripe.com/v3/"></script>
     <script src="{% static 'main.js' %}"></script>
     <script defer src="https://use.fontawesome.com/releases/v6.4.0/js/all.js"></script>
   </head>
   <body>
-    <h1>При нажатии кнопочки "Оплатить" вы будете переадресованы на Stripe.com и соглашаетесь с условиями оплаты и пр...</h1>
+    <h1>
+      Оплата заказа {{ order }}
+    </h1>
   <section class="section">
     <div class="container">
-      <button class="button is-primary" id="submitBtn">Оплатить</button>
+      <form action="{% url 'payments:create-checkout-session' order.id %}" method="POST">
+        {% csrf_token %}
+        <button class="button is-primary" id="submitBtn" type="submit">
+          Оплатить заказ
+        </button>
+      </form>
     </div>
   </section>
   </body>

@@ -1,9 +1,8 @@
 import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import PermissionDenied
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 
@@ -17,27 +16,31 @@ class OrderPayView(TemplateView):
         template = "home.html"
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.is_paid is True:
+            return JsonResponse(
+                {"error": f"Order No.{order.pk} has already been paid."}
+            )
         if order.user is not None and order.user != user:
-            raise PermissionDenied()  # TODO: don't make django down
-        return render(request, template)
+            return JsonResponse(
+                {"error": f"Order No.{order.pk} does not belong to {request.user}"}
+            )
+        return render(request, template, {"order": order})
 
 
 @csrf_exempt
 def stripe_config(request):
     """Checking the configuration."""
-    if request.method == "GET":
+    if request.method == "POST":
         stripe_config = {"publicKey": settings.STRIPE_PUBLISHABLE_KEY}
         return JsonResponse(stripe_config, safe=False)
     return None
 
 
 @csrf_exempt
-def create_checkout_session(request):
-    """Payment"""
-    user = request.user
-    order = Order.objects.filter(user=user.id).first()
-    massage = f"Заказ № {order.order_number} пользователя {str(request.user)}"
-    if request.method == "GET":
+def create_checkout_session(request, order_id):
+    """Get an order and pay."""
+    order = get_object_or_404(Order, pk=order_id)
+    if request.method == "POST":
         domain_url = f"http://{get_current_site(request)}/"
         stripe.api_key = settings.STRIPE_SECRET_KEY
         try:
@@ -47,7 +50,7 @@ def create_checkout_session(request):
                         "price_data": {
                             "currency": "rub",
                             "product_data": {
-                                "name": massage,
+                                "name": order,
                             },
                             "unit_amount": int(order.total_price * 100),
                         },
@@ -55,12 +58,14 @@ def create_checkout_session(request):
                     }
                 ],
                 success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cancelled/",
-                client_reference_id=user.id if user.is_authenticated else None,
+                cancel_url=domain_url + "cancel",  # TODO: get to the cancellation page
+                client_reference_id=request.user.username
+                if request.user.is_authenticated
+                else None,
                 payment_method_types=["card"],
                 mode="payment",
             )
-            return JsonResponse({"sessionId": checkout_session["id"]})
+            return redirect(checkout_session.url)
         except Exception as e:
             return JsonResponse({"error": str(e)})
     return None
@@ -68,25 +73,33 @@ def create_checkout_session(request):
 
 @csrf_exempt
 def stripe_webhook(request):
-    """Payment verification"""
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+    """
+    Stripe webhook view to handle checkout session completed event
+    (payment verification).
+    """
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = None
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
     except ValueError:
+        # Invalid payload
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
-        return HttpResponse(status=400)
+        # Invalid signature
+        return HttpResponse(status=400)  # TODO: shows success page in this case, fix it
     if event["type"] == "checkout.session.completed":
-        print("Payment was successful.")
-        user = request.user
-        order = Order.objects.filter(user=user.id).first()
-        order.is_paid = "True"
+        print("Payment was successful.")  # TODO: add logging
+        product_data = event["data"]["object"].list_line_items()
+        order_string = product_data._previous["data"][0]["description"]
+        order_id = order_string.split()[1]
+        order = get_object_or_404(Order, pk=order_id)
+        order.is_paid = True
         order.save()
-    return HttpResponse(status=200)
+    return HttpResponse(
+        status=200,
+    )
 
 
 class SuccessView(TemplateView):

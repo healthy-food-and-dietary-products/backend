@@ -46,13 +46,14 @@ if os.getenv("MODE") == "dev":
 # Application definition
 
 INSTALLED_APPS = [
+    # Default Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+    # Local apps
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
     "recipes.apps.RecipesConfig",
@@ -61,6 +62,8 @@ INSTALLED_APPS = [
     "orders.apps.OrdersConfig",
     "reviews.apps.ReviewsConfig",
     "payments.apps.PaymentsConfig",
+    # Third parties apps
+    "rest_framework",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
@@ -168,8 +171,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-# STATIC_ROOT = os.path.join(BASE_DIR, "static")
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -265,5 +267,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
 
-STRIPE_PUBLISHABLE_KEY = "pk_test_51OGSdmI99MZwyE0FwGcL7I41mhzmOCHU8Uq1HJsYakW02AY69uZSalbFgzY4gFVl6XZM9ffiUllgIjXZ4rNI6MJh00ssOpSXxt"
-STRIPE_SECRET_KEY = "sk_test_51OGSdmI99MZwyE0FQdvBqB91pV4D5p7iRy8iZcyM1ftOacyfws3qvgjQDBRKJer9c8jyQMkQ8NG09DU0t1nC0wmX0097OrBpUi"
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
