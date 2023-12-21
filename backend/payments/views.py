@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
@@ -110,6 +111,15 @@ def stripe_webhook(request):
         order = get_object_or_404(Order, pk=order_id)
         order.is_paid = True
         order.save()
+        customer_email = event["data"]["object"]["customer_email"]
+        # TODO: Emails don't come
+        send_mail(
+            subject="Заказ оплачен",
+            message=f"Ваш заказ №{order_id} успешно оплачен.",
+            recipient_list=[customer_email],
+            from_email=None,
+            # from_email=settings.EMAIL_HOST_USER,
+        )
     return HttpResponse(
         status=200,
     )
