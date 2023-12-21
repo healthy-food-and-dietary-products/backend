@@ -27,8 +27,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
+# Development or Production
+MODE = os.getenv("MODE", default="prod")
+
 # SECURITY WARNING: don't run with debug turned on in production!
-# if os.getenv("MODE") == "dev":
+# if MODE == "dev":
 #     DEBUG = True
 # else:
 #     DEBUG = False
@@ -40,7 +43,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="").split()
 
 # For django-debug-toolbar
-if os.getenv("MODE") == "dev":
+if MODE == "dev":
     INTERNAL_IPS = os.getenv("INTERNAL_IPS", default="").split()
 
 # Application definition
