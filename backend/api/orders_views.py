@@ -377,7 +377,10 @@ class OrderViewSet(
                 status=status.HTTP_403_FORBIDDEN,
             )
         stripe.api_key = settings.STRIPE_SECRET_KEY
-        domain_url = f"http://{get_current_site(request)}/"
+        if settings.MODE == "dev":
+            domain_url = f"http://{get_current_site(request)}/"
+        else:
+            domain_url = f"https://{get_current_site(request)}/"
         try:
             checkout_session = stripe.checkout.Session.create(
                 line_items=[
