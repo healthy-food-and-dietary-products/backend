@@ -6,6 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 
+from api.orders_views import (
+    PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE,
+    PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE,
+)
 from orders.models import Order
 
 
@@ -18,11 +22,17 @@ class OrderPayView(TemplateView):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.is_paid is True:
             return JsonResponse(
-                {"error": f"Order No.{order.pk} has already been paid."}
+                {"errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)},
+                json_dumps_params={"ensure_ascii": False},
             )
         if order.user is not None and order.user != user:
             return JsonResponse(
-                {"error": f"Order No.{order.pk} does not belong to {request.user}"}
+                {
+                    "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
+                        pk=order.pk, user=request.user
+                    )
+                },
+                json_dumps_params={"ensure_ascii": False},
             )
         return render(request, template, {"order": order})
 
@@ -67,7 +77,7 @@ def create_checkout_session(request, order_id):
             )
             return redirect(checkout_session.url)
         except Exception as e:
-            return JsonResponse({"error": str(e)})
+            return JsonResponse({"errors": str(e)})
     return None
 
 
