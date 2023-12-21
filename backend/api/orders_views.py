@@ -25,6 +25,7 @@ from .orders_serializers import (
     OrderGetAnonSerializer,
     OrderGetAuthSerializer,
     ShoppingCartSerializer,
+    StripeCheckoutSessionCreateSerializer,
 )
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
@@ -208,6 +209,8 @@ class OrderViewSet(
     permission_classes = [AllowAny]
 
     def get_serializer_class(self):
+        if self.action == "pay":
+            return StripeCheckoutSessionCreateSerializer
         if self.request.method in permissions.SAFE_METHODS:
             if self.request.user.is_authenticated:
                 return OrderGetAuthSerializer
@@ -353,7 +356,7 @@ class OrderViewSet(
         order.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
 
-    @action(methods=["GET"], detail=True, permission_classes=[permissions.AllowAny])
+    @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
         order = Order.objects.get(id=self.kwargs.get("pk"))
         if order.user is not None and order.user != self.request.user:
