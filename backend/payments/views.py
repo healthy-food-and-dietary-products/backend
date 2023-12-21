@@ -1,11 +1,18 @@
 import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 
+from api.orders_views import (
+    PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE,
+    PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE,
+    STRIPE_SESSION_CREATE_ERROR_MESSAGE,
+)
+from core.loggers import logger
 from orders.models import Order
 
 
@@ -18,11 +25,17 @@ class OrderPayView(TemplateView):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.is_paid is True:
             return JsonResponse(
-                {"error": f"Order No.{order.pk} has already been paid."}
+                {"errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)},
+                json_dumps_params={"ensure_ascii": False},
             )
         if order.user is not None and order.user != user:
             return JsonResponse(
-                {"error": f"Order No.{order.pk} does not belong to {request.user}"}
+                {
+                    "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
+                        pk=order.pk, user=request.user
+                    )
+                },
+                json_dumps_params={"ensure_ascii": False},
             )
         return render(request, template, {"order": order})
 
@@ -57,17 +70,20 @@ def create_checkout_session(request, order_id):
                         "quantity": 1,
                     }
                 ],
-                success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cancel",  # TODO: get to the cancellation page
+                success_url=domain_url + "success",
+                cancel_url=domain_url + "cancel",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
                 payment_method_types=["card"],
                 mode="payment",
+                metadata={"order_id": order.id},
             )
             return redirect(checkout_session.url)
         except Exception as e:
-            return JsonResponse({"error": str(e)})
+            return JsonResponse(
+                {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)}
+            )
     return None
 
 
@@ -90,13 +106,20 @@ def stripe_webhook(request):
         # Invalid signature
         return HttpResponse(status=400)  # TODO: shows success page in this case, fix it
     if event["type"] == "checkout.session.completed":
-        print("Payment was successful.")  # TODO: add logging
-        product_data = event["data"]["object"].list_line_items()
-        order_string = product_data._previous["data"][0]["description"]
-        order_id = order_string.split()[1]
+        logger.info("Payment was successful.")
+        order_id = event["data"]["object"]["metadata"]["order_id"]
         order = get_object_or_404(Order, pk=order_id)
         order.is_paid = True
         order.save()
+        customer_email = event["data"]["object"]["customer_email"]
+        # TODO: Emails don't come
+        send_mail(
+            subject="Заказ оплачен",
+            message=f"Ваш заказ №{order_id} успешно оплачен.",
+            recipient_list=[customer_email],
+            from_email=None,
+            # from_email=settings.EMAIL_HOST_USER,
+        )
     return HttpResponse(
         status=200,
     )

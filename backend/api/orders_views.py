@@ -1,7 +1,8 @@
+import stripe
+from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
-from django.http import HttpResponsePermanentRedirect
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -24,6 +25,7 @@ from .orders_serializers import (
     OrderGetAnonSerializer,
     OrderGetAuthSerializer,
     ShoppingCartSerializer,
+    StripeCheckoutSessionCreateSerializer,
 )
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
@@ -31,6 +33,7 @@ from orders.shopping_carts import ShopCart
 from products.models import Product
 from users.models import Address
 
+NO_SHOP_CART_ERROR_MESSAGE = "Отсутствует корзина покупок."
 SHOP_CART_ERROR_MESSAGE = "Такого товара нет в корзине."
 ORDER_USER_ERROR_MESSAGE = (
     "Заказ с данным номером принадлежит другому пользователю. "
@@ -39,6 +42,11 @@ ORDER_USER_ERROR_MESSAGE = (
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
+PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE = "Заказ №{pk} не принадлежит пользователю {user}."
+PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE = "Заказ №{pk} уже был оплачен."
+STRIPE_SESSION_CREATE_ERROR_MESSAGE = (
+    "Что-то пошло не так при создании Stripe Checkout Session."
+)
 
 
 @method_decorator(
@@ -115,7 +123,7 @@ class ShoppingCartViewSet(
         shopping_cart = ShopCart(self.request)
         if not shopping_cart:
             return Response(
-                {"errors": "no shopping_cart available"},
+                {"errors": NO_SHOP_CART_ERROR_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         product_id = int(self.kwargs["pk"])
@@ -204,6 +212,8 @@ class OrderViewSet(
     permission_classes = [AllowAny]
 
     def get_serializer_class(self):
+        if self.action == "pay":
+            return StripeCheckoutSessionCreateSerializer
         if self.request.method in permissions.SAFE_METHODS:
             if self.request.user.is_authenticated:
                 return OrderGetAuthSerializer
@@ -349,13 +359,54 @@ class OrderViewSet(
         order.delete()
         return Response(serializer_data, status=status.HTTP_200_OK)
 
-    @action(methods=["GET"], detail=True, permission_classes=[permissions.AllowAny])
+    @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
-        order = Order.objects.get(id=self.kwargs.get("pk"))
-        if order.user is None or (
-            self.request.user.is_authenticated and order.user == self.request.user
-        ):
-            return HttpResponsePermanentRedirect(
-                reverse("payments:pay", kwargs={"pk": order.id})
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user is not None and order.user != self.request.user:
+            return Response(
+                {
+                    "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
+                        pk=order.pk, user=request.user
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
-        raise PermissionDenied()
+        if order.is_paid is True:
+            return Response(
+                {"errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        domain_url = f"http://{get_current_site(request)}/"
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        "price_data": {
+                            "currency": "rub",
+                            "product_data": {
+                                "name": order,
+                            },
+                            "unit_amount": int(order.total_price * 100),
+                        },
+                        "quantity": 1,
+                    }
+                ],
+                success_url=domain_url + "success",
+                cancel_url=domain_url + "cancel",
+                client_reference_id=request.user.username
+                if request.user.is_authenticated
+                else None,
+                payment_method_types=["card"],
+                mode="payment",
+                metadata={"order_id": order.id},
+            )
+            return Response(
+                {"checkout_session_url": checkout_session.url},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

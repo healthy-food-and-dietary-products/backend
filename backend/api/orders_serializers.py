@@ -247,3 +247,11 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
         # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
         #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
+
+
+class StripeCheckoutSessionCreateSerializer(serializers.ModelSerializer):
+    """Serializer to create Stripe Checkout Session to pay an order."""
+
+    class Meta:
+        model = Order
+        fields = tuple()
