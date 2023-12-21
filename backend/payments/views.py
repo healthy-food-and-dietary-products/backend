@@ -11,6 +11,7 @@ from api.orders_views import (
     PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE,
     STRIPE_SESSION_CREATE_ERROR_MESSAGE,
 )
+from core.loggers import logger
 from orders.models import Order
 
 
@@ -104,7 +105,7 @@ def stripe_webhook(request):
         # Invalid signature
         return HttpResponse(status=400)  # TODO: shows success page in this case, fix it
     if event["type"] == "checkout.session.completed":
-        print("Payment was successful.")  # TODO: add logging
+        logger.info("Payment was successful.")
         order_id = event["data"]["object"]["metadata"]["order_id"]
         order = get_object_or_404(Order, pk=order_id)
         order.is_paid = True
