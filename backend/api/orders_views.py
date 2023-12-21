@@ -44,6 +44,9 @@ SHOP_CART_ERROR = "В вашей корзине нет товаров, напо�
 DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
 PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE = "Заказ №{pk} не принадлежит пользователю {user}."
 PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE = "Заказ №{pk} уже был оплачен."
+STRIPE_SESSION_CREATE_ERROR_MESSAGE = (
+    "Что-то пошло не так при создании Stripe Checkout Session."
+)
 
 
 @method_decorator(
@@ -358,7 +361,7 @@ class OrderViewSet(
 
     @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
-        order = Order.objects.get(id=self.kwargs.get("pk"))
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user is not None and order.user != self.request.user:
             return Response(
                 {
@@ -389,17 +392,21 @@ class OrderViewSet(
                         "quantity": 1,
                     }
                 ],
-                success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cancel",  # TODO: get to the cancellation page
+                success_url=domain_url + "success",
+                cancel_url=domain_url + "cancel",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
                 payment_method_types=["card"],
                 mode="payment",
+                metadata={"order_id": order.id},
             )
             return Response(
                 {"checkout_session_url": checkout_session.url},
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
-            return Response({"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

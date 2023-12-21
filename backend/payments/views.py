@@ -9,6 +9,7 @@ from django.views.generic.base import TemplateView
 from api.orders_views import (
     PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE,
     PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE,
+    STRIPE_SESSION_CREATE_ERROR_MESSAGE,
 )
 from orders.models import Order
 
@@ -67,17 +68,20 @@ def create_checkout_session(request, order_id):
                         "quantity": 1,
                     }
                 ],
-                success_url=domain_url + "success?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cancel",  # TODO: get to the cancellation page
+                success_url=domain_url + "success",
+                cancel_url=domain_url + "cancel",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
                 payment_method_types=["card"],
                 mode="payment",
+                metadata={"order_id": order.id},
             )
             return redirect(checkout_session.url)
         except Exception as e:
-            return JsonResponse({"errors": str(e)})
+            return JsonResponse(
+                {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)}
+            )
     return None
 
 
@@ -101,9 +105,7 @@ def stripe_webhook(request):
         return HttpResponse(status=400)  # TODO: shows success page in this case, fix it
     if event["type"] == "checkout.session.completed":
         print("Payment was successful.")  # TODO: add logging
-        product_data = event["data"]["object"].list_line_items()
-        order_string = product_data._previous["data"][0]["description"]
-        order_id = order_string.split()[1]
+        order_id = event["data"]["object"]["metadata"]["order_id"]
         order = get_object_or_404(Order, pk=order_id)
         order.is_paid = True
         order.save()
