@@ -28,6 +28,7 @@ from .orders_serializers import (
     StripeCheckoutSessionCreateSerializer,
 )
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
+from core.loggers import logger
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
@@ -404,6 +405,7 @@ class OrderViewSet(
                 mode="payment",
                 metadata={"order_id": order.id},
             )
+            logger.info("Stripe Checkout Session created successfully.")
             return Response(
                 {"checkout_session_url": checkout_session.url},
                 status=status.HTTP_200_OK,

@@ -93,17 +93,21 @@ def stripe_webhook(request):
     Stripe webhook view to handle checkout session completed event
     (payment verification).
     """
+    logger.info("Start to handle checkout session completed event using webhook.")
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = None
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        logger.info("Webhook.construct_event completed successfully.")
     except ValueError:
         # Invalid payload
+        logger.error("Webhook ValueError.")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
         # Invalid signature
+        logger.error("Webhook SignatureVerificationError.")
         return HttpResponse(status=400)  # TODO: shows success page in this case, fix it
     if event["type"] == "checkout.session.completed":
         logger.info("Payment was successful.")
