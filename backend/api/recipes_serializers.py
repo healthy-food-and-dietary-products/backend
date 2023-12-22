@@ -1,3 +1,5 @@
+from math import ceil
+
 from rest_framework import serializers
 
 from recipes.models import ProductsInRecipe, Recipe
@@ -12,12 +14,28 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="ingredient.id")
     name = serializers.ReadOnlyField(source="ingredient.name")
     measure_unit = serializers.ReadOnlyField(source="ingredient.measure_unit")
+    amount = serializers.ReadOnlyField(source="ingredient.amount")
+    final_price = serializers.ReadOnlyField(source="ingredient.final_price")
     ingredient_photo = serializers.ImageField(source="ingredient.photo")
-    quantity = serializers.ReadOnlyField(source="amount")
+    quantity_in_recipe = serializers.ReadOnlyField(source="amount")
+    need_to_buy = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductsInRecipe
-        fields = ("id", "name", "measure_unit", "ingredient_photo", "quantity")
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "ingredient_photo",
+            "quantity_in_recipe",
+            "need_to_buy",
+        )
+
+    def get_need_to_buy(self, obj):
+        """Calculates the number of product units to buy for this recipe."""
+        return ceil(obj.amount / obj.ingredient.amount)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -50,16 +68,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         carbohydrates = 0
 
         for ingredient in obj.ingredients.all():
-            proteins += (
-                ingredient.proteins * ingredient.productsinrecipe.get(recipe=obj).amount
-            ) / 100
-            fats += (
-                ingredient.fats * ingredient.productsinrecipe.get(recipe=obj).amount
-            ) / 100
-            carbohydrates += (
-                ingredient.carbohydrates
-                * ingredient.productsinrecipe.get(recipe=obj).amount
-            ) / 100
+            amount = ingredient.productsinrecipe.get(recipe=obj).amount
+            proteins += (ingredient.proteins * amount) / 100
+            fats += (ingredient.fats * amount) / 100
+            carbohydrates += (ingredient.carbohydrates * ingredient.amount) / 100
         kcal = proteins * 4 + fats * 9 + carbohydrates * 4
 
         return {

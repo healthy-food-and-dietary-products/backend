@@ -52,9 +52,9 @@ def export_products_components():
         writer.writerow(field_names)
         id = 0
         for product in products:
-            id += 1
             components = product.components.all()
             for component in components:
+                id += 1
                 data = [id, product.pk, component.pk]
                 writer.writerow(data)
 
@@ -68,9 +68,9 @@ def export_products_tags():
         writer.writerow(field_names)
         id = 0
         for product in products:
-            id += 1
             tags = product.tags.all()
             for tag in tags:
+                id += 1
                 data = [id, product.pk, tag.pk]
                 writer.writerow(data)
 

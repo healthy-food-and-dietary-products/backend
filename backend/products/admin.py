@@ -184,7 +184,7 @@ class ProductAdmin(admin.ModelAdmin):
         "orders_number",
         "photo",
     ]
-    search_fields = ["name", "description", "producer"]
+    search_fields = ["name", "description", "producer__name"]
     readonly_fields = ["creation_time", "promotion_quantity", "final_price", "rating"]
     ordering = ["pk"]
     list_filter = [
@@ -228,5 +228,5 @@ class FavoriteProductAdmin(admin.ModelAdmin):
     list_display = ["pk", "product", "user"]
     list_display_links = ("product",)
     fields = ["user", "product"]
-    search_fields = ["user", "product"]
+    search_fields = ["user__username", "product__name"]
     list_filter = ["product"]
