@@ -1,5 +1,6 @@
 from math import ceil
 
+from drf_yasg import openapi
 from rest_framework import serializers
 
 from recipes.models import ProductsInRecipe, Recipe
@@ -32,8 +33,52 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
             "quantity_in_recipe",
             "need_to_buy",
         )
+        swagger_schema_fields = {
+            "type": openapi.TYPE_OBJECT,
+            "properties": {
+                "id": openapi.Schema(
+                    title="Id", type=openapi.TYPE_INTEGER, read_only=True
+                ),
+                "name": openapi.Schema(
+                    title="Name",
+                    type=openapi.TYPE_STRING,
+                    read_only=True,
+                ),
+                "measure_unit": openapi.Schema(
+                    title="Measure unit",
+                    type=openapi.TYPE_STRING,
+                    read_only=True,
+                ),
+                "amount": openapi.Schema(
+                    title="Amount",
+                    type=openapi.TYPE_INTEGER,
+                    read_only=True,
+                ),
+                "final_price": openapi.Schema(
+                    title="Final price",
+                    type=openapi.TYPE_INTEGER,
+                    read_only=True,
+                ),
+                "ingredient_photo": openapi.Schema(
+                    title="Ingredient photo",
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_URI,
+                    read_only=True,
+                ),
+                "quantity_in_recipe": openapi.Schema(
+                    title="Quantity in recipe",
+                    type=openapi.TYPE_INTEGER,
+                    read_only=True,
+                ),
+                "need_to_buy": openapi.Schema(
+                    title="Need to buy",
+                    type=openapi.TYPE_INTEGER,
+                    read_only=True,
+                ),
+            },
+        }
 
-    def get_need_to_buy(self, obj):
+    def get_need_to_buy(self, obj) -> int:
         """Calculates the number of product units to buy for this recipe."""
         return ceil(obj.amount / obj.ingredient.amount)
 
@@ -59,10 +104,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def get_total_ingredients(self, obj):
+    def get_total_ingredients(self, obj) -> int:
         return obj.ingredients.count()
 
-    def get_recipe_nutrients(self, obj):
+    def get_recipe_nutrients(self, obj) -> dict[str, float]:
         proteins = 0
         fats = 0
         carbohydrates = 0
