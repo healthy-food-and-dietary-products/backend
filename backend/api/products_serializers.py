@@ -1,5 +1,6 @@
 from django.db.models import Avg
 from drf_spectacular.utils import extend_schema_field
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -23,7 +24,7 @@ class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
     subcategory_name = serializers.CharField(source="name")
-    subcategory_slug = serializers.CharField(source="slug")
+    subcategory_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Subcategory
@@ -41,7 +42,7 @@ class CategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for categories representation in product serializer."""
 
     category_name = serializers.CharField(source="name")
-    category_slug = serializers.CharField(source="slug")
+    category_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Category
@@ -56,63 +57,22 @@ class CategoryCreateSerializer(CategoryLightSerializer):
         fields = ("id", "category_name", "slug", "image")
 
 
-class CategorySerializer(CategoryLightSerializer):
-    """Serializer for displaying categories."""
-
-    subcategories = SubcategoryLightSerializer(many=True, required=False)
-    top_three_products = serializers.SerializerMethodField()
-
-    class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "image", "subcategories", "top_three_products")
-
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular category."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
-        )
-        return ProductSerializer(
-            top_three_products_queryset, many=True, context=self.context
-        ).data
-
-
 class TagLightSerializer(serializers.ModelSerializer):
     """Serializer for tags representation in product serializer."""
 
     tag_name = serializers.CharField(source="name")
-    tag_slug = serializers.CharField(source="slug")
+    tag_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Tag
         fields = ("tag_name", "tag_slug")
 
 
-class TagSerializer(TagLightSerializer):
-    """Serializer for tags representation."""
-
-    top_three_products = serializers.SerializerMethodField()
-
-    class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug", "image", "top_three_products")
-
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
-        )
-        return ProductSerializer(
-            top_three_products_queryset, context=self.context, many=True
-        ).data
-
-
 class ComponentLightSerializer(serializers.ModelSerializer):
     """Serializer for components representation in product serializer."""
 
     component_name = serializers.CharField(source="name")
-    component_slug = serializers.CharField(source="slug")
+    component_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Component
@@ -130,7 +90,7 @@ class ProducerLightSerializer(serializers.ModelSerializer):
     """Serializer for produsers representation in product serializer."""
 
     producer_name = serializers.CharField(source="name")
-    producer_slug = serializers.CharField(source="slug")
+    producer_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Producer
@@ -156,7 +116,7 @@ class PromotionLightSerializer(serializers.ModelSerializer):
     """Serializer for promotions representation in product serializer."""
 
     promotion_name = serializers.CharField(source="name")
-    promotion_slug = serializers.CharField(source="slug")
+    promotion_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Promotion
@@ -234,21 +194,22 @@ class ProductSerializer(serializers.ModelSerializer):
         )
 
     @extend_schema_field(bool)
-    def get_is_favorited(self, obj):
+    def get_is_favorited(self, obj) -> bool:
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
         return obj.is_favorited(request.user)
 
     @extend_schema_field(int)
-    def get_promotion_quantity(self, obj):
+    def get_promotion_quantity(self, obj) -> int:
         return obj.promotions.count()
 
     @extend_schema_field(float)
-    def get_final_price(self, obj):
+    def get_final_price(self, obj) -> float:
         return obj.final_price
 
-    def get_rating(self, obj):
+    # TODO: make annotate
+    def get_rating(self, obj) -> float:
         product_reviews = obj.reviews.all()
         if product_reviews:
             return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
@@ -361,7 +322,7 @@ class ProductPresentSerializer(serializers.ModelSerializer):
         )
 
     @extend_schema_field(float)
-    def get_final_price(self, obj):
+    def get_final_price(self, obj) -> float:
         return obj.final_price
 
 
@@ -389,3 +350,46 @@ class FavoriteProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteProduct
         fields = ("id",)
+
+
+class CategorySerializer(CategoryLightSerializer):
+    """Serializer for displaying categories."""
+
+    subcategories = SubcategoryLightSerializer(many=True, required=False)
+    top_three_products = serializers.SerializerMethodField()
+
+    class Meta(CategoryLightSerializer.Meta):
+        fields = ("id", "name", "slug", "image", "subcategories", "top_three_products")
+
+    @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
+    def get_top_three_products(self, obj):
+        """Shows three most popular products of a particular category."""
+        top_three_products_queryset = (
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .order_by("-orders_number")[:3]
+        )
+        return ProductSerializer(
+            top_three_products_queryset, many=True, context=self.context
+        ).data
+
+
+class TagSerializer(TagLightSerializer):
+    """Serializer for tags representation."""
+
+    top_three_products = serializers.SerializerMethodField()
+
+    class Meta(TagLightSerializer.Meta):
+        fields = ("id", "name", "slug", "image", "top_three_products")
+
+    @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
+    def get_top_three_products(self, obj):
+        """Shows three most popular products of a particular tag."""
+        top_three_products_queryset = (
+            obj.products.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .order_by("-orders_number")[:3]
+        )
+        return ProductSerializer(
+            top_three_products_queryset, context=self.context, many=True
+        ).data

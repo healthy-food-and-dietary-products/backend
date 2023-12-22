@@ -3,6 +3,7 @@ from math import ceil
 from drf_yasg import openapi
 from rest_framework import serializers
 
+from products.models import Product
 from recipes.models import ProductsInRecipe, Recipe
 
 RECIPE_KCAL_DECIMAL_PLACES = 0
@@ -37,7 +38,7 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
             "type": openapi.TYPE_OBJECT,
             "properties": {
                 "id": openapi.Schema(
-                    title="Id", type=openapi.TYPE_INTEGER, read_only=True
+                    title="ID", type=openapi.TYPE_INTEGER, read_only=True
                 ),
                 "name": openapi.Schema(
                     title="Name",
@@ -46,7 +47,11 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
                 ),
                 "measure_unit": openapi.Schema(
                     title="Measure unit",
-                    type=openapi.TYPE_STRING,
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(
+                        enum=[Product.GRAMS, Product.MILLILITRES, Product.ITEMS],
+                        type=openapi.TYPE_STRING,
+                    ),
                     read_only=True,
                 ),
                 "amount": openapi.Schema(
@@ -56,7 +61,7 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
                 ),
                 "final_price": openapi.Schema(
                     title="Final price",
-                    type=openapi.TYPE_INTEGER,
+                    type=openapi.TYPE_NUMBER,
                     read_only=True,
                 ),
                 "ingredient_photo": openapi.Schema(
