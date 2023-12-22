@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from drf_spectacular.utils import extend_schema_field
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
@@ -17,7 +16,7 @@ from products.models import (
     Tag,
 )
 
-NO_RATING_MESSAGE = "У данного продукта еще нет оценок."
+RATING_DECIMAL_PLACES = 1
 
 
 class SubcategoryLightSerializer(serializers.ModelSerializer):
@@ -208,12 +207,13 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_final_price(self, obj) -> float:
         return obj.final_price
 
-    # TODO: make annotate
     def get_rating(self, obj) -> float:
-        product_reviews = obj.reviews.all()
-        if product_reviews:
-            return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
-        return NO_RATING_MESSAGE
+        """Rounds and returns the annotated rating value."""
+        return (
+            round(obj.rating, RATING_DECIMAL_PLACES)
+            if obj.rating is not None
+            else obj.rating
+        )
 
 
 class ProductCreateSerializer(ProductSerializer):

@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
@@ -504,9 +505,11 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Product.objects.select_related(
-        "category", "subcategory", "producer"
-    ).prefetch_related("components", "tags", "promotions", "reviews")
+    queryset = (
+        Product.objects.select_related("category", "subcategory", "producer")
+        .prefetch_related("components", "tags", "promotions", "reviews")
+        .annotate(rating=Avg("reviews__score"))
+    )
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [rf_filters.DjangoFilterBackend]
@@ -523,9 +526,11 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.select_related(
-            "category", "subcategory", "producer"
-        ).prefetch_related("components", "tags", "promotions", "reviews")
+        return (
+            Product.objects.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .annotate(rating=Avg("reviews__score"))
+        )
 
     @transaction.atomic
     def create_delete_or_scold(self, model, product, request):
