@@ -94,6 +94,9 @@ PRODUCER_ADDRESS_2 = "г. Москва, Аптекарский огород"
 PROMOTION_NAME_1 = "Birthday Discount 15%"
 PROMOTION_NAME_2 = "Black Friday"
 
+PROMOTION_SLUG_1 = "birthday-15"
+PROMOTION_SLUG_2 = "black-friday"
+
 PROMOTION_DISCOUNT_1 = 15
 PROMOTION_DISCOUNT_2 = 20
 
@@ -214,9 +217,12 @@ def promotions():
     Promotion.objects.create(
         promotion_type=Promotion.BIRTHDAY,
         name=PROMOTION_NAME_1,
+        slug=PROMOTION_SLUG_1,
         discount=PROMOTION_DISCOUNT_1,
     )
-    Promotion.objects.create(name=PROMOTION_NAME_2, discount=PROMOTION_DISCOUNT_2)
+    Promotion.objects.create(
+        name=PROMOTION_NAME_2, slug=PROMOTION_SLUG_2, discount=PROMOTION_DISCOUNT_2
+    )
     return Promotion.objects.all()
 
 
