@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
@@ -505,11 +504,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = (
-        Product.objects.select_related("category", "subcategory", "producer")
-        .prefetch_related("components", "tags", "promotions", "reviews")
-        .annotate(rating=Avg("reviews__score"))
-    )
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [rf_filters.DjangoFilterBackend, filters.OrderingFilter]
@@ -528,9 +523,12 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         return (
-            Product.objects.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .annotate(rating=Avg("reviews__score"))
+            ProductSerializer.setup_eager_loading(
+                Product.objects.all(), self.request.user
+            )
+            # Product.objects.select_related("category", "subcategory", "producer")
+            # .prefetch_related("components", "tags", "promotions", "reviews")
+            # .annotate(rating=Avg("reviews__score"))
         )
 
     @transaction.atomic

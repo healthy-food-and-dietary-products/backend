@@ -1,3 +1,4 @@
+from django.db.models import Avg, Exists, OuterRef
 from drf_spectacular.utils import extend_schema_field
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
@@ -192,12 +193,46 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_favorited",
         )
 
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of product data."""
+        if user.is_anonymous:
+            queryset = (
+                queryset.select_related("category", "subcategory", "producer")
+                .prefetch_related(
+                    "components",
+                    "tags",
+                    "promotions",
+                    "reviews",
+                )
+                .annotate(rating=Avg("reviews__score"))
+            )
+        else:
+            queryset = (
+                queryset.select_related("category", "subcategory", "producer")
+                .prefetch_related(
+                    "components",
+                    "tags",
+                    "promotions",
+                    "reviews",
+                )
+                .annotate(
+                    rating=Avg("reviews__score"),
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    ),
+                )
+            )
+        return queryset
+
     @extend_schema_field(bool)
     def get_is_favorited(self, obj) -> bool:
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
-        return obj.is_favorited(request.user)
+        return obj.favorited
 
     @extend_schema_field(int)
     def get_promotion_quantity(self, obj) -> int:
@@ -364,10 +399,9 @@ class CategorySerializer(CategoryLightSerializer):
     @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
+        top_three_products_queryset = ProductSerializer.setup_eager_loading(
+            obj.products.order_by("-orders_number")[:3],
+            self.context.get("request").user,
         )
         return ProductSerializer(
             top_three_products_queryset, many=True, context=self.context
@@ -385,10 +419,9 @@ class TagSerializer(TagLightSerializer):
     @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
+        top_three_products_queryset = ProductSerializer.setup_eager_loading(
+            obj.products.order_by("-orders_number")[:3],
+            self.context.get("request").user,
         )
         return ProductSerializer(
             top_three_products_queryset, context=self.context, many=True
