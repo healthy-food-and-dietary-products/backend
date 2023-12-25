@@ -88,6 +88,7 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
         return ceil(obj.amount / obj.ingredient.amount)
 
 
+# TODO: make setup_eager_loading cls method
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipe representation."""
 

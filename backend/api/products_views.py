@@ -522,13 +522,8 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return ProductSerializer
 
     def get_queryset(self):
-        return (
-            ProductSerializer.setup_eager_loading(
-                Product.objects.all(), self.request.user
-            )
-            # Product.objects.select_related("category", "subcategory", "producer")
-            # .prefetch_related("components", "tags", "promotions", "reviews")
-            # .annotate(rating=Avg("reviews__score"))
+        return ProductSerializer.setup_eager_loading(
+            Product.objects.all(), self.request.user
         )
 
     @transaction.atomic

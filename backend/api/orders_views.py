@@ -2,7 +2,6 @@ import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -209,7 +208,7 @@ class OrderViewSet(
 ):
     """Viewset for Order."""
 
-    queryset = Order.objects.all()
+    queryset = OrderGetAuthSerializer.setup_eager_loading(Order.objects.all())
     permission_classes = [AllowAny]
 
     def get_serializer_class(self):
@@ -267,17 +266,8 @@ class OrderViewSet(
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            queryset = (
-                Order.objects.select_related("user", "address", "delivery_point")
-                .prefetch_related(
-                    Prefetch(
-                        "products",
-                        queryset=Product.objects.prefetch_related("promotions"),
-                    )
-                )
-                .filter(user=self.request.user)
-            )
-            serializer = self.get_serializer(queryset, many=True)
+            queryset = self.get_queryset().filter(user=self.request.user)
+            serializer = self.get_serializer(queryset, many=True)  # similar DB hits
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(
             {"errors": METHOD_ERROR_MESSAGE},

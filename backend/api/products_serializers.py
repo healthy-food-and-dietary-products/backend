@@ -195,7 +195,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     @classmethod
     def setup_eager_loading(cls, queryset, user):
-        """Perform necessary eager loading of product data."""
+        """Perform necessary eager loading of products data."""
         if user.is_anonymous:
             queryset = (
                 queryset.select_related("category", "subcategory", "producer")
