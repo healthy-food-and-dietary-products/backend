@@ -1,5 +1,6 @@
 from math import ceil
 
+from django.db.models import Count, F, Prefetch, Sum
 from drf_yasg import openapi
 from rest_framework import serializers
 
@@ -88,13 +89,15 @@ class ProductsInRecipeSerializer(serializers.ModelSerializer):
         return ceil(obj.amount / obj.ingredient.amount)
 
 
-# TODO: make setup_eager_loading cls method
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipe representation."""
 
     ingredients = ProductsInRecipeSerializer(source="recipeingredient", many=True)
     total_ingredients = serializers.SerializerMethodField()
-    recipe_nutrients = serializers.SerializerMethodField()
+    proteins = serializers.SerializerMethodField()
+    fats = serializers.SerializerMethodField()
+    carbohydrates = serializers.SerializerMethodField()
+    kcal = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -106,28 +109,54 @@ class RecipeSerializer(serializers.ModelSerializer):
             "image",
             "ingredients",
             "total_ingredients",
-            "recipe_nutrients",
+            "proteins",
+            "fats",
+            "carbohydrates",
+            "kcal",
             "cooking_time",
         )
 
+    @classmethod
+    def setup_eager_loading(cls, queryset):
+        """Perform necessary eager loading of recipes data."""
+        return queryset.prefetch_related(
+            Prefetch(
+                "recipeingredient",
+                queryset=ProductsInRecipe.objects.select_related(
+                    "ingredient"
+                ).prefetch_related("ingredient__promotions"),
+            )
+        ).annotate(
+            total_ingredients=Count("ingredients"),
+            proteins=Sum(
+                F("recipeingredient__ingredient__proteins")
+                * F("recipeingredient__amount")
+                / 100
+            ),
+            fats=Sum(
+                F("recipeingredient__ingredient__fats")
+                * F("recipeingredient__amount")
+                / 100
+            ),
+            carbohydrates=Sum(
+                F("recipeingredient__ingredient__carbohydrates")
+                * F("recipeingredient__amount")
+                / 100
+            ),
+            kcal=F("proteins") * 4 + F("fats") * 9 + F("carbohydrates") * 4,
+        )
+
+    def get_proteins(self, obj) -> float:
+        return round(obj.proteins, RECIPE_NUTRIENTS_DECIMAL_PLACES)
+
+    def get_fats(self, obj) -> float:
+        return round(obj.fats, RECIPE_NUTRIENTS_DECIMAL_PLACES)
+
+    def get_carbohydrates(self, obj) -> float:
+        return round(obj.carbohydrates, RECIPE_NUTRIENTS_DECIMAL_PLACES)
+
+    def get_kcal(self, obj) -> int:
+        return round(obj.kcal, RECIPE_KCAL_DECIMAL_PLACES)
+
     def get_total_ingredients(self, obj) -> int:
-        return obj.ingredients.count()
-
-    def get_recipe_nutrients(self, obj) -> dict[str, float]:
-        proteins = 0
-        fats = 0
-        carbohydrates = 0
-
-        for ingredient in obj.ingredients.all():
-            amount = ingredient.productsinrecipe.get(recipe=obj).amount
-            proteins += (ingredient.proteins * amount) / 100
-            fats += (ingredient.fats * amount) / 100
-            carbohydrates += (ingredient.carbohydrates * ingredient.amount) / 100
-        kcal = proteins * 4 + fats * 9 + carbohydrates * 4
-
-        return {
-            "proteins": round(proteins, RECIPE_NUTRIENTS_DECIMAL_PLACES),
-            "fats": round(fats, RECIPE_NUTRIENTS_DECIMAL_PLACES),
-            "carbohydrates": round(carbohydrates, RECIPE_NUTRIENTS_DECIMAL_PLACES),
-            "kcal": round(kcal, RECIPE_KCAL_DECIMAL_PLACES),
-        }
+        return obj.total_ingredients

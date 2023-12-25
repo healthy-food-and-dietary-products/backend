@@ -5,5 +5,5 @@ from recipes.models import Recipe
 
 
 class RecipeViewSet(ReadOnlyModelViewSet):
-    queryset = Recipe.objects.select_related("author").prefetch_related("ingredients")
+    queryset = RecipeSerializer.setup_eager_loading(Recipe.objects.all())
     serializer_class = RecipeSerializer
