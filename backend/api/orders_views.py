@@ -94,6 +94,7 @@ class ShoppingCartViewSet(
 
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
+        logger.info("The user's shopping cart list was successfully received.")
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -110,6 +111,7 @@ class ShoppingCartViewSet(
         serializer.is_valid(raise_exception=True)
         for product in products:
             shopping_cart.add(product=product, quantity=product["quantity"])
+        logger.info("The shopping cart was successfully created.")
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -122,6 +124,7 @@ class ShoppingCartViewSet(
     def destroy(self, *args, **kwargs):
         shopping_cart = ShopCart(self.request)
         if not shopping_cart:
+            logger.error(NO_SHOP_CART_ERROR_MESSAGE)
             return Response(
                 {"errors": NO_SHOP_CART_ERROR_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
@@ -129,11 +132,13 @@ class ShoppingCartViewSet(
         product_id = int(self.kwargs["pk"])
         products = [product["id"] for product in shopping_cart.get_shop_products()]
         if product_id not in products:
+            logger.error(SHOP_CART_ERROR_MESSAGE)
             return Response(
                 {"errors": SHOP_CART_ERROR_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_cart.remove(product_id)
+        logger.info(MESSAGE_ON_DELETE)
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -262,13 +267,17 @@ class OrderViewSet(
         if user.is_authenticated and order.user != user:
             return Response({"errors": ORDER_USER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
+        logger.info("The user's order was successfully received.")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
             queryset = self.get_queryset().filter(user=self.request.user)
-            serializer = self.get_serializer(queryset, many=True)  # similar DB hits
+            # TODO: need to solve n+1 problem
+            serializer = self.get_serializer(queryset, many=True)
+            logger.info("The user's order list was successfully received.")
             return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(METHOD_ERROR_MESSAGE)
         return Response(
             {"errors": METHOD_ERROR_MESSAGE},
             status=status.HTTP_401_UNAUTHORIZED,
@@ -277,6 +286,7 @@ class OrderViewSet(
     def create(self, request, *args, **kwargs):
         shopping_cart = ShopCart(request)
         if not shopping_cart:
+            logger.error(SHOP_CART_ERROR)
             return Response(
                 {"errors": SHOP_CART_ERROR},
                 status=status.HTTP_404_NOT_FOUND,
@@ -321,6 +331,7 @@ class OrderViewSet(
             else OrderGetAnonSerializer
         )
         response_serializer = response_serializer(order)
+        logger.info("The order was successfully created.")
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
@@ -336,9 +347,11 @@ class OrderViewSet(
         else:
             order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user != self.request.user:
+            logger.error("PermissionDenied during order creation.")
             raise PermissionDenied()
 
         if order.status in order_restricted_deletion_statuses:
+            logger.error(DELIVERY_ERROR_MESSAGE)
             return Response({"errors": DELIVERY_ERROR_MESSAGE})
         response_serializer = (
             OrderGetAuthSerializer
@@ -348,6 +361,7 @@ class OrderViewSet(
         serializer_data = response_serializer(order).data
         serializer_data["Success"] = MESSAGE_ON_DELETE
         order.delete()
+        logger.info(MESSAGE_ON_DELETE)
         return Response(serializer_data, status=status.HTTP_200_OK)
 
     @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
