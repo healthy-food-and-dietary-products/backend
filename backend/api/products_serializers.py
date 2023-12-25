@@ -396,6 +396,8 @@ class CategorySerializer(CategoryLightSerializer):
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "image", "subcategories", "top_three_products")
 
+    # TODO: need to solve n+1 problem
+    # TODO: possibly need to create an endpoint without this field
     @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular category."""
@@ -416,6 +418,7 @@ class TagSerializer(TagLightSerializer):
     class Meta(TagLightSerializer.Meta):
         fields = ("id", "name", "slug", "image", "top_three_products")
 
+    # TODO: need to solve n+1 problem
     @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
     def get_top_three_products(self, obj):
         """Shows three most popular products of a particular tag."""
