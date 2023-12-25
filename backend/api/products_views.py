@@ -9,7 +9,7 @@ from drf_standardized_errors.openapi_serializers import (
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import decorators, permissions, response, status, viewsets
+from rest_framework import decorators, filters, permissions, response, status, viewsets
 
 from .filters import ProductFilter
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
@@ -504,13 +504,12 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Product.objects.select_related(
-        "category", "subcategory", "producer"
-    ).prefetch_related("components", "tags", "promotions", "reviews")
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [rf_filters.DjangoFilterBackend]
+    filter_backends = [rf_filters.DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ProductFilter
+    ordering = ["pk"]
     pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
@@ -523,9 +522,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.select_related(
-            "category", "subcategory", "producer"
-        ).prefetch_related("components", "tags", "promotions", "reviews")
+        return ProductSerializer.setup_eager_loading(
+            Product.objects.all(), self.request.user
+        )
 
     @transaction.atomic
     def create_delete_or_scold(self, model, product, request):

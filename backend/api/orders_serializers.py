@@ -92,6 +92,25 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
         )
         model = Order
 
+    # TODO: commented code doesn't reduce DB hits
+    @classmethod
+    def setup_eager_loading(cls, queryset):
+        """Perform necessary eager loading of orders data."""
+        return queryset.select_related("user")
+        # ).prefetch_related(
+        #     Prefetch(
+        #         "products",
+        #         queryset=Product.objects.select_related(
+        #             "category", "subcategory", "producer"
+        #         ).prefetch_related(
+        #             "components",
+        #             "tags",
+        #             "promotions",
+        #             "reviews",
+        #         ),
+        #     )
+        # )
+
 
 class OrderGetAnonSerializer(serializers.ModelSerializer):
     """Serializer for anonimous user order representation."""

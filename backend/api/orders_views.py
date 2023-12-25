@@ -2,7 +2,6 @@ import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -95,7 +94,7 @@ class ShoppingCartViewSet(
 
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
-        logger.info("Success.")
+        logger.info("The user's shopping cart list was successfully received.")
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -112,7 +111,7 @@ class ShoppingCartViewSet(
         serializer.is_valid(raise_exception=True)
         for product in products:
             shopping_cart.add(product=product, quantity=product["quantity"])
-        logger.info("Success.")
+        logger.info("The shopping cart was successfully created.")
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -214,7 +213,7 @@ class OrderViewSet(
 ):
     """Viewset for Order."""
 
-    queryset = Order.objects.all()
+    queryset = OrderGetAuthSerializer.setup_eager_loading(Order.objects.all())
     permission_classes = [AllowAny]
 
     def get_serializer_class(self):
@@ -268,23 +267,15 @@ class OrderViewSet(
         if user.is_authenticated and order.user != user:
             return Response({"errors": ORDER_USER_ERROR_MESSAGE})
         serializer = self.get_serializer(order)
-        logger.info("Success.")
+        logger.info("The user's order was successfully received.")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
-            queryset = (
-                Order.objects.select_related("user", "address", "delivery_point")
-                .prefetch_related(
-                    Prefetch(
-                        "products",
-                        queryset=Product.objects.prefetch_related("promotions"),
-                    )
-                )
-                .filter(user=self.request.user)
-            )
+            queryset = self.get_queryset().filter(user=self.request.user)
+            # TODO: need to solve n+1 problem
             serializer = self.get_serializer(queryset, many=True)
-            logger.info("Success.")
+            logger.info("The user's order list was successfully received.")
             return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error(METHOD_ERROR_MESSAGE)
         return Response(
@@ -340,7 +331,7 @@ class OrderViewSet(
             else OrderGetAnonSerializer
         )
         response_serializer = response_serializer(order)
-        logger.info("Order was successful.")
+        logger.info("The order was successfully created.")
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
@@ -356,7 +347,7 @@ class OrderViewSet(
         else:
             order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user != self.request.user:
-            logger.error("PermissionDenied.")
+            logger.error("PermissionDenied during order creation.")
             raise PermissionDenied()
 
         if order.status in order_restricted_deletion_statuses:
