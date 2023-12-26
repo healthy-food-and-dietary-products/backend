@@ -92,6 +92,20 @@ class ShoppingCartViewSet(
     http_method_names = ("get", "post", "delete")
     serializer_class = ShoppingCartSerializer
 
+    @action(detail=False, methods=["delete"],
+            permission_classes=[permissions.AllowAny])
+    def remove_all(self, request):
+        shopping_cart = ShopCart(request)
+        if not shopping_cart:
+            logger.error(SHOP_CART_ERROR)
+            return Response(
+                {"errors": SHOP_CART_ERROR},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        shopping_cart.clear()
+        logger.info(MESSAGE_ON_DELETE)
+        return Response(status=status.HTTP_200_OK)
+
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
         logger.info("The user's shopping cart list was successfully received.")
