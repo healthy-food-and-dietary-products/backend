@@ -189,8 +189,8 @@ class ProductAdmin(admin.ModelAdmin):
     ordering = ["pk"]
     list_filter = [
         "category",
-        "subcategory",
         "tags",
+        "subcategory",
         "discontinued",
         "producer",
         "measure_unit",

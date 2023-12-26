@@ -199,23 +199,13 @@ class ProductSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             queryset = (
                 queryset.select_related("category", "subcategory", "producer")
-                .prefetch_related(
-                    "components",
-                    "tags",
-                    "promotions",
-                    "reviews",
-                )
+                .prefetch_related("components", "tags", "promotions", "reviews")
                 .annotate(rating=Avg("reviews__score"))
             )
         else:
             queryset = (
                 queryset.select_related("category", "subcategory", "producer")
-                .prefetch_related(
-                    "components",
-                    "tags",
-                    "promotions",
-                    "reviews",
-                )
+                .prefetch_related("components", "tags", "promotions", "reviews")
                 .annotate(
                     rating=Avg("reviews__score"),
                     favorited=Exists(
