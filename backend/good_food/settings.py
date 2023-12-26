@@ -260,7 +260,7 @@ SWAGGER_SETTINGS = {
 # Security & sessions
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SESSION_COOKIE_SECURE = False  # TODO: turn back to True then
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # TODO: change before presentation
 SESSION_COOKIE_SAMESITE = "None"
