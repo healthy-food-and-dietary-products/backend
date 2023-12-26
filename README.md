@@ -533,26 +533,38 @@ id этой записи, а не id пользователя или проду�
 ```
 {
   "products": [
-    {"id": 1, "quantity": 9}, 
-    {"id": 3, "quantity": 10}
+      {"id": 12, "quantity": 2},
+      {"id": 1, "quantity": 2}
   ]
 }
 ```
 Пример ответа:
 ```
 {
-  "products": [
-    {
-      "id": 10,
-      "name": "Помидоры черри",
-      "quantity": 20,
-      "final_price": 150,
-      "created_at": 1701761819,
-      "total_price": 3000
-    }
-  ],
-  "count_of_products": 20,
-  "total_price": 3000
+    "products": [
+        {
+            "id": 12,
+            "name": "Перец болгарский",
+            "photo": "images/products/12.jpg",
+            "category": "vegetables-and-herbs",
+            "quantity": 2,
+            "final_price": 120.0,
+            "created_at": 1703501460,
+            "total_price": 240.0
+        },
+        {
+            "id": 1,
+            "name": "Миндаль",
+            "photo": "images/products/1.jpg",
+            "category": "nuts-dried-fruits",
+            "quantity": 2,
+            "final_price": 160.0,
+            "created_at": 1703501460,
+            "total_price": 320.0
+        }
+    ],
+    "count_of_products": 4,
+    "total_price": 560.0
 }
 ```
 
@@ -560,6 +572,12 @@ id этой записи, а не id пользователя или проду�
 
 Удаление продуктов из корзины покупок доступно по эндпойнту /api/shopping_cart/{product_id}/
 Для удаления продукта из корзины покупок необходимо передать в URL id продукта во время DELETE-запроса
+на указанный эндпойнт.
+
+### Удаление всех продуктов из корзины покупок
+
+Удаление корзины покупок доступно по эндпойнту /api/shopping_cart/remove_all/ 
+Для удаления корзины покупок происходит во время DELETE-запроса
 на указанный эндпойнт.
 
 ## Заказ
@@ -603,36 +621,57 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 Пример ответа:
 ```
 {
-    "id": 32,
-    "order_number": "32",
-    "user_data": "{'first_name': 'Vasya',
-                   'last_name': 'Kovin',
-                   'phone_number': '89764563456',
-                   'email': 'user@example.com'}",
+    "id": 3,
+    "order_number": "3",
+    "user_data": {
+        "first_name": "Vasya",
+        "last_name": "Kovin",
+        "phone_number": "89764563456",
+        "email": "user@example.ruu"
+    },
     "products": [
         {
-        "product": {
-            "id": 12,
-            "name": "Перец болгарский",
-            "measure_unit": "grams",
-            "amount": 1000,
-            "final_price": 120,
-            "photo": "/media/images/products/12.jpg"
+            "product": {
+                "id": 1,
+                "name": "Миндаль",
+                "measure_unit": "г.",
+                "amount": 100,
+                "final_price": 160.0,
+                "photo": null,
+                "category": {
+                    "category_name": "Орехи и сухофрукты",
+                    "category_slug": "nuts-dried-fruits"
+                }
+            },
+            "quantity": 2
         },
-      "quantity": 10
+        {
+            "product": {
+                "id": 12,
+                "name": "Перец болгарский",
+                "measure_unit": "г.",
+                "amount": 1000,
+                "final_price": 120.0,
+                "photo": null,
+                "category": {
+                    "category_name": "Овощи",
+                    "category_slug": "vegetables"
+                }
+            },
+            "quantity": 2
         }
     ],
-    "payment_method": "Payment at the point of delivery",
-    "delivery_method": "Point of delivery",
-    "delivery_point": 2,
+    "payment_method": "In getting by cash",
+    "delivery_method": "By courier",
+    "add_address": "Санкт-Петербург, улица Горохова, д.5, кв. 11",
+    "delivery_point": null,
     "package": 0.0,
     "comment": "string",
-    "total_price": 300.0,
+    "total_price": 280.0,
     "is_paid": false,
     "status": "Ordered",
-    "ordering_date": "2023-12-01T12:32:18.152993+03:00"
+    "ordering_date": "2023-12-26T11:38:55.422583+03:00"
 }
-
 ```
 Пример POST запроса на создание заказа авторизированного пользователя:
 
@@ -640,7 +679,7 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 {
     "payment_method": "In getting by cash",
     "delivery_method": "By courier",
-    "package": 100б
+    "package": 100,
     "add_address": "Санкт-Петербург, Невский прспект д.18, оф. 3
 }
 ```
@@ -657,16 +696,20 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     },
     "products": [
         {
-            "id": 4,
-            "name": "Молоко коровье 1.5%",
-            "measure_unit": "мл.",
-            "amount": 1000,
-            "final_price": 75.0,
-            "photo": "/media/images/products/4.jpg"
+         "product": {
+             "id": 1,
+             "name": "Миндаль",
+             "measure_unit": "г.",
+             "amount": 100,
+             "final_price": 160.0,
+             "photo": null,
+             "category": {
+                "category_name": "Орехи и сухофрукты",
+                "category_slug": "nuts-dried-fruits"
+             }
+         },
+             "quantity": 2
         },
-        "quantity": 10
-            
-        }
     ],
     "payment_method": "In getting by cash",
     "delivery_method": "By courier",
@@ -675,7 +718,7 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "delivery_point": null,
     "package": 100.0,
     "comment": null,
-    "total_price": 250.0,
+    "total_price": 160.0,
     "is_paid": false,
     "status": "Ordered",
     "ordering_date": "2023-12-04T10:52:20.324335+03:00"
@@ -696,5 +739,5 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
 на указанный эндпойнт. Отмена заказа возможна только если статус заказа:
 - Оформлен,
 - В обработке,
-- Комплектуется
+- Комплектуется                                       
 Доступно авторизированному пользователю
