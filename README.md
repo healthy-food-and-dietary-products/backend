@@ -697,18 +697,18 @@ payment_method, delivery_method(delivery_point или address_anonimous), packag
     "products": [
         {
          "product": {
-            "id": 1,
-            "name": "Миндаль",
-            "measure_unit": "г.",
-            "amount": 100,
-            "final_price": 160.0,
-            "photo": null,
-            "category": {
+             "id": 1,
+             "name": "Миндаль",
+             "measure_unit": "г.",
+             "amount": 100,
+             "final_price": 160.0,
+             "photo": null,
+             "category": {
                 "category_name": "Орехи и сухофрукты",
                 "category_slug": "nuts-dried-fruits"
-            }
+             }
          },
-            "quantity": 2
+             "quantity": 2
         },
     ],
     "payment_method": "In getting by cash",
