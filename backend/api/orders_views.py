@@ -273,7 +273,6 @@ class OrderViewSet(
     def list(self, request, **kwargs):
         if self.request.user.is_authenticated:
             queryset = self.get_queryset().filter(user=self.request.user)
-            # TODO: need to solve n+1 problem
             serializer = self.get_serializer(queryset, many=True)
             logger.info("The user's order list was successfully received.")
             return Response(serializer.data, status=status.HTTP_200_OK)

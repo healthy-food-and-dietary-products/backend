@@ -1,6 +1,7 @@
 import json
 import re
 
+from django.db.models import Prefetch
 from rest_framework import serializers
 
 from .products_serializers import ProductPresentSerializer
@@ -92,24 +93,17 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
         )
         model = Order
 
-    # TODO: commented code doesn't reduce DB hits
     @classmethod
     def setup_eager_loading(cls, queryset):
         """Perform necessary eager loading of orders data."""
-        return queryset.select_related("user")
-        # ).prefetch_related(
-        #     Prefetch(
-        #         "products",
-        #         queryset=Product.objects.select_related(
-        #             "category", "subcategory", "producer"
-        #         ).prefetch_related(
-        #             "components",
-        #             "tags",
-        #             "promotions",
-        #             "reviews",
-        #         ),
-        #     )
-        # )
+        return queryset.select_related("user").prefetch_related(
+            Prefetch(
+                "orders",
+                queryset=OrderProduct.objects.select_related(
+                    "product__category"
+                ).prefetch_related("product__promotions"),
+            )
+        )
 
 
 class OrderGetAnonSerializer(serializers.ModelSerializer):
