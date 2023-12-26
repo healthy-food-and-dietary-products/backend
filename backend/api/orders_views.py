@@ -2,6 +2,7 @@ import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -47,6 +48,7 @@ PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE = "Заказ №{pk} уже был опл�
 STRIPE_SESSION_CREATE_ERROR_MESSAGE = (
     "Что-то пошло не так при создании Stripe Checkout Session."
 )
+SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все товары из нее удалены."
 
 
 @method_decorator(
@@ -91,6 +93,31 @@ class ShoppingCartViewSet(
     permission_classes = [AllowAny]
     http_method_names = ("get", "post", "delete")
     serializer_class = ShoppingCartSerializer
+
+    @swagger_auto_schema(
+        method="delete",
+        operation_summary="Clear shopping cart",
+        operation_description=(
+            "Deletes a product from a user's favorites (authorized user only)"
+        ),
+        responses={
+            200: '{"message": ' + SHOP_CART_CLEAR_MESSAGE + "}",
+            400: '{"errors": ' + SHOP_CART_ERROR + "}",
+        },
+    )
+    @transaction.atomic
+    @action(detail=False, methods=["delete"], permission_classes=[permissions.AllowAny])
+    def remove_all(self, request):
+        shopping_cart = ShopCart(request)
+        if not shopping_cart:
+            logger.error(SHOP_CART_ERROR)
+            return Response(
+                {"errors": SHOP_CART_ERROR},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        shopping_cart.clear()
+        logger.info(SHOP_CART_CLEAR_MESSAGE)
+        return Response({"message": SHOP_CART_CLEAR_MESSAGE}, status=status.HTTP_200_OK)
 
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
