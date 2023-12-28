@@ -21,7 +21,7 @@ def test_get_category_list(client, categories):
     assert len(response.data) == 3
     assert response.data[0]["name"] == CATEGORY_NAME_1
     assert response.data[0]["slug"] == CATEGORY_SLUG_1
-    assert response.data[0]["top_three_products"] == []
+    assert response.data[0]["top_products"] == []
 
 
 @pytest.mark.django_db
@@ -35,7 +35,7 @@ def test_get_category_by_id(client, categories, subcategories):
     assert response.data["slug"] == CATEGORY_SLUG_1
     assert len(response.data["subcategories"]) == 2
     assert response.data["subcategories"][0]["subcategory_name"] == SUBCATEGORY_NAME_1
-    assert response.data["top_three_products"] == []
+    assert response.data["top_products"] == []
 
 
 @pytest.mark.django_db

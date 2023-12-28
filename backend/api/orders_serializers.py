@@ -191,8 +191,6 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
             raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
-        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
-        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 
@@ -257,8 +255,6 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
-        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
-        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 

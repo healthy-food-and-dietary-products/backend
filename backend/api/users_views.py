@@ -4,7 +4,6 @@ from djoser.serializers import TokenSerializer
 from djoser.views import TokenCreateView as DjoserTokenCreateView
 from djoser.views import TokenDestroyView as DjoserTokenDestroyView
 from djoser.views import UserViewSet as DjoserUserViewSet
-from drf_spectacular.utils import OpenApiParameter, extend_schema
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
@@ -42,7 +41,6 @@ from users.models import Address, User
         },
     ),
 )
-@extend_schema(parameters=[OpenApiParameter("id", int, OpenApiParameter.PATH)])
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """Viewset for addresses."""
 

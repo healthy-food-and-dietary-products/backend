@@ -1,6 +1,4 @@
-from django.db.models import Avg, Exists, OuterRef
-from drf_spectacular.utils import extend_schema_field
-from drf_yasg.utils import swagger_serializer_method
+from django.db.models import Avg, Exists, OuterRef, Prefetch
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -197,38 +195,31 @@ class ProductSerializer(serializers.ModelSerializer):
     def setup_eager_loading(cls, queryset, user):
         """Perform necessary eager loading of products data."""
         if user.is_anonymous:
-            queryset = (
+            return (
                 queryset.select_related("category", "subcategory", "producer")
                 .prefetch_related("components", "tags", "promotions", "reviews")
                 .annotate(rating=Avg("reviews__score"))
             )
-        else:
-            queryset = (
-                queryset.select_related("category", "subcategory", "producer")
-                .prefetch_related("components", "tags", "promotions", "reviews")
-                .annotate(
-                    rating=Avg("reviews__score"),
-                    favorited=Exists(
-                        FavoriteProduct.objects.filter(
-                            user=user, product=OuterRef("id")
-                        )
-                    ),
-                )
+        return (
+            queryset.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .annotate(
+                rating=Avg("reviews__score"),
+                favorited=Exists(
+                    FavoriteProduct.objects.filter(user=user, product=OuterRef("id"))
+                ),
             )
-        return queryset
+        )
 
-    @extend_schema_field(bool)
     def get_is_favorited(self, obj) -> bool:
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
         return obj.favorited
 
-    @extend_schema_field(int)
     def get_promotion_quantity(self, obj) -> int:
         return obj.promotions.count()
 
-    @extend_schema_field(float)
     def get_final_price(self, obj) -> float:
         return obj.final_price
 
@@ -328,7 +319,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
 
 
 class ProductPresentSerializer(serializers.ModelSerializer):
-    """Serializer for short presentation products."""
+    """Serializer for short presentation products in order list."""
 
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
@@ -346,9 +337,41 @@ class ProductPresentSerializer(serializers.ModelSerializer):
             "category",
         )
 
-    @extend_schema_field(float)
     def get_final_price(self, obj) -> float:
         return obj.final_price
+
+
+class ProductTopSerializer(serializers.ModelSerializer):
+    """
+    Serializer for products in top_products field in lists of categories or tags."""
+
+    photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "photo",
+            "category",
+            "is_favorited",
+            "orders_number",
+        )
+
+    def get_final_price(self, obj) -> float:
+        return obj.final_price
+
+    def get_is_favorited(self, obj) -> bool:
+        request = self.context.get("request")
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.favorited
 
 
 class ProductLightSerializer(ProductSerializer):
@@ -381,23 +404,39 @@ class CategorySerializer(CategoryLightSerializer):
     """Serializer for displaying categories and their top three products."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
-    top_three_products = serializers.SerializerMethodField()
+    top_products = ProductTopSerializer(many=True, source="products")
 
     class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "image", "subcategories", "top_three_products")
+        fields = ("id", "name", "slug", "image", "subcategories", "top_products")
 
-    # TODO: need to solve n+1 problem
-    # TODO: possibly need to create an endpoint without this field
-    @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular category."""
-        top_three_products_queryset = ProductSerializer.setup_eager_loading(
-            obj.products.order_by("-orders_number")[:3],
-            self.context.get("request").user,
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of categories data."""
+        if user.is_anonymous:
+            return queryset.prefetch_related(
+                "subcategories",
+                Prefetch(
+                    "products",
+                    queryset=Product.objects.prefetch_related("promotions").order_by(
+                        "-orders_number"
+                    ),
+                ),
+            )
+        return queryset.prefetch_related(
+            "subcategories",
+            Prefetch(
+                "products",
+                queryset=Product.objects.prefetch_related("promotions")
+                .annotate(
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    )
+                )
+                .order_by("-orders_number"),
+            ),
         )
-        return ProductSerializer(
-            top_three_products_queryset, many=True, context=self.context
-        ).data
 
 
 class CategoryBriefSerializer(CategorySerializer):
@@ -410,19 +449,35 @@ class CategoryBriefSerializer(CategorySerializer):
 class TagSerializer(TagLightSerializer):
     """Serializer for tags representation."""
 
-    top_three_products = serializers.SerializerMethodField()
+    top_products = ProductTopSerializer(many=True, source="products", required=False)
 
     class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug", "image", "top_three_products")
+        fields = ("id", "name", "slug", "image", "top_products")
 
-    # TODO: need to solve n+1 problem
-    @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = ProductSerializer.setup_eager_loading(
-            obj.products.order_by("-orders_number")[:3],
-            self.context.get("request").user,
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of tags data."""
+        if user.is_anonymous:
+            return queryset.prefetch_related(
+                Prefetch(
+                    "products",
+                    queryset=Product.objects.select_related("category")
+                    .prefetch_related("promotions")
+                    .order_by("-orders_number"),
+                ),
+            )
+        return queryset.prefetch_related(
+            Prefetch(
+                "products",
+                queryset=Product.objects.select_related("category")
+                .prefetch_related("promotions")
+                .annotate(
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    )
+                )
+                .order_by("-orders_number"),
+            ),
         )
-        return ProductSerializer(
-            top_three_products_queryset, context=self.context, many=True
-        ).data
