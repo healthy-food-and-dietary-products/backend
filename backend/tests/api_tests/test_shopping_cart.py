@@ -71,7 +71,8 @@ class TestShoppingCart:
         response = client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
 
-    def test_delete_shopping_cart_by_anonimous_user(self, client, products):
+    def test_remove_product_from_shopping_cart_by_anonimous_user(
+            self, client, products):
         shopping_cart_data = {
             "products": [
                 {"id": products[0].id, "quantity": 1},
@@ -85,13 +86,14 @@ class TestShoppingCart:
         assert response.status_code == status.HTTP_201_CREATED
         product_remove = products[0].id
         endpoint = f"/api/shopping_cart/{product_remove}"
-        response = client.delete(endpoint, product_remove, format="json")
+        client.delete(endpoint, product_remove, format="json")
         response = client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert product_remove not in data
 
-    def test_delete_shopping_cart_by_authorized_user(self, auth_client, products):
+    def test_remove_product_from_shopping_cart_by_authorized_user(
+            self, auth_client, products):
         shopping_cart_data = {
             "products": [
                 {"id": products[0].id, "quantity": 1},
@@ -107,8 +109,40 @@ class TestShoppingCart:
         assert response.status_code == status.HTTP_201_CREATED
         product_remove = products[0].id
         endpoint = f"/api/shopping_cart/{product_remove}"
-        response = auth_client.delete(endpoint, product_remove, format="json")
+        auth_client.delete(endpoint, product_remove, format="json")
         response = auth_client.get("/api/shopping_cart/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert product_remove not in data
+
+    def test_remove_all_shopping_cart_by_anonimous_user(self, client, products):
+        shopping_cart_data = {
+            "products": [
+                {"id": products[0].id, "quantity": 1},
+                {"id": products[1].id, "quantity": 3},
+            ]
+        }
+        response = client.post("/api/shopping_cart/", shopping_cart_data, format="json")
+        data = response.json()
+        assert "products" in data
+        assert len(data["products"]) == 2
+        assert response.status_code == status.HTTP_201_CREATED
+        endpoint = "/api/shopping_cart/remove_all"
+        client.delete(endpoint, format="json")
+
+    def test_remove_all_shopping_cart_by_authorized_user(self, auth_client, products):
+        shopping_cart_data = {
+            "products": [
+                {"id": products[0].id, "quantity": 1},
+                {"id": products[1].id, "quantity": 3},
+            ]
+        }
+        response = auth_client.post(
+            "/api/shopping_cart/", shopping_cart_data, format="json"
+        )
+        data = response.json()
+        assert "products" in data
+        assert len(data["products"]) == 2
+        assert response.status_code == status.HTTP_201_CREATED
+        endpoint = "/api/shopping_cart/remove_all"
+        auth_client.delete(endpoint, format="json")
