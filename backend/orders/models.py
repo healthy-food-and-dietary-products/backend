@@ -73,10 +73,12 @@ class Order(models.Model):
 
     DELIVERY_POINT_PAYMENT = "Payment at the point of delivery"
     COURIER_CASH_PAYMENT = "In getting by cash"
+    ONLINE_PAYMENT = "Online"
 
     PAYMENT_METHODS = (
         (DELIVERY_POINT_PAYMENT, "Оплата в пункте самовывоза"),
         (COURIER_CASH_PAYMENT, "Оплата наличными курьеру"),
+        (ONLINE_PAYMENT, "Оплата на сайте"),
     )
 
     DELIVERY_POINT = "Point of delivery"
