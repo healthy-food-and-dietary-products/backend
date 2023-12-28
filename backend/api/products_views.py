@@ -122,6 +122,13 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         return CategorySerializer
 
     # TODO: test this endpoint
+    @method_decorator(
+        name="list",
+        decorator=swagger_auto_schema(
+            operation_summary="List categories brief info",
+            responses={200: CategoryBriefSerializer},
+        ),
+    )
     @decorators.action(methods=["get"], detail=False, url_path="category-brief-list")
     def category_brief_list(self, request):
         """
@@ -140,6 +147,13 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     # TODO: test this endpoint
+    @method_decorator(
+        name="retrieve",
+        decorator=swagger_auto_schema(
+            operation_summary="Show brief category info",
+            responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
+        ),
+    )
     @decorators.action(methods=["get"], detail=True, url_path="category-brief-detail")
     def category_brief_detail(self, request, pk):
         """
