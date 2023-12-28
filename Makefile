@@ -37,9 +37,6 @@ loaddb:
 collectstatic:
 	cd backend; python3 manage.py collectstatic --no-input
 
-schema:
-	cd backend; python3 manage.py spectacular --color --file schema.yml
-
 up-compose:
 	cd infra; sudo docker compose -f docker-compose.local.yml up -d
 

@@ -3,7 +3,6 @@ from django.db import transaction
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import UserDeleteSerializer as DjoserUserDeleteSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -41,8 +40,7 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
             "password": {"required": True},
         }
 
-    @extend_schema_field(str)
-    def get_city(self, obj):
+    def get_city(self, obj) -> str:
         return city_choices[0][0]
 
 
@@ -71,8 +69,7 @@ class UserSerializer(DjoserUserSerializer):
             "photo",
         )
 
-    @extend_schema_field(int)
-    def get_address_quantity(self, obj):
+    def get_address_quantity(self, obj) -> int:
         return obj.addresses.count()
 
     @transaction.atomic
