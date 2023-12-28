@@ -16,6 +16,7 @@ from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
+    CategoryBriefSerializer,
     CategoryCreateSerializer,
     CategorySerializer,
     ComponentSerializer,
@@ -116,7 +117,44 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["create", "partial_update"]:
             return CategoryCreateSerializer
+        if self.action in ["category_brief_list", "category_brief_detail"]:
+            return CategoryBriefSerializer
         return CategorySerializer
+
+    # TODO: test this endpoint
+    @decorators.action(methods=["get"], detail=False, url_path="category-brief-list")
+    def category_brief_list(self, request):
+        """
+        Shows brief information about categories without indicating subcategories
+        and top products of these categories.
+        """
+        categories_list = Category.objects.all()
+        serializer = self.get_serializer_class()
+        return response.Response(
+            serializer(
+                categories_list,
+                many=True,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    # TODO: test this endpoint
+    @decorators.action(methods=["get"], detail=True, url_path="category-brief-detail")
+    def category_brief_detail(self, request, pk):
+        """
+        Shows brief information about a category without indicating subcategories
+        and top products of that category.
+        """
+        category = get_object_or_404(Category, id=pk)
+        serializer = self.get_serializer_class()
+        return response.Response(
+            serializer(
+                category,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @method_decorator(
