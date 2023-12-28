@@ -1,5 +1,4 @@
 from django.db.models import Avg, Exists, OuterRef, Prefetch
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -212,18 +211,15 @@ class ProductSerializer(serializers.ModelSerializer):
             )
         )
 
-    @extend_schema_field(bool)
     def get_is_favorited(self, obj) -> bool:
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
         return obj.favorited
 
-    @extend_schema_field(int)
     def get_promotion_quantity(self, obj) -> int:
         return obj.promotions.count()
 
-    @extend_schema_field(float)
     def get_final_price(self, obj) -> float:
         return obj.final_price
 
@@ -323,7 +319,31 @@ class ProductUpdateSerializer(ProductCreateSerializer):
 
 
 class ProductPresentSerializer(serializers.ModelSerializer):
-    """Serializer for short presentation products."""
+    """Serializer for short presentation products in order list."""
+
+    photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "photo",
+            "category",
+        )
+
+    def get_final_price(self, obj) -> float:
+        return obj.final_price
+
+
+class ProductTopSerializer(serializers.ModelSerializer):
+    """
+    Serializer for products in top_products field in lists of categories or tags."""
 
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
@@ -344,7 +364,6 @@ class ProductPresentSerializer(serializers.ModelSerializer):
             "orders_number",
         )
 
-    @extend_schema_field(float)
     def get_final_price(self, obj) -> float:
         return obj.final_price
 
@@ -385,7 +404,7 @@ class CategorySerializer(CategoryLightSerializer):
     """Serializer for displaying categories and their top three products."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
-    top_products = ProductPresentSerializer(many=True, source="products")
+    top_products = ProductTopSerializer(many=True, source="products")
 
     class Meta(CategoryLightSerializer.Meta):
         fields = ("id", "name", "slug", "image", "subcategories", "top_products")
@@ -430,9 +449,7 @@ class CategoryBriefSerializer(CategorySerializer):
 class TagSerializer(TagLightSerializer):
     """Serializer for tags representation."""
 
-    top_products = ProductPresentSerializer(
-        many=True, source="products", required=False
-    )
+    top_products = ProductTopSerializer(many=True, source="products", required=False)
 
     class Meta(TagLightSerializer.Meta):
         fields = ("id", "name", "slug", "image", "top_products")
