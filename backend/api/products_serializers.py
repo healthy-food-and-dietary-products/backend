@@ -199,23 +199,13 @@ class ProductSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             queryset = (
                 queryset.select_related("category", "subcategory", "producer")
-                .prefetch_related(
-                    "components",
-                    "tags",
-                    "promotions",
-                    "reviews",
-                )
+                .prefetch_related("components", "tags", "promotions", "reviews")
                 .annotate(rating=Avg("reviews__score"))
             )
         else:
             queryset = (
                 queryset.select_related("category", "subcategory", "producer")
-                .prefetch_related(
-                    "components",
-                    "tags",
-                    "promotions",
-                    "reviews",
-                )
+                .prefetch_related("components", "tags", "promotions", "reviews")
                 .annotate(
                     rating=Avg("reviews__score"),
                     favorited=Exists(
@@ -388,7 +378,7 @@ class FavoriteProductCreateSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(CategoryLightSerializer):
-    """Serializer for displaying categories."""
+    """Serializer for displaying categories and their top three products."""
 
     subcategories = SubcategoryLightSerializer(many=True, required=False)
     top_three_products = serializers.SerializerMethodField()
@@ -408,6 +398,13 @@ class CategorySerializer(CategoryLightSerializer):
         return ProductSerializer(
             top_three_products_queryset, many=True, context=self.context
         ).data
+
+
+class CategoryBriefSerializer(CategorySerializer):
+    """Serializer for displaying brief categories information."""
+
+    class Meta(CategorySerializer.Meta):
+        fields = ("id", "name", "slug", "image")
 
 
 class TagSerializer(TagLightSerializer):

@@ -105,6 +105,7 @@ class ShoppingCartViewSet(
             400: '{"errors": ' + SHOP_CART_ERROR + "}",
         },
     )
+    # TODO: test this endpoint
     @transaction.atomic
     @action(detail=False, methods=["delete"], permission_classes=[permissions.AllowAny])
     def remove_all(self, request):
@@ -390,6 +391,8 @@ class OrderViewSet(
         logger.info(MESSAGE_ON_DELETE)
         return Response(serializer_data, status=status.HTTP_200_OK)
 
+    # TODO: test this endpoint
+    # TODO: check this endpoint in api docs, do we need to add swagger_auto_schema?
     @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
