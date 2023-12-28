@@ -110,7 +110,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Category.objects.prefetch_related("subcategories")
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -120,6 +120,11 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         if self.action in ["category_brief_list", "category_brief_detail"]:
             return CategoryBriefSerializer
         return CategorySerializer
+
+    def get_queryset(self):
+        return CategorySerializer.setup_eager_loading(
+            Category.objects.all(), self.request.user
+        )
 
     # TODO: test this endpoint
     @method_decorator(
@@ -135,7 +140,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         Shows brief information about categories without indicating subcategories
         and top products of these categories.
         """
-        categories_list = Category.objects.all()
+        categories_list = self.get_queryset()
         serializer = self.get_serializer_class()
         return response.Response(
             serializer(
