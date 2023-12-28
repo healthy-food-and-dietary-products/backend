@@ -35,7 +35,6 @@ def test_get_tag_by_id(client, tags):
 def test_create_tag(auth_admin):
     payload = {"name": TEST_NAME}
     response = auth_admin.post(reverse("api:tag-list"), payload)
-    print(response.data)
 
     assert response.status_code == 201
     assert response.data["name"] == TEST_NAME
