@@ -140,7 +140,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         Shows brief information about categories without indicating subcategories
         and top products of these categories.
         """
-        categories_list = self.get_queryset()
+        categories_list = Category.objects.all()
         serializer = self.get_serializer_class()
         return response.Response(
             serializer(
