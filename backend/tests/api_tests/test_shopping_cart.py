@@ -128,7 +128,8 @@ class TestShoppingCart:
         assert len(data["products"]) == 2
         assert response.status_code == status.HTTP_201_CREATED
         endpoint = "/api/shopping_cart/remove_all"
-        client.delete(endpoint, format="json")
+        response = client.delete(endpoint, format="json")
+        assert "products" not in response
 
     def test_remove_all_shopping_cart_by_authorized_user(self, auth_client, products):
         shopping_cart_data = {
@@ -145,4 +146,5 @@ class TestShoppingCart:
         assert len(data["products"]) == 2
         assert response.status_code == status.HTTP_201_CREATED
         endpoint = "/api/shopping_cart/remove_all"
-        auth_client.delete(endpoint, format="json")
+        response = auth_client.delete(endpoint, format="json")
+        assert "products" not in response
