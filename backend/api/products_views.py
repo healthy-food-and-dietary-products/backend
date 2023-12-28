@@ -370,6 +370,9 @@ class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        return TagSerializer.setup_eager_loading(Tag.objects.all(), self.request.user)
+
 
 @method_decorator(
     name="list",

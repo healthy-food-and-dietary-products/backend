@@ -1,6 +1,5 @@
 from django.db.models import Avg, Exists, OuterRef, Prefetch
 from drf_spectacular.utils import extend_schema_field
-from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
@@ -431,19 +430,37 @@ class CategoryBriefSerializer(CategorySerializer):
 class TagSerializer(TagLightSerializer):
     """Serializer for tags representation."""
 
-    top_three_products = serializers.SerializerMethodField()
+    top_products = ProductPresentSerializer(
+        many=True, source="products", required=False
+    )
 
     class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug", "image", "top_three_products")
+        fields = ("id", "name", "slug", "image", "top_products")
 
-    # TODO: need to solve n+1 problem
-    @swagger_serializer_method(serializer_or_field=ProductSerializer(many=True))
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = ProductSerializer.setup_eager_loading(
-            obj.products.order_by("-orders_number")[:3],
-            self.context.get("request").user,
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of tags data."""
+        if user.is_anonymous:
+            return queryset.prefetch_related(
+                Prefetch(
+                    "products",
+                    queryset=Product.objects.select_related("category")
+                    .prefetch_related("promotions")
+                    .order_by("-orders_number"),
+                ),
+            )
+        return queryset.prefetch_related(
+            Prefetch(
+                "products",
+                queryset=Product.objects.select_related("category")
+                .prefetch_related("promotions")
+                .annotate(
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    )
+                )
+                .order_by("-orders_number"),
+            ),
         )
-        return ProductSerializer(
-            top_three_products_queryset, context=self.context, many=True
-        ).data
