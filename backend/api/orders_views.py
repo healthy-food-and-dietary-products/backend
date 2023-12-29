@@ -167,6 +167,9 @@ class ShoppingCartViewSet(
             )
         shopping_cart.remove(product_id)
         logger.info(MESSAGE_ON_DELETE)
+        # TODO: add details on fields types and responses after __iter__ method
+        # (as there are no serializer) to api docs (swagger) for shopping cart list
+        # and shopping cart post endpoints
         return Response(
             {
                 "products": shopping_cart.__iter__(),
@@ -392,7 +395,17 @@ class OrderViewSet(
         return Response(serializer_data, status=status.HTTP_200_OK)
 
     # TODO: test this endpoint
-    # TODO: check this endpoint in api docs, do we need to add swagger_auto_schema?
+    @swagger_auto_schema(
+        method="post",
+        operation_summary="Online payment",
+        operation_description=(
+            "Creates a link for online payment for an order using Stripe"
+        ),
+        responses={
+            201: '{"checkout_session_url": some url}',
+            403: '{"errors": some error message}',
+        },
+    )
     @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
@@ -441,7 +454,7 @@ class OrderViewSet(
             logger.info("Stripe Checkout Session created successfully.")
             return Response(
                 {"checkout_session_url": checkout_session.url},
-                status=status.HTTP_200_OK,
+                status=status.HTTP_201_CREATED,
             )
         except Exception as e:
             return Response(

@@ -90,7 +90,7 @@ def export_categories():
 
 def export_subcategories():
     data = apps.get_model("products", "Subcategory")
-    field_names = ["id", "name", "slug", "parent_category_id"]
+    field_names = ["id", "name", "slug", "parent_category_id", "image"]
     with open(
         os.path.join(DATA_DIR, "subcategory.csv"), "w", newline="", encoding="utf-8"
     ) as csvfile:
@@ -245,7 +245,15 @@ def export_tokens():
 
 def export_reviews():
     data = apps.get_model("reviews", "Review")
-    field_names = ["id", "text", "score", "pub_date", "author_id", "product_id"]
+    field_names = [
+        "id",
+        "text",
+        "score",
+        "pub_date",
+        "author_id",
+        "product_id",
+        "was_edited",
+    ]
     with open(
         os.path.join(DATA_DIR, "reviews.csv"),
         "w",
@@ -339,89 +347,130 @@ def export_sessions():
             writer.writerow(row)
 
 
+def export_recipes():
+    data = apps.get_model("recipes", "Recipe")
+    field_names = [
+        "id",
+        "pub_date",
+        "author_id",
+        "name",
+        "image",
+        "text",
+        "cooking_time",
+    ]
+    with open(
+        os.path.join(DATA_DIR, "recipes.csv"), "w", newline="", encoding="utf-8"
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
+def export_products_in_recipe():
+    data = apps.get_model("recipes", "ProductsInRecipe")
+    field_names = ["id", "recipe_id", "ingredient_id", "amount"]
+    with open(
+        os.path.join(DATA_DIR, "products_in_recipe.csv"),
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         export_products()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Product прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Product прошёл успешно.")
         )
         export_products_components()
         self.stdout.write(
             self.style.SUCCESS(
-                "Экспорт данных поля components модели Product прошёл успешно!"
+                "Экспорт данных поля components модели Product прошёл успешно."
             )
         )
         export_products_tags()
         self.stdout.write(
             self.style.SUCCESS(
-                "Экспорт данных поля tags модели Product прошёл успешно!"
+                "Экспорт данных поля tags модели Product прошёл успешно."
             )
         )
         export_categories()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Category прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Category прошёл успешно.")
         )
         export_subcategories()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Subcategory прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Subcategory прошёл успешно.")
         )
         export_components()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Component прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Component прошёл успешно.")
         )
         export_tags()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Tag прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Tag прошёл успешно.")
         )
         export_producers()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Producer прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Producer прошёл успешно.")
         )
         export_promotions()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Promotion прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Promotion прошёл успешно.")
         )
         export_products_promotions()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели ProductPromoton прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели ProductPromoton прошёл успешно.")
         )
         export_users()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели User прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели User прошёл успешно.")
         )
         export_delivery_points()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Delivery прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Delivery прошёл успешно.")
         )
         export_favorites()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели FavoriteProduct прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели FavoriteProduct прошёл успешно.")
         )
         export_user_address()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Address прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Address прошёл успешно.")
         )
         export_tokens()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Token прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Token прошёл успешно.")
         )
         export_reviews()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Review прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Review прошёл успешно.")
         )
         export_orders()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Order прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Order прошёл успешно.")
         )
-        # export_shopping_cart()
-        # self.stdout.write(
-        #     self.style.SUCCESS("Экспорт данных модели ShoppingCart прошёл успешно!")
-        # )
         export_order_products()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели OrderProduct прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели OrderProduct прошёл успешно.")
         )
         export_sessions()
         self.stdout.write(
-            self.style.SUCCESS("Экспорт данных модели Session прошёл успешно!")
+            self.style.SUCCESS("Экспорт данных модели Session прошёл успешно.")
+        )
+        export_recipes()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт даных модели Recipe прошёл успешно.")
+        )
+        export_products_in_recipe()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт даных модели ProductsInRecipe прошёл успешно.")
         )
