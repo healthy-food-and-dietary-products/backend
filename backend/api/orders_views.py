@@ -167,6 +167,9 @@ class ShoppingCartViewSet(
             )
         shopping_cart.remove(product_id)
         logger.info(MESSAGE_ON_DELETE)
+        # TODO: add details on fields types and responses after __iter__ method
+        # (as there are no serializer) to api docs (swagger) for shopping cart list
+        # and shopping cart post endpoints
         return Response(
             {
                 "products": shopping_cart.__iter__(),

@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-
 from django.conf import settings
+from django.utils import timezone
 
 from products.models import Product
 
@@ -27,7 +26,7 @@ class ShopCart(object):
                 "category": p.category.slug,
                 "quantity": quantity,
                 "final_price": p.final_price,
-                "created_at": int(datetime.now(timezone.utc).timestamp()),
+                "created_at": timezone.localtime().isoformat(),
                 "amount": p.amount,
                 "measure_unit": p.measure_unit,
             }
