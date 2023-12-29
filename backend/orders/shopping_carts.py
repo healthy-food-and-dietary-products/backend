@@ -28,6 +28,8 @@ class ShopCart(object):
                 "quantity": quantity,
                 "final_price": p.final_price,
                 "created_at": int(datetime.now(timezone.utc).timestamp()),
+                "amount": p.amount,
+                "measure_unit": p.measure_unit,
             }
         else:
             self.shopping_cart[p_id]["quantity"] = int(quantity)
@@ -52,6 +54,8 @@ class ShopCart(object):
             item["quantity"] = int(item["quantity"])
             item["total_price"] = item["quantity"] * item["final_price"]
             item["category"] = item.get("category", None)
+            item["amount"] = item.get("amount")
+            item["measure_unit"] = item.get("measure_unit")
 
             yield item
 
@@ -63,6 +67,9 @@ class ShopCart(object):
             product["id"] = item["id"]
             product["name"] = item["name"]
             product["quantity"] = item["quantity"]
+            product["category"] = item["category"]
+            product["amount"] = item["amount"]
+            product["measure_unit"] = item["measure_unit"]
             products.append(product)
         return products
 

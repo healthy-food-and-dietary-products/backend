@@ -72,7 +72,8 @@ class TestShoppingCart:
         assert response.status_code == status.HTTP_200_OK
 
     def test_remove_product_from_shopping_cart_by_anonimous_user(
-            self, client, products):
+        self, client, products
+    ):
         shopping_cart_data = {
             "products": [
                 {"id": products[0].id, "quantity": 1},
@@ -93,7 +94,8 @@ class TestShoppingCart:
         assert product_remove not in data
 
     def test_remove_product_from_shopping_cart_by_authorized_user(
-            self, auth_client, products):
+        self, auth_client, products
+    ):
         shopping_cart_data = {
             "products": [
                 {"id": products[0].id, "quantity": 1},
