@@ -39,7 +39,7 @@ CSRF_TRUSTED_ORIGINS=http://localhost/*
 docker compose: 
 ```
 cd infra
-docker compose up -d
+docker compose -f docker-compose.local.yml up -d --build
 ```
 После этого будут созданы и запущены в фоновом режиме контейнеры 
 (db, web, frontend и nginx).
@@ -50,6 +50,12 @@ docker compose up -d
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
+
+Также требуется закинуть папку static внутрь контейнера web следующей командой:
+```
+docker cp static/ good_food_api:/app
+```
+
 После этого Админка должна быть доступна по адресу: http://localhost/admin/
 API Root будет доступен по адресу: http://localhost/api/
 
