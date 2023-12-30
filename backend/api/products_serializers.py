@@ -381,6 +381,14 @@ class ProductLightSerializer(ProductSerializer):
         fields = ("name",)
 
 
+class ProductUserOrderCheckSerializer(serializers.Serializer):
+    """Serializer to check if the user has ordered a product."""
+
+    product = serializers.IntegerField(read_only=True)
+    user = serializers.IntegerField(read_only=True)
+    ordered = serializers.BooleanField(read_only=True)
+
+
 class FavoriteProductSerializer(serializers.ModelSerializer):
     """Serializer for favorite products list representation."""
 

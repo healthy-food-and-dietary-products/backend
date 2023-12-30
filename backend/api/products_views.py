@@ -9,7 +9,8 @@ from drf_standardized_errors.openapi_serializers import (
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import decorators, filters, permissions, response, status, viewsets
+from rest_framework import filters, permissions, response, status, viewsets
+from rest_framework.decorators import action
 
 from .filters import ProductFilter
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
@@ -26,10 +27,12 @@ from .products_serializers import (
     ProductCreateSerializer,
     ProductSerializer,
     ProductUpdateSerializer,
+    ProductUserOrderCheckSerializer,
     PromotionSerializer,
     SubcategorySerializer,
     TagSerializer,
 )
+from orders.models import OrderProduct
 from products.models import (
     Category,
     Component,
@@ -134,7 +137,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             responses={200: CategoryBriefSerializer},
         ),
     )
-    @decorators.action(methods=["get"], detail=False, url_path="category-brief-list")
+    @action(methods=["get"], detail=False, url_path="category-brief-list")
     def category_brief_list(self, request):
         """
         Shows brief information about categories without indicating subcategories
@@ -159,7 +162,7 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
         ),
     )
-    @decorators.action(methods=["get"], detail=True, url_path="category-brief-detail")
+    @action(methods=["get"], detail=True, url_path="category-brief-detail")
     def category_brief_detail(self, request, pk):
         """
         Shows brief information about a category without indicating subcategories
@@ -579,6 +582,8 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             return ProductUpdateSerializer
         if self.action == "favorite":
             return FavoriteProductCreateSerializer
+        if self.action == "order_user_check":
+            return ProductUserOrderCheckSerializer
         return ProductSerializer
 
     def get_queryset(self):
@@ -666,7 +671,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             404: ErrorResponse404Serializer,
         },
     )
-    @decorators.action(
+    @action(
         methods=["post", "delete"],
         detail=True,
         permission_classes=[permissions.IsAuthenticated],
@@ -674,6 +679,42 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     def favorite(self, request, pk):
         product = get_object_or_404(Product, id=pk)
         return self.create_delete_or_scold(FavoriteProduct, product, request)
+
+    # TODO: test this endpoint
+    @method_decorator(
+        name="retrieve",
+        decorator=swagger_auto_schema(
+            operation_summary="Check user product order",
+            responses={
+                200: ProductUserOrderCheckSerializer,
+                404: ErrorResponse404Serializer,
+            },
+        ),
+    )
+    @action(
+        methods=["get"],
+        detail=True,
+        url_path="order-user-check",
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def order_user_check(self, request, pk):
+        """Shows whether the request.user has ordered this product."""
+        product = get_object_or_404(Product, id=int(pk))
+        serializer = self.get_serializer_class()
+        payload = {
+            "product": pk,
+            "user": self.request.user.pk,
+            "ordered": OrderProduct.objects.filter(
+                product=product, order__user=self.request.user
+            ).exists(),
+        }
+        return response.Response(
+            serializer(
+                payload,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @method_decorator(
