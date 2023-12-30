@@ -104,7 +104,7 @@ class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     @method_decorator(
         name="retrieve",
         decorator=swagger_auto_schema(
-            operation_summary="Check user review",
+            operation_summary="Check user product review",
             responses={200: ReviewUserCheckSerializer, 404: ErrorResponse404Serializer},
         ),
     )
