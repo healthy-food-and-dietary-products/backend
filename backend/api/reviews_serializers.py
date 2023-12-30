@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from api.users_serializers import UserLightSerializer
 from orders.models import OrderProduct
 from products.models import Product
 from reviews.models import Review
@@ -13,7 +14,7 @@ REVIEW_NO_ORDER_ERROR_MESSAGE = (
 class ReviewSerializer(serializers.ModelSerializer):
     """Serializer for reviews representation."""
 
-    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    author = UserLightSerializer(read_only=True)
     product = serializers.SlugRelatedField(slug_field="name", read_only=True)
     was_edited = serializers.BooleanField(read_only=True)
 

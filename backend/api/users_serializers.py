@@ -101,7 +101,7 @@ class UserLightSerializer(UserSerializer):
     """Serializer to represent user in favorite products serializers."""
 
     class Meta(UserSerializer.Meta):
-        fields = ("username", "email")
+        fields = ("id", "username")
 
 
 class CustomUserDeleteSerializer(DjoserUserDeleteSerializer):

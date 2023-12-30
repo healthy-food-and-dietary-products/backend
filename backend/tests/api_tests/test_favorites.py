@@ -17,8 +17,8 @@ def test_get_favorite_list(auth_admin, favorites, user, products):
 
     assert response.status_code == 200
     assert len(response.data) == 2
+    assert response.data[0]["user"]["id"] == user.pk
     assert response.data[0]["user"]["username"] == user.username
-    assert response.data[0]["user"]["email"] == user.email
     assert response.data[0]["product"]["name"] == products[0].name
 
 
@@ -29,8 +29,8 @@ def test_get_favorite_by_id(auth_admin, favorites, user, products):
     )
 
     assert response.status_code == 200
+    assert response.data["user"]["id"] == user.pk
     assert response.data["user"]["username"] == user.username
-    assert response.data["user"]["email"] == user.email
     assert response.data["product"]["name"] == products[0].name
 
 
@@ -92,8 +92,8 @@ def test_create_favorite(auth_client, products, user):
     )
 
     assert response.status_code == 201
+    assert response.data["user"]["id"] == user.pk
     assert response.data["user"]["username"] == user.username
-    assert response.data["user"]["email"] == user.email
     assert response.data["product"]["name"] == products[0].name
 
 

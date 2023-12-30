@@ -29,7 +29,7 @@ from .orders_serializers import (
 )
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from core.loggers import logger
-from good_food.utils import generate_order_number
+from core.utils import generate_order_number
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
 from products.models import Product
