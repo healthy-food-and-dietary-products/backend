@@ -34,3 +34,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         if not OrderProduct.objects.filter(product=product, order__user=user).exists():
             raise serializers.ValidationError(REVIEW_NO_ORDER_ERROR_MESSAGE)
         return data
+
+
+class ReviewUserCheckSerializer(serializers.Serializer):
+    """Serializer to check if the user has reviewed a product."""
+
+    product = serializers.IntegerField(read_only=True)
+    user = serializers.IntegerField(read_only=True)
+    reviewed = serializers.BooleanField(read_only=True)
