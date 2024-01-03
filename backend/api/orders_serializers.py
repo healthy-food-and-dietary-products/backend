@@ -29,8 +29,8 @@ class UserPresentSerializer(UserSerializer):
         model = User
 
 
-class OrderProductSerializer(serializers.ModelSerializer):
-    """Serializer for add/update/delete products into shopping_cart."""
+class ShoppingCartProductSerializer(serializers.ModelSerializer):
+    """Serializer to add/edit products in shopping cart."""
 
     id = serializers.IntegerField()
     quantity = serializers.IntegerField()
@@ -58,13 +58,36 @@ class OrderProductDisplaySerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/ shopping_cart."""
+    """Serializer to create/edit shopping cart."""
 
-    products = OrderProductSerializer(many=True)
+    products = ShoppingCartProductSerializer(many=True)
 
     class Meta:
         fields = ("products",)
         model = Product
+
+
+class ShoppingCartProductListSerializer(serializers.Serializer):
+    """Serializer for the list of products in the shopping cart."""
+
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    photo = serializers.CharField(read_only=True)
+    final_price = serializers.FloatField(read_only=True)
+    quantity = serializers.IntegerField(read_only=True)
+    total_price = serializers.FloatField(read_only=True)
+    category = serializers.SlugField(read_only=True)
+    amount = serializers.IntegerField(read_only=True)
+    measure_unit = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+
+class ShoppingCartListSerializer(serializers.Serializer):
+    """Serializer to display the shopping cart using the GET method."""
+
+    products = ShoppingCartProductListSerializer(many=True, read_only=True)
+    count_of_products = serializers.IntegerField(read_only=True)
+    total_price = serializers.FloatField(read_only=True)
 
 
 class OrderGetAuthSerializer(serializers.ModelSerializer):
