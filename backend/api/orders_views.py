@@ -24,6 +24,7 @@ from .orders_serializers import (
     OrderCreateAuthSerializer,
     OrderGetAnonSerializer,
     OrderGetAuthSerializer,
+    ShoppingCartListSerializer,
     ShoppingCartSerializer,
     StripeCheckoutSessionCreateSerializer,
 )
@@ -57,7 +58,7 @@ SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все тов
     decorator=swagger_auto_schema(
         operation_summary="Retrieve a shopping cart",
         operation_description="Returns a shopping cart of a user via session",
-        responses={200: "List of products in the cart, quantity and total price"},
+        responses={200: ShoppingCartListSerializer},
     ),
 )
 @method_decorator(
@@ -69,7 +70,7 @@ SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все тов
             "already in the shopping cart (zero is not allowed)"
         ),
         responses={
-            201: "List of products in the cart, quantity and total price",
+            201: ShoppingCartListSerializer,
             400: ValidationErrorResponseSerializer,
         },
     ),
@@ -79,7 +80,7 @@ SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все тов
     decorator=swagger_auto_schema(
         operation_summary="Remove product from shopping cart",
         operation_description="Removes a product from the shopping cart using its id",
-        responses={205: "No response body", 404: ErrorResponse404Serializer},
+        responses={200: ShoppingCartListSerializer, 404: ErrorResponse404Serializer},
     ),
 )
 class ShoppingCartViewSet(
@@ -94,6 +95,11 @@ class ShoppingCartViewSet(
     permission_classes = [AllowAny]
     http_method_names = ("get", "post", "delete")
     serializer_class = ShoppingCartSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return ShoppingCartListSerializer
+        return ShoppingCartSerializer
 
     @swagger_auto_schema(
         method="delete",
@@ -123,15 +129,14 @@ class ShoppingCartViewSet(
 
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
+        serializer = self.get_serializer_class()
+        payload = {
+            "products": shopping_cart.__iter__(),
+            "count_of_products": shopping_cart.__len__(),
+            "total_price": shopping_cart.get_total_price(),
+        }
         logger.info("The user's shopping cart list was successfully received.")
-        return Response(
-            {
-                "products": shopping_cart.__iter__(),
-                "count_of_products": shopping_cart.__len__(),
-                "total_price": shopping_cart.get_total_price(),
-            },
-            status=status.HTTP_200_OK,
-        )
+        return Response(serializer(payload).data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
         shopping_cart = ShopCart(request)
@@ -141,12 +146,13 @@ class ShoppingCartViewSet(
         for product in products:
             shopping_cart.add(product=product, quantity=product["quantity"])
         logger.info("The shopping cart was successfully created.")
+        payload = {
+            "products": shopping_cart.__iter__(),
+            "count_of_products": shopping_cart.__len__(),
+            "total_price": shopping_cart.get_total_price(),
+        }
         return Response(
-            {
-                "products": shopping_cart.__iter__(),
-                "count_of_products": shopping_cart.__len__(),
-                "total_price": shopping_cart.get_total_price(),
-            },
+            ShoppingCartListSerializer(payload).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -168,16 +174,14 @@ class ShoppingCartViewSet(
             )
         shopping_cart.remove(product_id)
         logger.info(MESSAGE_ON_DELETE)
-        # TODO: add details on fields types and responses after __iter__ method
-        # (as there are no serializer) to api docs (swagger) for shopping cart list
-        # and shopping cart post endpoints
+        payload = {
+            "products": shopping_cart.__iter__(),
+            "count_of_products": shopping_cart.__len__(),
+            "total_price": shopping_cart.get_total_price(),
+        }
         return Response(
-            {
-                "products": shopping_cart.__iter__(),
-                "count_of_products": shopping_cart.__len__(),
-                "total_price": shopping_cart.get_total_price(),
-            },
-            status=status.HTTP_205_RESET_CONTENT,
+            ShoppingCartListSerializer(payload).data,
+            status=status.HTTP_200_OK,
         )
 
 

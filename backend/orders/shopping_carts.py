@@ -42,19 +42,18 @@ class ShopCart(object):
         self.save()
 
     def __iter__(self):
-        """
-        Iterate over the items in the cart and get the products
-        from the database.
-        """
-
+        """Iterate over the items in the cart and get the products from the database."""
         for item in self.shopping_cart.values():
             item["id"] = item["id"]
             item["name"] = item["name"]
+            item["photo"] = item["photo"]
+            item["final_price"] = item["final_price"]
             item["quantity"] = int(item["quantity"])
-            item["total_price"] = item["quantity"] * item["final_price"]
+            item["total_price"] = round(item["quantity"] * item["final_price"], 2)
             item["category"] = item.get("category", None)
             item["amount"] = item.get("amount")
             item["measure_unit"] = item.get("measure_unit")
+            item["created_at"] = item["created_at"]
 
             yield item
 
@@ -65,6 +64,7 @@ class ShopCart(object):
             product = {}
             product["id"] = item["id"]
             product["name"] = item["name"]
+            product["photo"] = item["photo"]
             product["quantity"] = item["quantity"]
             product["category"] = item["category"]
             product["amount"] = item["amount"]
@@ -77,9 +77,12 @@ class ShopCart(object):
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
-        return sum(
-            int(item["quantity"]) * item["final_price"]
-            for item in self.shopping_cart.values()
+        return round(
+            sum(
+                int(item["quantity"]) * item["final_price"]
+                for item in self.shopping_cart.values()
+            ),
+            2,
         )
 
     def clear(self):
