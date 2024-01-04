@@ -27,12 +27,10 @@ class OrderAdmin(admin.ModelAdmin):
         "payment_method",
         "is_paid",
         "delivery_method",
-        "address",
+        "total_price",
+        "coupon_applied",
+        "coupon_discount",
     )
     list_display_links = ("ordering_date",)
-    list_editable = (
-        "payment_method",
-        "delivery_method",
-        "address",
-    )
+    list_editable = ("payment_method", "delivery_method")
     list_filter = ("status", "ordering_date")

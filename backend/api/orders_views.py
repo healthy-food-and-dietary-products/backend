@@ -3,6 +3,8 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
     ErrorResponse401Serializer,
@@ -28,12 +30,13 @@ from .orders_serializers import (
     ShoppingCartSerializer,
     StripeCheckoutSessionCreateSerializer,
 )
+from .products_serializers import CouponSerializer
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from core.loggers import logger
 from core.utils import generate_order_number
 from orders.models import Delivery, Order, OrderProduct, ShoppingCart
 from orders.shopping_carts import ShopCart
-from products.models import Product
+from products.models import Coupon, Product
 from users.models import Address
 
 NO_SHOP_CART_ERROR_MESSAGE = "Отсутствует корзина покупок."
@@ -51,6 +54,7 @@ STRIPE_SESSION_CREATE_ERROR_MESSAGE = (
     "Что-то пошло не так при создании Stripe Checkout Session."
 )
 SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все товары из нее удалены."
+COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
 
 
 @method_decorator(
@@ -99,6 +103,8 @@ class ShoppingCartViewSet(
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return ShoppingCartListSerializer
+        if self.action == "coupon_apply":
+            return CouponSerializer
         return ShoppingCartSerializer
 
     @swagger_auto_schema(
@@ -123,9 +129,62 @@ class ShoppingCartViewSet(
                 {"errors": SHOP_CART_ERROR},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        if request.session.get("coupon_id"):
+            del request.session["coupon_id"]
         shopping_cart.clear()
         logger.info(SHOP_CART_CLEAR_MESSAGE)
         return Response({"message": SHOP_CART_CLEAR_MESSAGE}, status=status.HTTP_200_OK)
+
+    # TODO: test this endpoint
+    @method_decorator(
+        name="create",
+        decorator=swagger_auto_schema(
+            operation_summary="Apply promocode",
+            responses={
+                201: CouponSerializer,
+                403: '{"errors": some error message}',
+            },
+        ),
+    )
+    @action(methods=["post"], detail=False)
+    def coupon_apply(self, request):
+        """Validates the promocode and saves it to the session."""
+        shopping_cart = ShopCart(request)
+        now = timezone.now()
+        if not shopping_cart:
+            logger.error(SHOP_CART_ERROR)
+            return Response(
+                {"errors": SHOP_CART_ERROR},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = self.get_serializer_class()
+        code = request.data["code"]
+        try:
+            coupon = Coupon.objects.get(
+                Q(code__iexact=code),
+                Q(is_active=True),
+                Q(start_time__lte=now) | Q(start_time__isnull=True),
+                Q(end_time__gte=now) | Q(end_time__isnull=True),
+            )
+            request.session["coupon_id"] = coupon.id
+            logger.info("Coupon id was saved in session.")
+            return Response(
+                serializer(
+                    coupon,
+                    context={
+                        "request": request,
+                        "format": self.format_kwarg,
+                        "view": self,
+                    },
+                ).data,
+                status=status.HTTP_201_CREATED,
+            )
+        except Coupon.DoesNotExist:
+            request.session["coupon_id"] = coupon.id
+            return Response(
+                {"errors": COUPON_ERROR_MESSAGE.format(code=code)},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     def list(self, request, **kwargs):
         shopping_cart = ShopCart(request)
@@ -139,6 +198,8 @@ class ShoppingCartViewSet(
         return Response(serializer(payload).data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
+        if request.session.get("coupon_id"):
+            del request.session["coupon_id"]
         shopping_cart = ShopCart(request)
         products = request.data["products"]
         serializer = ShoppingCartSerializer(data={"products": products})
@@ -156,7 +217,9 @@ class ShoppingCartViewSet(
             status=status.HTTP_201_CREATED,
         )
 
-    def destroy(self, *args, **kwargs):
+    def destroy(self, request, **kwargs):
+        if request.session.get("coupon_id"):
+            del request.session["coupon_id"]
         shopping_cart = ShopCart(self.request)
         if not shopping_cart:
             logger.error(NO_SHOP_CART_ERROR_MESSAGE)
@@ -220,7 +283,7 @@ class ShoppingCartViewSet(
         operation_summary="Create order",
         operation_description="Creates an order of a user (authorized only)",
         responses={
-            201: OrderCreateAuthSerializer,
+            201: OrderGetAnonSerializer,
             400: ValidationErrorResponseSerializer,
             401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
@@ -358,7 +421,13 @@ class OrderViewSet(
                 order=order,
             )
         order.order_number = generate_order_number()
+        if shopping_cart.coupon_id:
+            coupon = Coupon.objects.get(id=shopping_cart.coupon_id)
+            order.coupon_applied = coupon
+            order.coupon_discount = coupon.discount
         order.save()
+        if request.session.get("coupon_id"):
+            del request.session["coupon_id"]
         shopping_cart.clear()
         response_serializer = (
             OrderGetAuthSerializer

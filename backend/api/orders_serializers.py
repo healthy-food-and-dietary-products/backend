@@ -4,7 +4,7 @@ import re
 from django.db.models import Prefetch
 from rest_framework import serializers
 
-from .products_serializers import ProductPresentSerializer
+from .products_serializers import CouponLightSerializer, ProductPresentSerializer
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
@@ -95,6 +95,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 
     products = OrderProductDisplaySerializer(source="orders", many=True)
     user = UserPresentSerializer(read_only=True)
+    coupon = CouponLightSerializer(source="coupon_applied", read_only=True)
 
     class Meta:
         fields = (
@@ -113,17 +114,18 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
             "is_paid",
             "status",
             "ordering_date",
+            "coupon",
         )
         model = Order
 
     @classmethod
     def setup_eager_loading(cls, queryset):
         """Perform necessary eager loading of orders data."""
-        return queryset.select_related("user").prefetch_related(
+        return queryset.select_related("user", "coupon_applied").prefetch_related(
             Prefetch(
                 "orders",
                 queryset=OrderProduct.objects.select_related(
-                    "product__category"
+                    "product__category",
                 ).prefetch_related("product__promotions"),
             )
         )
@@ -134,6 +136,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
 
     products = OrderProductDisplaySerializer(source="orders", many=True)
     user_data = serializers.SerializerMethodField()
+    coupon = CouponLightSerializer(source="coupon_applied", read_only=True)
 
     class Meta:
         fields = (
@@ -151,6 +154,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
             "is_paid",
             "status",
             "ordering_date",
+            "coupon",
         )
         model = Order
 

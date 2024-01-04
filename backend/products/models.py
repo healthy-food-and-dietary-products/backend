@@ -8,6 +8,9 @@ from core.models import CategoryModel
 from users.models import User
 
 MAX_PROMOTIONS_NUMBER = 1
+COUPON_PROMOTION_TYPE_ERROR_MESSAGE = (
+    'Указан неверный тип промоакции, нужно выбрать "Промокод"'
+)
 
 
 class Category(CategoryModel):
@@ -156,6 +159,7 @@ class Promotion(models.Model):
     PRESENT = "present"
     TWO_FOR_ONE = "two_for_one"
     MULTIPLE_ITEMS = "multiple_items"
+    COUPON = "coupon"
 
     CHOISES = [
         (SIMPLE, "Простая скидка"),
@@ -165,6 +169,7 @@ class Promotion(models.Model):
         (PRESENT, "Товар в подарок"),
         (TWO_FOR_ONE, "Два по цене одного"),
         (MULTIPLE_ITEMS, "Скидка при покупке нескольких штук"),
+        (COUPON, "Промокод"),
     ]
 
     INVALID_DISCOUNT_MESSAGE = "Допустимы числа от 0 до 100"
@@ -218,6 +223,19 @@ class Promotion(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Coupon(Promotion):
+    """Describes the discount coupon promotion."""
+
+    promotion_type = Promotion.COUPON
+    code = models.CharField(max_length=20, unique=True)
+
+    def clean_fields(self, exclude):
+        """Validates promotion type of a coupon."""
+        if self.promotion_type != Promotion.COUPON:
+            raise ValidationError(COUPON_PROMOTION_TYPE_ERROR_MESSAGE)
+        return super().clean_fields(exclude)
 
 
 class Product(models.Model):
