@@ -180,7 +180,7 @@ class ShoppingCartViewSet(
                 status=status.HTTP_201_CREATED,
             )
         except Coupon.DoesNotExist:
-            request.session["coupon_id"] = coupon.id
+            request.session["coupon_id"] = None
             return Response(
                 {"errors": COUPON_ERROR_MESSAGE.format(code=code)},
                 status=status.HTTP_403_FORBIDDEN,
