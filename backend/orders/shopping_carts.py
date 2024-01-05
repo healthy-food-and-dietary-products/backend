@@ -1,7 +1,10 @@
 from django.conf import settings
 from django.utils import timezone
 
-from products.models import Product
+from core.loggers import logger
+from products.models import Coupon, Product
+
+PRICE_DECIMAL_PLACES = 2
 
 
 class ShopCart(object):
@@ -9,6 +12,7 @@ class ShopCart(object):
         """Initialize the shopping_cart."""
         self.session = request.session
         self.shopping_cart = self.session.get(settings.SHOPPING_CART_SESSION_ID, {})
+        self.coupon_id = self.session.get("coupon_id")
 
     def save(self):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
@@ -49,7 +53,9 @@ class ShopCart(object):
             item["photo"] = item["photo"]
             item["final_price"] = item["final_price"]
             item["quantity"] = int(item["quantity"])
-            item["total_price"] = round(item["quantity"] * item["final_price"], 2)
+            item["total_price"] = round(
+                item["quantity"] * item["final_price"], PRICE_DECIMAL_PLACES
+            )
             item["category"] = item.get("category", None)
             item["amount"] = item.get("amount")
             item["measure_unit"] = item.get("measure_unit")
@@ -77,13 +83,23 @@ class ShopCart(object):
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
-        return round(
-            sum(
-                int(item["quantity"]) * item["final_price"]
-                for item in self.shopping_cart.values()
-            ),
-            2,
+        price_without_coupon = sum(
+            int(item["quantity"]) * item["final_price"]
+            for item in self.shopping_cart.values()
         )
+        if self.coupon_id:
+            try:
+                coupon = Coupon.objects.get(id=self.coupon_id)
+                shopcart_discount = price_without_coupon * (coupon.discount / 100)
+                logger.info(
+                    f"Promocode was applied, the discount is {shopcart_discount}."
+                )
+                return round(
+                    price_without_coupon - shopcart_discount, PRICE_DECIMAL_PLACES
+                )
+            except Coupon.DoesNotExist:
+                self.coupon_id = None
+        return round(price_without_coupon, PRICE_DECIMAL_PLACES)
 
     def clear(self):
         """remove cart from session."""

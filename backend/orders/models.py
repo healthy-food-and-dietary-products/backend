@@ -1,7 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from products.models import Product
+from products.models import Coupon, Product
 from users.models import Address, User
 
 
@@ -101,6 +101,7 @@ class Order(models.Model):
         through="OrderProduct",
         through_fields=("order", "product"),
         verbose_name="Продукты в заказе",
+        related_name="orders",
     )
     status = models.CharField("Status", max_length=50, choices=STATUS, default=ORDERED)
     payment_method = models.CharField(
@@ -120,6 +121,7 @@ class Order(models.Model):
         blank=True,
         null=True,
         verbose_name="User's address",
+        related_name="orders",
     )
     package = models.FloatField(
         "Package price",
@@ -133,6 +135,7 @@ class Order(models.Model):
         blank=True,
         null=True,
         verbose_name="Delivery Point",
+        related_name="orders",
     )
     add_address = models.CharField(
         max_length=450, blank=True, null=True, verbose_name="Add address"
@@ -142,6 +145,17 @@ class Order(models.Model):
     )
     total_price = models.FloatField(
         blank=True, null=True, verbose_name="Order's total_price"
+    )
+    coupon_applied = models.ForeignKey(
+        Coupon,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="orders",
+        verbose_name="Coupon",
+    )
+    coupon_discount = models.PositiveSmallIntegerField(
+        "Coupon %", validators=[MaxValueValidator(100)], blank=True, null=True
     )
 
     class Meta:

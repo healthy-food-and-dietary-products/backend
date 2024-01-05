@@ -2,10 +2,12 @@ from django.db.models import Avg, Exists, OuterRef, Prefetch
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
+from orders.shopping_carts import ShopCart
 from products.models import (
     MAX_PROMOTIONS_NUMBER,
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -489,3 +491,60 @@ class TagSerializer(TagLightSerializer):
                 .order_by("-orders_number"),
             ),
         )
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    """Serializer to apply coupon promoaction to the order."""
+
+    name = serializers.ReadOnlyField()
+    slug = serializers.ReadOnlyField()
+    promotion_type = serializers.ReadOnlyField()
+    discount = serializers.ReadOnlyField()
+    is_active = serializers.ReadOnlyField()
+    is_constant = serializers.ReadOnlyField()
+    start_time = serializers.ReadOnlyField()
+    end_time = serializers.ReadOnlyField()
+    conditions = serializers.ReadOnlyField()
+    image = serializers.ImageField(read_only=True)
+    new_total_price = serializers.SerializerMethodField()
+    discount_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Coupon
+        fields = (
+            "id",
+            "code",
+            "name",
+            "slug",
+            "promotion_type",
+            "discount",
+            "is_active",
+            "is_constant",
+            "start_time",
+            "end_time",
+            "conditions",
+            "image",
+            "new_total_price",
+            "discount_amount",
+        )
+
+    def get_new_total_price(self, obj) -> float:
+        request = self.context.get("request")
+        shopping_cart = ShopCart(request)
+        return shopping_cart.get_total_price()
+
+    def get_discount_amount(self, obj) -> float:
+        request = self.context.get("request")
+        shopping_cart = ShopCart(request)
+        new_price = shopping_cart.get_total_price()
+        return obj.discount * new_price / (100 - obj.discount)
+
+
+class CouponLightSerializer(serializers.ModelSerializer):
+    """Serializer for coupon representation in order serializers."""
+
+    name = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Coupon
+        fields = ("name", "discount")

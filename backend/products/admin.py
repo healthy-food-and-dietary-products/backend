@@ -4,6 +4,7 @@ from django.db.models import Avg
 from .models import (
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -141,6 +142,45 @@ class PromotionAdmin(admin.ModelAdmin):
     ordering = ["pk"]
     list_filter = ["promotion_type", "is_active", "is_constant"]
     empty_value_display = "-empty-"
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    """Class to display coupons in admin panel."""
+
+    list_display = [
+        "pk",
+        "name",
+        "code",
+        "slug",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+    ]
+    list_display_links = ("code",)
+    fields = [
+        "name",
+        "code",
+        "slug",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+        "conditions",
+        "image",
+    ]
+    search_fields = ["name", "code", "discount", "conditions", "start_time", "end_time"]
+    ordering = ["pk"]
+    list_filter = ["promotion_type", "is_active", "is_constant"]
+    empty_value_display = "-empty-"
+
+    def get_changeform_initial_data(self, request):
+        return {"promotion_type": Promotion.COUPON}
 
 
 @admin.register(Product)
