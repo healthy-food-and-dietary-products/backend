@@ -345,6 +345,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         read_users()
         self.stdout.write("Данные из файла users.csv загружены")
+        read_user_addresses()
+        self.stdout.write("Данные из файла user_addresses.csv загружены")
         read_category()
         self.stdout.write("Данные из файла category.csv загружены")
         read_subcategory()
@@ -373,8 +375,6 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла orders.csv загружены")
         read_order_products()
         self.stdout.write("Данные из файла order_products.csv загружены")
-        read_user_addresses()
-        self.stdout.write("Данные из файла user_addresses.csv загружены")
         read_tokens()
         self.stdout.write("Данные из файла tokens.csv загружены")
         read_reviews()
