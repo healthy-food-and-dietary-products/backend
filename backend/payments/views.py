@@ -99,9 +99,6 @@ def stripe_webhook(request):
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
     event = None
     try:
-        print("payload: ", payload)
-        print("sig_header: ", sig_header)
-        print("endpoint_secret: ", endpoint_secret)
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
         logger.info("Webhook.construct_event completed successfully.")
     except ValueError as e:
