@@ -516,8 +516,8 @@ class OrderViewSet(
                         "quantity": 1,
                     }
                 ],
-                success_url=domain_url + "success",
-                cancel_url=domain_url + "cancel",
+                success_url=domain_url + "catalog",
+                cancel_url=domain_url + "contacts",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
