@@ -291,3 +291,36 @@ class StripeCheckoutSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = tuple()
+
+
+class StripeSessionCreateSerializer(serializers.Serializer):
+    """Serializer to show Stripe Checkout Session URL."""
+
+    checkout_session_url = serializers.URLField()
+
+
+class StripePaySuccessPageSerializer(serializers.Serializer):
+    """Serializer to get the order number from Stripe Checkout Session after payment."""
+
+    stripe_session_id = serializers.CharField()
+    order_id = serializers.CharField(read_only=True)
+    order_number = serializers.CharField(read_only=True)
+
+
+class StripeError500Serializer(serializers.Serializer):
+    """Serializer for errors during Stripe payments."""
+
+    message = serializers.CharField()
+    errors = serializers.CharField()
+
+
+class CustomSuccessSerializer(serializers.Serializer):
+    """Serializer for custom success messages."""
+
+    message = serializers.CharField()
+
+
+class CustomErrorSerializer(serializers.Serializer):
+    """Serializer for custom errors."""
+
+    errors = serializers.CharField()

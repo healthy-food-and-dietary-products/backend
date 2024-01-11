@@ -1,13 +1,11 @@
 import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
-    ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
     ValidationErrorResponseSerializer,
@@ -22,6 +20,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
+    CustomErrorSerializer,
+    CustomSuccessSerializer,
     OrderCreateAnonSerializer,
     OrderCreateAuthSerializer,
     OrderGetAnonSerializer,
@@ -29,6 +29,9 @@ from .orders_serializers import (
     ShoppingCartListSerializer,
     ShoppingCartSerializer,
     StripeCheckoutSessionCreateSerializer,
+    StripeError500Serializer,
+    StripePaySuccessPageSerializer,
+    StripeSessionCreateSerializer,
 )
 from .products_serializers import CouponSerializer
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
@@ -47,12 +50,19 @@ ORDER_USER_ERROR_MESSAGE = (
 )
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
-DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
+DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE = (
+    "Отмена заказа после начала комплектования невозможна."
+)
+DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE = (
+    "Отмена заказа анонимным пользователем невозможна."
+)
 PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE = "Заказ №{pk} не принадлежит пользователю {user}."
 PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE = "Заказ №{pk} уже был оплачен."
-STRIPE_SESSION_CREATE_ERROR_MESSAGE = (
-    "Что-то пошло не так при создании Stripe Checkout Session."
+STRIPE_SESSION_CREATE_ERROR_MESSAGE = "Ошибка создания Stripe Checkout Session."
+STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE = (
+    "Stripe Checkout Session c таким session_id не обнаружена."
 )
+STRIPE_API_KEY_ERROR_MESSAGE = "Неверный Stripe API key."
 SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все товары из нее удалены."
 COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
 
@@ -61,7 +71,6 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="Retrieve a shopping cart",
-        operation_description="Returns a shopping cart of a user via session",
         responses={200: ShoppingCartListSerializer},
     ),
 )
@@ -69,10 +78,6 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
     name="create",
     decorator=swagger_auto_schema(
         operation_summary="Post and edit products in a shopping cart",
-        operation_description=(
-            "Adds new products to the shopping cart or edits the number of products "
-            "already in the shopping cart (zero is not allowed)"
-        ),
         responses={
             201: ShoppingCartListSerializer,
             400: ValidationErrorResponseSerializer,
@@ -83,8 +88,25 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
     name="destroy",
     decorator=swagger_auto_schema(
         operation_summary="Remove product from shopping cart",
-        operation_description="Removes a product from the shopping cart using its id",
-        responses={200: ShoppingCartListSerializer, 404: ErrorResponse404Serializer},
+        responses={200: ShoppingCartListSerializer, 404: CustomErrorSerializer},
+    ),
+)
+@method_decorator(
+    name="remove_all",
+    decorator=swagger_auto_schema(
+        operation_summary="Clear shopping cart",
+        responses={200: CustomSuccessSerializer, 400: CustomErrorSerializer},
+    ),
+)
+@method_decorator(
+    name="coupon_apply",
+    decorator=swagger_auto_schema(
+        operation_summary="Apply promocode",
+        responses={
+            201: CouponSerializer,
+            400: CustomErrorSerializer,
+            403: CustomErrorSerializer,
+        },
     ),
 )
 class ShoppingCartViewSet(
@@ -107,54 +129,40 @@ class ShoppingCartViewSet(
             return CouponSerializer
         return ShoppingCartSerializer
 
-    @swagger_auto_schema(
-        method="delete",
-        operation_summary="Clear shopping cart",
-        operation_description=(
-            "Deletes a product from a user's favorites (authorized user only)"
-        ),
-        responses={
-            200: '{"message": ' + SHOP_CART_CLEAR_MESSAGE + "}",
-            400: '{"errors": ' + SHOP_CART_ERROR + "}",
-        },
-    )
     # TODO: test this endpoint
     @transaction.atomic
     @action(detail=False, methods=["delete"], permission_classes=[permissions.AllowAny])
     def remove_all(self, request):
+        """
+        Deletes all the products from a user's shopping cart
+        (both anonymous and authorized).
+        """
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
             return Response(
-                {"errors": SHOP_CART_ERROR},
+                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.session.get("coupon_id"):
             del request.session["coupon_id"]
         shopping_cart.clear()
         logger.info(SHOP_CART_CLEAR_MESSAGE)
-        return Response({"message": SHOP_CART_CLEAR_MESSAGE}, status=status.HTTP_200_OK)
+        return Response(
+            CustomSuccessSerializer({"message": SHOP_CART_CLEAR_MESSAGE}).data,
+            status=status.HTTP_200_OK,
+        )
 
     # TODO: test this endpoint
-    @method_decorator(
-        name="create",
-        decorator=swagger_auto_schema(
-            operation_summary="Apply promocode",
-            responses={
-                201: CouponSerializer,
-                403: '{"errors": some error message}',
-            },
-        ),
-    )
     @action(methods=["post"], detail=False)
     def coupon_apply(self, request):
-        """Validates the promocode and saves it to the session."""
+        """Validates the promocode and saves it to the Django session."""
         shopping_cart = ShopCart(request)
         now = timezone.now()
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
             return Response(
-                {"errors": SHOP_CART_ERROR},
+                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = self.get_serializer_class()
@@ -181,12 +189,14 @@ class ShoppingCartViewSet(
             )
         except Coupon.DoesNotExist:
             request.session["coupon_id"] = None
+            payload = {"errors": COUPON_ERROR_MESSAGE.format(code=code)}
             return Response(
-                {"errors": COUPON_ERROR_MESSAGE.format(code=code)},
+                CustomErrorSerializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
 
     def list(self, request, **kwargs):
+        """Returns a shopping cart of a user via Django session."""
         shopping_cart = ShopCart(request)
         serializer = self.get_serializer_class()
         payload = {
@@ -198,6 +208,10 @@ class ShoppingCartViewSet(
         return Response(serializer(payload).data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
+        """
+        Adds new products to the shopping cart or edits the number of products
+        already in the shopping cart (zero is not allowed).
+        """
         if request.session.get("coupon_id"):
             del request.session["coupon_id"]
         shopping_cart = ShopCart(request)
@@ -218,13 +232,14 @@ class ShoppingCartViewSet(
         )
 
     def destroy(self, request, **kwargs):
+        """Removes a product from the shopping cart using its id."""
         if request.session.get("coupon_id"):
             del request.session["coupon_id"]
         shopping_cart = ShopCart(self.request)
         if not shopping_cart:
             logger.error(NO_SHOP_CART_ERROR_MESSAGE)
             return Response(
-                {"errors": NO_SHOP_CART_ERROR_MESSAGE},
+                CustomErrorSerializer({"errors": NO_SHOP_CART_ERROR_MESSAGE}).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         product_id = int(self.kwargs["pk"])
@@ -232,7 +247,7 @@ class ShoppingCartViewSet(
         if product_id not in products:
             logger.error(SHOP_CART_ERROR_MESSAGE)
             return Response(
-                {"errors": SHOP_CART_ERROR_MESSAGE},
+                CustomErrorSerializer({"errors": SHOP_CART_ERROR_MESSAGE}).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_cart.remove(product_id)
@@ -252,26 +267,15 @@ class ShoppingCartViewSet(
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="List all orders",
-        operation_description=(
-            "Returns a list of all the orders of a user (admin or authorized user)"
-        ),
-        responses={
-            200: OrderGetAuthSerializer,
-            401: METHOD_ERROR_MESSAGE,
-            403: ErrorResponse403Serializer,
-        },
+        responses={200: OrderGetAuthSerializer, 401: CustomErrorSerializer},
     ),
 )
 @method_decorator(
     name="retrieve",
     decorator=swagger_auto_schema(
         operation_summary="Get order by id",
-        operation_description=(
-            "Retrieves an order of a user by its id (admin or authorized user)"
-        ),
         responses={
             200: OrderGetAuthSerializer,
-            401: ErrorResponse401Serializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -281,12 +285,10 @@ class ShoppingCartViewSet(
     name="create",
     decorator=swagger_auto_schema(
         operation_summary="Create order",
-        operation_description="Creates an order of a user (authorized only)",
         responses={
             201: OrderGetAnonSerializer,
             400: ValidationErrorResponseSerializer,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
+            404: CustomErrorSerializer,
         },
     ),
 )
@@ -294,12 +296,33 @@ class ShoppingCartViewSet(
     name="destroy",
     decorator=swagger_auto_schema(
         operation_summary="Delete order",
-        operation_description="Deletes an order by its id (authorized only)",
         responses={
             200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
+            401: CustomErrorSerializer,
+            403: CustomErrorSerializer,
             404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="pay",
+    decorator=swagger_auto_schema(
+        operation_summary="Online payment",
+        responses={
+            201: StripeSessionCreateSerializer,
+            403: CustomErrorSerializer,
+            404: ErrorResponse404Serializer,
+            500: StripeError500Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="successful_pay",
+    decorator=swagger_auto_schema(
+        operation_summary="Get order number after stripe payment",
+        responses={
+            200: StripePaySuccessPageSerializer,
+            500: StripeError500Serializer,
         },
     ),
 )
@@ -318,6 +341,8 @@ class OrderViewSet(
     def get_serializer_class(self):
         if self.action == "pay":
             return StripeCheckoutSessionCreateSerializer
+        if self.action == "successful_pay":
+            return StripePaySuccessPageSerializer
         if self.request.method in permissions.SAFE_METHODS:
             if self.request.user.is_authenticated:
                 return OrderGetAuthSerializer
@@ -359,17 +384,29 @@ class OrderViewSet(
         return order_data
 
     def retrieve(self, request, **kwargs):
+        """
+        Retrieves an order of a user by its id,
+        anonymous users can only view anonymous orders,
+        and authorized users can only view their own orders.
+        """
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if user.is_anonymous and order.user is not None:
-            raise PermissionDenied()
+            return Response(
+                CustomErrorSerializer({"errors": ORDER_USER_ERROR_MESSAGE}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if user.is_authenticated and order.user != user:
-            return Response({"errors": ORDER_USER_ERROR_MESSAGE})
+            return Response(
+                CustomErrorSerializer({"errors": ORDER_USER_ERROR_MESSAGE}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = self.get_serializer(order)
         logger.info("The user's order was successfully received.")
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def list(self, request, **kwargs):
+        """Returns a list of all the orders of an authorized user."""
         if self.request.user.is_authenticated:
             queryset = self.get_queryset().filter(user=self.request.user)
             serializer = self.get_serializer(queryset, many=True)
@@ -377,16 +414,17 @@ class OrderViewSet(
             return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error(METHOD_ERROR_MESSAGE)
         return Response(
-            {"errors": METHOD_ERROR_MESSAGE},
+            CustomErrorSerializer({"errors": METHOD_ERROR_MESSAGE}).data,
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
     def create(self, request, *args, **kwargs):
+        """Creates an order of a user (both anonymous and authorized)."""
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
             return Response(
-                {"errors": SHOP_CART_ERROR},
+                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_data = {
@@ -439,6 +477,7 @@ class OrderViewSet(
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
+        """Deletes an order by its id (authorized only)."""
         order_restricted_deletion_statuses = [
             Order.COLLECTING,
             Order.GATHERED,
@@ -446,17 +485,25 @@ class OrderViewSet(
             Order.DELIVERED,
             Order.COMPLETED,
         ]
-        if not self.request.user.is_authenticated:
-            order = Order.objects.get(order_number=self.kwargs.get("pk"))
-        else:
-            order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if order.user != self.request.user:
-            logger.error("PermissionDenied during order creation.")
-            raise PermissionDenied()
 
+        if self.request.user.is_anonymous:
+            payload = {"errors": DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_401_UNAUTHORIZED
+            )
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
+        if order.user != self.request.user:
+            logger.error(ORDER_USER_ERROR_MESSAGE)
+            payload = {"errors": ORDER_USER_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+            )
         if order.status in order_restricted_deletion_statuses:
-            logger.error(DELIVERY_ERROR_MESSAGE)
-            return Response({"errors": DELIVERY_ERROR_MESSAGE})
+            logger.error(DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE)
+            payload = {"errors": DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+            )
         response_serializer = (
             OrderGetAuthSerializer
             if self.request.user.is_authenticated
@@ -469,32 +516,26 @@ class OrderViewSet(
         return Response(serializer_data, status=status.HTTP_200_OK)
 
     # TODO: test this endpoint
-    @swagger_auto_schema(
-        method="post",
-        operation_summary="Online payment",
-        operation_description=(
-            "Creates a link for online payment for an order using Stripe"
-        ),
-        responses={
-            201: '{"checkout_session_url": some url}',
-            403: '{"errors": some error message}',
-        },
-    )
     @action(methods=["POST"], detail=True, permission_classes=[permissions.AllowAny])
     def pay(self, request, *args, **kwargs):
+        """Creates a link for online payment for an order using Stripe."""
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user is not None and order.user != self.request.user:
+            payload = {
+                "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
+                    pk=order.pk, user=request.user
+                )
+            }
             return Response(
-                {
-                    "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
-                        pk=order.pk, user=request.user
-                    )
-                },
+                CustomErrorSerializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
         if order.is_paid is True:
+            payload = {
+                "errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)
+            }
             return Response(
-                {"errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)},
+                CustomErrorSerializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -517,22 +558,60 @@ class OrderViewSet(
                         "quantity": 1,
                     }
                 ],
-                success_url=domain_url + "catalog",
-                cancel_url=domain_url + "contacts",
+                success_url=domain_url
+                + "payment-is-processing?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=domain_url
+                + "payment-cancelled?session_id={CHECKOUT_SESSION_ID}",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
                 payment_method_types=["card"],
                 mode="payment",
-                metadata={"order_id": order.id},
+                metadata={"order_id": order.id, "order_number": order.order_number},
             )
             logger.info("Stripe Checkout Session created successfully.")
+            payload = {"checkout_session_url": checkout_session.url}
             return Response(
-                {"checkout_session_url": checkout_session.url},
+                StripeSessionCreateSerializer(payload).data,
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:
+            payload = {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)}
             return Response(
-                {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)},
+                StripeError500Serializer(payload).data,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    # TODO: test this endpoint
+    @action(methods=["POST"], detail=False, permission_classes=[permissions.AllowAny])
+    def successful_pay(self, request, *args, **kwargs):
+        """Shows the order id and number from Stripe Checkout Session after payment."""
+        try:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+            stripe_session_id = request.data["stripe_session_id"]
+            session = stripe.checkout.Session.retrieve(stripe_session_id)
+            payload = {
+                "stripe_session_id": stripe_session_id,
+                "order_id": session["metadata"]["order_id"],
+                "order_number": session["metadata"]["order_number"],
+            }
+            return Response(
+                StripePaySuccessPageSerializer(payload).data, status=status.HTTP_200_OK
+            )
+        except stripe._error.AuthenticationError as e:
+            logger.error(f"{e}")
+            payload = {"message": STRIPE_API_KEY_ERROR_MESSAGE, "errors": str(e)}
+            return Response(
+                StripeError500Serializer(payload).data,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        except stripe._error.InvalidRequestError as e:
+            logger.error(f"{e}")
+            payload = {
+                "message": STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE,
+                "errors": str(e),
+            }
+            return Response(
+                StripeError500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
