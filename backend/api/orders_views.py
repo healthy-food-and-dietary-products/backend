@@ -559,8 +559,9 @@ class OrderViewSet(
                     }
                 ],
                 success_url=domain_url
-                + "payment-results?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "cart",
+                + "payment-is-processing?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=domain_url
+                + "payment-cancelled?session_id={CHECKOUT_SESSION_ID}",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,
