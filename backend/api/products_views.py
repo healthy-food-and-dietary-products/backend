@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 
 from .filters import ProductFilter
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
+from .orders_serializers import CustomErrorSerializer
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
@@ -109,6 +110,20 @@ STATUS_200_RESPONSE_ON_DELETE_IN_DOCS = (
         },
     ),
 )
+@method_decorator(
+    name="category_brief_list",
+    decorator=swagger_auto_schema(
+        operation_summary="List categories brief info",
+        responses={200: CategoryBriefSerializer},
+    ),
+)
+@method_decorator(
+    name="category_brief_detail",
+    decorator=swagger_auto_schema(
+        operation_summary="Show brief category info",
+        responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
@@ -130,13 +145,6 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     # TODO: test this endpoint
-    @method_decorator(
-        name="list",
-        decorator=swagger_auto_schema(
-            operation_summary="List categories brief info",
-            responses={200: CategoryBriefSerializer},
-        ),
-    )
     @action(methods=["get"], detail=False, url_path="category-brief-list")
     def category_brief_list(self, request):
         """
@@ -155,13 +163,6 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     # TODO: test this endpoint
-    @method_decorator(
-        name="retrieve",
-        decorator=swagger_auto_schema(
-            operation_summary="Show brief category info",
-            responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
-        ),
-    )
     @action(methods=["get"], detail=True, url_path="category-brief-detail")
     def category_brief_detail(self, request, pk):
         """
@@ -595,8 +596,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     def create_delete_or_scold(self, model, product, request):
         instance = model.objects.filter(product=product, user=request.user)
         if request.method == "DELETE" and not instance:
+            payload = {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE}
             return response.Response(
-                {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE},
+                CustomErrorSerializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
@@ -609,10 +611,13 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
                 "Success": MESSAGE_ON_DELETE,
             }
             instance.delete()
+            # TODO: make special serializer, pass serialized data instead of python dict
+            # TODO: add this new serializer to swagger_auto_schema
             return response.Response(data=message, status=status.HTTP_200_OK)
         if instance:
+            payload = {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE}
             return response.Response(
-                {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE},
+                CustomErrorSerializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         new_favorite_product = model.objects.create(user=request.user, product=product)
@@ -653,7 +658,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             201: FavoriteProductSerializer,
-            400: '{"errors": "' + DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            400: CustomErrorSerializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -666,7 +671,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            400: '{"errors": "' + NO_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            400: CustomErrorSerializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },

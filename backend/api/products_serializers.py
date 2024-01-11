@@ -452,6 +452,8 @@ class CategorySerializer(CategoryLightSerializer):
 class CategoryBriefSerializer(CategorySerializer):
     """Serializer for displaying brief categories information."""
 
+    name = serializers.CharField(required=False)
+
     class Meta(CategorySerializer.Meta):
         fields = ("id", "name", "slug", "image")
 

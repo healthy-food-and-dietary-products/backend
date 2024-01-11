@@ -75,6 +75,13 @@ from reviews.models import Review
         },
     ),
 )
+@method_decorator(
+    name="review_user_check",
+    decorator=swagger_auto_schema(
+        operation_summary="Check user product review",
+        responses={200: ReviewUserCheckSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for reviews."""
 
@@ -101,13 +108,6 @@ class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         serializer.save(pub_date=timezone.now(), was_edited=True)
         return super().perform_update(serializer)
 
-    @method_decorator(
-        name="retrieve",
-        decorator=swagger_auto_schema(
-            operation_summary="Check user product review",
-            responses={200: ReviewUserCheckSerializer, 404: ErrorResponse404Serializer},
-        ),
-    )
     @action(
         methods=["get"],
         detail=False,
