@@ -12,7 +12,7 @@ urlpatterns = [
         views.create_checkout_session,
         name="create-checkout-session",
     ),
-    path("payment-good/", views.SuccessView.as_view()),
-    path("payment-bad/", views.CancelledView.as_view()),
+    path("payment-is-processing/", views.SuccessView.as_view()),
+    path("payment-cancelled/", views.CancelledView.as_view()),
     path("webhooks/stripe/", views.stripe_webhook, name="stripe-webhook"),
 ]
