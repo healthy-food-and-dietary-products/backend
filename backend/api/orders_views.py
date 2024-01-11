@@ -1,13 +1,11 @@
 import stripe
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
-    ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
     ValidationErrorResponseSerializer,
@@ -52,7 +50,12 @@ ORDER_USER_ERROR_MESSAGE = (
 )
 METHOD_ERROR_MESSAGE = "История заказов доступна только авторизованным пользователям."
 SHOP_CART_ERROR = "В вашей корзине нет товаров, наполните её."
-DELIVERY_ERROR_MESSAGE = "Отмена заказа после комплектования невозможна."
+DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE = (
+    "Отмена заказа после начала комплектования невозможна."
+)
+DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE = (
+    "Отмена заказа анонимным пользователем невозможна."
+)
 PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE = "Заказ №{pk} не принадлежит пользователю {user}."
 PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE = "Заказ №{pk} уже был оплачен."
 STRIPE_SESSION_CREATE_ERROR_MESSAGE = "Ошибка создания Stripe Checkout Session."
@@ -62,10 +65,6 @@ STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE = (
 STRIPE_API_KEY_ERROR_MESSAGE = "Неверный Stripe API key."
 SHOP_CART_CLEAR_MESSAGE = "Ваша корзина очищена, все товары из нее удалены."
 COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
-
-
-# TODO: check that API endpoints contain serialized data (i.e. serializer(payload).data)
-# inside Response objects, and not Python dictionaries
 
 
 @method_decorator(
@@ -299,8 +298,8 @@ class ShoppingCartViewSet(
         operation_summary="Delete order",
         responses={
             200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            401: ErrorResponse401Serializer,
-            403: ErrorResponse403Serializer,
+            401: CustomErrorSerializer,
+            403: CustomErrorSerializer,
             404: ErrorResponse404Serializer,
         },
     ),
@@ -486,29 +485,25 @@ class OrderViewSet(
             Order.DELIVERED,
             Order.COMPLETED,
         ]
-        # непонятно, почему для неавторизованного мы ищем заказ по номеру,
-        # а для авторизованного - по id. Кажется нет разницы, тем более
-        # теперь номер заказа не совпадает с id, значит искать нужно всегда
-        # по id заказа
-        if not self.request.user.is_authenticated:
-            order = Order.objects.get(order_number=self.kwargs.get("pk"))
-        # кажется не нужно давать анониму возможность удалять заказ
-        # (обсудить с другими в чате), кажется нужен статус 401 для этого случая
-        else:
-            order = get_object_or_404(Order, id=self.kwargs.get("pk"))
 
-        # тут можно делать как ниже - кидать Response с объяснением
-        # в виде CustomErrorSerializer
-        # и статус 403, перенести само сообщение наверх в константы.
-        # и поменять описание ответов в доках апи
+        if self.request.user.is_anonymous:
+            payload = {"errors": DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_401_UNAUTHORIZED
+            )
+        order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user != self.request.user:
-            logger.error("PermissionDenied during order creation.")
-            raise PermissionDenied()
-
+            logger.error(ORDER_USER_ERROR_MESSAGE)
+            payload = {"errors": ORDER_USER_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+            )
         if order.status in order_restricted_deletion_statuses:
-            logger.error(DELIVERY_ERROR_MESSAGE)
-            # TODO: add CustomErrorSerializer, поменять описание ответов в доках апи
-            return Response({"errors": DELIVERY_ERROR_MESSAGE})  # TODO: no status code!
+            logger.error(DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE)
+            payload = {"errors": DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE}
+            return Response(
+                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+            )
         response_serializer = (
             OrderGetAuthSerializer
             if self.request.user.is_authenticated
@@ -564,8 +559,8 @@ class OrderViewSet(
                     }
                 ],
                 success_url=domain_url
-                + "payment-good?session_id={CHECKOUT_SESSION_ID}",
-                cancel_url=domain_url + "payment-bad?session_id={CHECKOUT_SESSION_ID}",
+                + "payment-results?session_id={CHECKOUT_SESSION_ID}",
+                cancel_url=domain_url + "cart",
                 client_reference_id=request.user.username
                 if request.user.is_authenticated
                 else None,

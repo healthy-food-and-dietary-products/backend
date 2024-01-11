@@ -150,4 +150,4 @@ class TestOrder:
         assert response.status_code == status.HTTP_201_CREATED
         order = Order.objects.get()
         response = client.delete(f"/api/order/{order.order_number}/", format="json")
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
