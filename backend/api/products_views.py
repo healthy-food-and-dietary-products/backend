@@ -3,9 +3,12 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
 from drf_standardized_errors.openapi_serializers import (
+    ClientErrorEnum,
+    ErrorCode406Enum,
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
+    ErrorResponse406Serializer,
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
@@ -22,6 +25,7 @@ from .products_serializers import (
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductCreateSerializer,
+    FavoriteProductDeleteSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
@@ -109,6 +113,20 @@ STATUS_200_RESPONSE_ON_DELETE_IN_DOCS = (
         },
     ),
 )
+@method_decorator(
+    name="category_brief_list",
+    decorator=swagger_auto_schema(
+        operation_summary="List categories brief info",
+        responses={200: CategoryBriefSerializer},
+    ),
+)
+@method_decorator(
+    name="category_brief_detail",
+    decorator=swagger_auto_schema(
+        operation_summary="Show brief category info",
+        responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
@@ -130,13 +148,6 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     # TODO: test this endpoint
-    @method_decorator(
-        name="list",
-        decorator=swagger_auto_schema(
-            operation_summary="List categories brief info",
-            responses={200: CategoryBriefSerializer},
-        ),
-    )
     @action(methods=["get"], detail=False, url_path="category-brief-list")
     def category_brief_list(self, request):
         """
@@ -155,13 +166,6 @@ class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     # TODO: test this endpoint
-    @method_decorator(
-        name="retrieve",
-        decorator=swagger_auto_schema(
-            operation_summary="Show brief category info",
-            responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
-        ),
-    )
     @action(methods=["get"], detail=True, url_path="category-brief-detail")
     def category_brief_detail(self, request, pk):
         """
@@ -592,37 +596,6 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     @transaction.atomic
-    def create_delete_or_scold(self, model, product, request):
-        instance = model.objects.filter(product=product, user=request.user)
-        if request.method == "DELETE" and not instance:
-            return response.Response(
-                {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if request.method == "DELETE":
-            message = {
-                "favorite_product_object_id": instance[0].id,
-                "favorite_product_id": instance[0].product.id,
-                "favorite_product_name": instance[0].product.name,
-                "user_id": instance[0].user.id,
-                "user_username": instance[0].user.username,
-                "Success": MESSAGE_ON_DELETE,
-            }
-            instance.delete()
-            return response.Response(data=message, status=status.HTTP_200_OK)
-        if instance:
-            return response.Response(
-                {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        new_favorite_product = model.objects.create(user=request.user, product=product)
-        serializer = FavoriteProductSerializer(
-            new_favorite_product,
-            context={"request": request, "format": self.format_kwarg, "view": self},
-        )
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @transaction.atomic
     def perform_create(self, serializer):
         subcategory_id = serializer._kwargs["data"]["subcategory"]
         subcategory = Subcategory.objects.get(id=subcategory_id)
@@ -653,7 +626,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             201: FavoriteProductSerializer,
-            400: '{"errors": "' + DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -665,12 +638,13 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             "Deletes a product from a user's favorites (authorized user only)"
         ),
         responses={
-            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            400: '{"errors": "' + NO_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            200: FavoriteProductDeleteSerializer,
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
     )
+    @transaction.atomic
     @action(
         methods=["post", "delete"],
         detail=True,
@@ -678,7 +652,58 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         product = get_object_or_404(Product, id=pk)
-        return self.create_delete_or_scold(FavoriteProduct, product, request)
+        favorite_product = FavoriteProduct.objects.filter(
+            product=product, user=request.user
+        )
+        if request.method == "DELETE" and not favorite_product:
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": NO_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
+            return response.Response(
+                ErrorResponse406Serializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if request.method == "DELETE":
+            payload = {
+                "favorite_product_object_id": favorite_product[0].id,
+                "favorite_product_id": product.id,
+                "favorite_product_name": product.name,
+                "user_id": request.user.id,
+                "user_username": request.user.username,
+                "success": MESSAGE_ON_DELETE,
+            }
+            favorite_product.delete()
+            return response.Response(
+                FavoriteProductDeleteSerializer(payload).data, status=status.HTTP_200_OK
+            )
+        if favorite_product:
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
+            return response.Response(
+                ErrorResponse406Serializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new_favorite_product = FavoriteProduct.objects.create(
+            user=request.user, product=product
+        )
+        serializer = FavoriteProductSerializer(
+            new_favorite_product,
+            context={"request": request, "format": self.format_kwarg, "view": self},
+        )
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # TODO: test this endpoint
     @method_decorator(

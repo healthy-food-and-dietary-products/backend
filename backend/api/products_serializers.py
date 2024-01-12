@@ -410,6 +410,17 @@ class FavoriteProductCreateSerializer(serializers.ModelSerializer):
         fields = ("id",)
 
 
+class FavoriteProductDeleteSerializer(serializers.Serializer):
+    """Serializer for response body after favorite products deletion."""
+
+    favorite_product_object_id = serializers.IntegerField()
+    favorite_product_id = serializers.IntegerField()
+    favorite_product_name = serializers.CharField()
+    user_id = serializers.IntegerField()
+    user_username = serializers.CharField()
+    success = serializers.CharField()
+
+
 class CategorySerializer(CategoryLightSerializer):
     """Serializer for displaying categories and their top three products."""
 
@@ -451,6 +462,8 @@ class CategorySerializer(CategoryLightSerializer):
 
 class CategoryBriefSerializer(CategorySerializer):
     """Serializer for displaying brief categories information."""
+
+    name = serializers.CharField(required=False)
 
     class Meta(CategorySerializer.Meta):
         fields = ("id", "name", "slug", "image")

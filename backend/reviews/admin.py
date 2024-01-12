@@ -22,3 +22,7 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ["product__name", "author__username", "text"]
     list_filter = ["score", "pub_date", "product", "author", "was_edited"]
     ordering = ["pk"]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("product", "author")

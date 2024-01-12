@@ -34,3 +34,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display_links = ("ordering_date",)
     list_editable = ("payment_method", "delivery_method")
     list_filter = ("status", "ordering_date")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("user")

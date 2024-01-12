@@ -104,7 +104,7 @@ def test_create_favorite_fail_if_duplication(auth_client, products, favorites):
     )
 
     assert response.status_code == 400
-    assert response.data["errors"] == DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE
+    assert response.data["errors"][0]["detail"] == DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE
 
 
 @pytest.mark.django_db
@@ -141,7 +141,7 @@ def test_delete_favorite(auth_client, products, user, favorites):
     assert response.data["favorite_product_name"] == products[0].name
     assert response.data["user_id"] == user.pk
     assert response.data["user_username"] == user.username
-    assert response.data["Success"] == MESSAGE_ON_DELETE
+    assert response.data["success"] == MESSAGE_ON_DELETE
 
 
 @pytest.mark.django_db
@@ -151,7 +151,7 @@ def test_delete_favorite_fail_if_no_such_favorite(auth_client, products):
     )
 
     assert response.status_code == 400
-    assert response.data["errors"] == NO_FAVORITE_PRODUCT_ERROR_MESSAGE
+    assert response.data["errors"][0]["detail"] == NO_FAVORITE_PRODUCT_ERROR_MESSAGE
 
 
 @pytest.mark.django_db

@@ -307,20 +307,7 @@ class StripePaySuccessPageSerializer(serializers.Serializer):
     order_number = serializers.CharField(read_only=True)
 
 
-class StripeError500Serializer(serializers.Serializer):
-    """Serializer for errors during Stripe payments."""
+class ShoppingCartRemoveAllSerializer(serializers.Serializer):
+    """Serializer for shopping cart remove all endpoint."""
 
     message = serializers.CharField()
-    errors = serializers.CharField()
-
-
-class CustomSuccessSerializer(serializers.Serializer):
-    """Serializer for custom success messages."""
-
-    message = serializers.CharField()
-
-
-class CustomErrorSerializer(serializers.Serializer):
-    """Serializer for custom errors."""
-
-    errors = serializers.CharField()

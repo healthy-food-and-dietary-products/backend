@@ -6,8 +6,18 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_standardized_errors.openapi_serializers import (
+    ClientErrorEnum,
+    ErrorCode401Enum,
+    ErrorCode403Enum,
+    ErrorCode404Enum,
+    ErrorCode406Enum,
+    ErrorCode500Enum,
+    ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
+    ErrorResponse406Serializer,
+    ErrorResponse500Serializer,
+    ServerErrorEnum,
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
@@ -20,16 +30,14 @@ from rest_framework.viewsets import GenericViewSet
 
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .orders_serializers import (
-    CustomErrorSerializer,
-    CustomSuccessSerializer,
     OrderCreateAnonSerializer,
     OrderCreateAuthSerializer,
     OrderGetAnonSerializer,
     OrderGetAuthSerializer,
     ShoppingCartListSerializer,
+    ShoppingCartRemoveAllSerializer,
     ShoppingCartSerializer,
     StripeCheckoutSessionCreateSerializer,
-    StripeError500Serializer,
     StripePaySuccessPageSerializer,
     StripeSessionCreateSerializer,
 )
@@ -88,14 +96,17 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
     name="destroy",
     decorator=swagger_auto_schema(
         operation_summary="Remove product from shopping cart",
-        responses={200: ShoppingCartListSerializer, 404: CustomErrorSerializer},
+        responses={200: ShoppingCartListSerializer, 404: ErrorResponse404Serializer},
     ),
 )
 @method_decorator(
     name="remove_all",
     decorator=swagger_auto_schema(
         operation_summary="Clear shopping cart",
-        responses={200: CustomSuccessSerializer, 400: CustomErrorSerializer},
+        responses={
+            200: ShoppingCartRemoveAllSerializer,
+            400: ErrorResponse406Serializer,
+        },
     ),
 )
 @method_decorator(
@@ -104,8 +115,8 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
         operation_summary="Apply promocode",
         responses={
             201: CouponSerializer,
-            400: CustomErrorSerializer,
-            403: CustomErrorSerializer,
+            400: ErrorResponse406Serializer,
+            403: ErrorResponse403Serializer,
         },
     ),
 )
@@ -140,17 +151,26 @@ class ShoppingCartViewSet(
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": SHOP_CART_ERROR,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
+                ErrorResponse406Serializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.session.get("coupon_id"):
             del request.session["coupon_id"]
         shopping_cart.clear()
         logger.info(SHOP_CART_CLEAR_MESSAGE)
+        payload = {"message": SHOP_CART_CLEAR_MESSAGE}
         return Response(
-            CustomSuccessSerializer({"message": SHOP_CART_CLEAR_MESSAGE}).data,
-            status=status.HTTP_200_OK,
+            ShoppingCartRemoveAllSerializer(payload).data, status=status.HTTP_200_OK
         )
 
     # TODO: test this endpoint
@@ -161,8 +181,17 @@ class ShoppingCartViewSet(
         now = timezone.now()
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": SHOP_CART_ERROR,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
+                ErrorResponse406Serializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = self.get_serializer_class()
@@ -189,9 +218,17 @@ class ShoppingCartViewSet(
             )
         except Coupon.DoesNotExist:
             request.session["coupon_id"] = None
-            payload = {"errors": COUPON_ERROR_MESSAGE.format(code=code)}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": COUPON_ERROR_MESSAGE.format(code=code),
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer(payload).data,
+                ErrorResponse403Serializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -238,16 +275,34 @@ class ShoppingCartViewSet(
         shopping_cart = ShopCart(self.request)
         if not shopping_cart:
             logger.error(NO_SHOP_CART_ERROR_MESSAGE)
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode404Enum.NOT_FOUND,
+                        "detail": NO_SHOP_CART_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": NO_SHOP_CART_ERROR_MESSAGE}).data,
+                ErrorResponse404Serializer(payload).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         product_id = int(self.kwargs["pk"])
         products = [product["id"] for product in shopping_cart.get_shop_products()]
         if product_id not in products:
             logger.error(SHOP_CART_ERROR_MESSAGE)
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode404Enum.NOT_FOUND,
+                        "detail": SHOP_CART_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": SHOP_CART_ERROR_MESSAGE}).data,
+                ErrorResponse404Serializer(payload).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_cart.remove(product_id)
@@ -267,7 +322,7 @@ class ShoppingCartViewSet(
     name="list",
     decorator=swagger_auto_schema(
         operation_summary="List all orders",
-        responses={200: OrderGetAuthSerializer, 401: CustomErrorSerializer},
+        responses={200: OrderGetAuthSerializer, 401: ErrorResponse401Serializer},
     ),
 )
 @method_decorator(
@@ -288,7 +343,7 @@ class ShoppingCartViewSet(
         responses={
             201: OrderGetAnonSerializer,
             400: ValidationErrorResponseSerializer,
-            404: CustomErrorSerializer,
+            404: ErrorResponse404Serializer,
         },
     ),
 )
@@ -298,8 +353,8 @@ class ShoppingCartViewSet(
         operation_summary="Delete order",
         responses={
             200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            401: CustomErrorSerializer,
-            403: CustomErrorSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
         },
     ),
@@ -310,9 +365,9 @@ class ShoppingCartViewSet(
         operation_summary="Online payment",
         responses={
             201: StripeSessionCreateSerializer,
-            403: CustomErrorSerializer,
+            403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
-            500: StripeError500Serializer,
+            500: ErrorResponse500Serializer,
         },
     ),
 )
@@ -322,7 +377,7 @@ class ShoppingCartViewSet(
         operation_summary="Get order number after stripe payment",
         responses={
             200: StripePaySuccessPageSerializer,
-            500: StripeError500Serializer,
+            500: ErrorResponse500Serializer,
         },
     ),
 )
@@ -391,14 +446,20 @@ class OrderViewSet(
         """
         user = self.request.user
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
-        if user.is_anonymous and order.user is not None:
+        if (user.is_anonymous and order.user is not None) or (
+            user.is_authenticated and order.user != user
+        ):
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": ORDER_USER_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": ORDER_USER_ERROR_MESSAGE}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if user.is_authenticated and order.user != user:
-            return Response(
-                CustomErrorSerializer({"errors": ORDER_USER_ERROR_MESSAGE}).data,
+                ErrorResponse403Serializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
         serializer = self.get_serializer(order)
@@ -413,8 +474,17 @@ class OrderViewSet(
             logger.info("The user's order list was successfully received.")
             return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error(METHOD_ERROR_MESSAGE)
+        payload = {
+            "type": ClientErrorEnum.CLIENT_ERROR,
+            "errors": [
+                {
+                    "code": ErrorCode401Enum.NOT_AUTHENTICATED,
+                    "detail": METHOD_ERROR_MESSAGE,
+                }
+            ],
+        }
         return Response(
-            CustomErrorSerializer({"errors": METHOD_ERROR_MESSAGE}).data,
+            ErrorResponse401Serializer(payload).data,
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
@@ -423,8 +493,17 @@ class OrderViewSet(
         shopping_cart = ShopCart(request)
         if not shopping_cart:
             logger.error(SHOP_CART_ERROR)
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode404Enum.NOT_FOUND,
+                        "detail": SHOP_CART_ERROR,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer({"errors": SHOP_CART_ERROR}).data,
+                ErrorResponse404Serializer(payload).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
         shopping_data = {
@@ -487,22 +566,49 @@ class OrderViewSet(
         ]
 
         if self.request.user.is_anonymous:
-            payload = {"errors": DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode401Enum.NOT_AUTHENTICATED,
+                        "detail": DELETE_ORDER_BY_ANONYMOUS_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer(payload).data, status=status.HTTP_401_UNAUTHORIZED
+                ErrorResponse401Serializer(payload).data,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user != self.request.user:
             logger.error(ORDER_USER_ERROR_MESSAGE)
-            payload = {"errors": ORDER_USER_ERROR_MESSAGE}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": ORDER_USER_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+                ErrorResponse403Serializer(payload).data,
+                status=status.HTTP_403_FORBIDDEN,
             )
         if order.status in order_restricted_deletion_statuses:
             logger.error(DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE)
-            payload = {"errors": DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": DELETE_ORDER_WITH_RESTRICTED_STATUS_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return Response(
-                CustomErrorSerializer(payload).data, status=status.HTTP_403_FORBIDDEN
+                ErrorResponse403Serializer(payload).data,
+                status=status.HTTP_403_FORBIDDEN,
             )
         response_serializer = (
             OrderGetAuthSerializer
@@ -522,20 +628,34 @@ class OrderViewSet(
         order = get_object_or_404(Order, id=self.kwargs.get("pk"))
         if order.user is not None and order.user != self.request.user:
             payload = {
-                "errors": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
-                    pk=order.pk, user=request.user
-                )
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": PAY_SOMEONE_ELSE_ORDER_ERROR_MESSAGE.format(
+                            pk=order.pk, user=request.user
+                        ),
+                    }
+                ],
             }
             return Response(
-                CustomErrorSerializer(payload).data,
+                ErrorResponse403Serializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
         if order.is_paid is True:
             payload = {
-                "errors": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(pk=order.pk)
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode403Enum.PERMISSION_DENIED,
+                        "detail": PAY_ALREADY_PAID_ORDER_ERROR_MESSAGE.format(
+                            pk=order.pk
+                        ),
+                    }
+                ],
             }
             return Response(
-                CustomErrorSerializer(payload).data,
+                ErrorResponse403Serializer(payload).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -576,9 +696,18 @@ class OrderViewSet(
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:
-            payload = {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)}
+            payload = {
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_SESSION_CREATE_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
+            }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -600,18 +729,33 @@ class OrderViewSet(
             )
         except stripe._error.AuthenticationError as e:
             logger.error(f"{e}")
-            payload = {"message": STRIPE_API_KEY_ERROR_MESSAGE, "errors": str(e)}
+            payload = {
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_API_KEY_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
+            }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except stripe._error.InvalidRequestError as e:
             logger.error(f"{e}")
             payload = {
-                "message": STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE,
-                "errors": str(e),
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
             }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
