@@ -141,7 +141,7 @@ def test_delete_favorite(auth_client, products, user, favorites):
     assert response.data["favorite_product_name"] == products[0].name
     assert response.data["user_id"] == user.pk
     assert response.data["user_username"] == user.username
-    assert response.data["Success"] == MESSAGE_ON_DELETE
+    assert response.data["success"] == MESSAGE_ON_DELETE
 
 
 @pytest.mark.django_db
