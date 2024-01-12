@@ -593,41 +593,6 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         )
 
     @transaction.atomic
-    def create_delete_or_scold(self, model, product, request):
-        instance = model.objects.filter(product=product, user=request.user)
-        if request.method == "DELETE" and not instance:
-            payload = {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE}
-            return response.Response(
-                CustomErrorSerializer(payload).data,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if request.method == "DELETE":
-            message = {
-                "favorite_product_object_id": instance[0].id,
-                "favorite_product_id": instance[0].product.id,
-                "favorite_product_name": instance[0].product.name,
-                "user_id": instance[0].user.id,
-                "user_username": instance[0].user.username,
-                "Success": MESSAGE_ON_DELETE,
-            }
-            instance.delete()
-            # TODO: make special serializer, pass serialized data instead of python dict
-            # TODO: add this new serializer to swagger_auto_schema
-            return response.Response(data=message, status=status.HTTP_200_OK)
-        if instance:
-            payload = {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE}
-            return response.Response(
-                CustomErrorSerializer(payload).data,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        new_favorite_product = model.objects.create(user=request.user, product=product)
-        serializer = FavoriteProductSerializer(
-            new_favorite_product,
-            context={"request": request, "format": self.format_kwarg, "view": self},
-        )
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @transaction.atomic
     def perform_create(self, serializer):
         subcategory_id = serializer._kwargs["data"]["subcategory"]
         subcategory = Subcategory.objects.get(id=subcategory_id)
@@ -676,6 +641,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             404: ErrorResponse404Serializer,
         },
     )
+    @transaction.atomic
     @action(
         methods=["post", "delete"],
         detail=True,
@@ -683,7 +649,40 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         product = get_object_or_404(Product, id=pk)
-        return self.create_delete_or_scold(FavoriteProduct, product, request)
+        instance = FavoriteProduct.objects.filter(product=product, user=request.user)
+        if request.method == "DELETE" and not instance:
+            payload = {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE}
+            return response.Response(
+                CustomErrorSerializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if request.method == "DELETE":
+            message = {
+                "favorite_product_object_id": instance[0].id,
+                "favorite_product_id": instance[0].product.id,  # TODO: duplicated query
+                "favorite_product_name": instance[0].product.name,
+                "user_id": instance[0].user.id,
+                "user_username": instance[0].user.username,
+                "Success": MESSAGE_ON_DELETE,
+            }
+            instance.delete()
+            # TODO: make special serializer, pass serialized data instead of python dict
+            # TODO: add this new serializer to swagger_auto_schema
+            return response.Response(data=message, status=status.HTTP_200_OK)
+        if instance:
+            payload = {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE}
+            return response.Response(
+                CustomErrorSerializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new_favorite_product = FavoriteProduct.objects.create(
+            user=request.user, product=product
+        )
+        serializer = FavoriteProductSerializer(
+            new_favorite_product,
+            context={"request": request, "format": self.format_kwarg, "view": self},
+        )
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # TODO: test this endpoint
     @method_decorator(
