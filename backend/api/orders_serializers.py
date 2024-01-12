@@ -320,6 +320,7 @@ class CustomSuccessSerializer(serializers.Serializer):
     message = serializers.CharField()
 
 
+# TODO: get rid of this
 class CustomErrorSerializer(serializers.Serializer):
     """Serializer for custom errors."""
 

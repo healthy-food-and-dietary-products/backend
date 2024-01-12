@@ -3,9 +3,12 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
 from drf_standardized_errors.openapi_serializers import (
+    ClientErrorEnum,
+    ErrorCode406Enum,
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
+    ErrorResponse406Serializer,
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
@@ -14,7 +17,6 @@ from rest_framework.decorators import action
 
 from .filters import ProductFilter
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
-from .orders_serializers import CustomErrorSerializer
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
@@ -624,7 +626,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             201: FavoriteProductSerializer,
-            400: CustomErrorSerializer,
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -637,7 +639,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             200: FavoriteProductDeleteSerializer,
-            400: CustomErrorSerializer,
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -654,9 +656,17 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             product=product, user=request.user
         )
         if request.method == "DELETE" and not favorite_product:
-            payload = {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": NO_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return response.Response(
-                CustomErrorSerializer(payload).data,
+                ErrorResponse406Serializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
@@ -673,9 +683,17 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
                 FavoriteProductDeleteSerializer(payload).data, status=status.HTTP_200_OK
             )
         if favorite_product:
-            payload = {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE}
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
             return response.Response(
-                CustomErrorSerializer(payload).data,
+                ErrorResponse406Serializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         new_favorite_product = FavoriteProduct.objects.create(
