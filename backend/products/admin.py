@@ -62,6 +62,10 @@ class CategoryAdmin(admin.ModelAdmin):
         """Shows the number of subcategories for this category."""
         return obj.subcategories.count()
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("subcategories")
+
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
@@ -250,6 +254,14 @@ class ProductAdmin(admin.ModelAdmin):
         if product_reviews:
             return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
         return "-empty-"
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return (
+            queryset.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .annotate(rating=Avg("reviews__score"))
+        )
 
 
 @admin.register(ProductPromotion)
