@@ -314,14 +314,7 @@ class StripeError500Serializer(serializers.Serializer):
     errors = serializers.CharField()
 
 
-class CustomSuccessSerializer(serializers.Serializer):
-    """Serializer for custom success messages."""
+class ShoppingCartRemoveAllSerializer(serializers.Serializer):
+    """Serializer for shopping cart remove all endpoint."""
 
     message = serializers.CharField()
-
-
-# TODO: get rid of this
-class CustomErrorSerializer(serializers.Serializer):
-    """Serializer for custom errors."""
-
-    errors = serializers.CharField()
