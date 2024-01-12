@@ -23,6 +23,7 @@ from .products_serializers import (
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductCreateSerializer,
+    FavoriteProductDeleteSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
@@ -635,7 +636,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             "Deletes a product from a user's favorites (authorized user only)"
         ),
         responses={
-            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
+            200: FavoriteProductDeleteSerializer,
             400: CustomErrorSerializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
@@ -649,27 +650,29 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     )
     def favorite(self, request, pk):
         product = get_object_or_404(Product, id=pk)
-        instance = FavoriteProduct.objects.filter(product=product, user=request.user)
-        if request.method == "DELETE" and not instance:
+        favorite_product = FavoriteProduct.objects.filter(
+            product=product, user=request.user
+        )
+        if request.method == "DELETE" and not favorite_product:
             payload = {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE}
             return response.Response(
                 CustomErrorSerializer(payload).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if request.method == "DELETE":
-            message = {
-                "favorite_product_object_id": instance[0].id,
-                "favorite_product_id": instance[0].product.id,  # TODO: duplicated query
-                "favorite_product_name": instance[0].product.name,
-                "user_id": instance[0].user.id,
-                "user_username": instance[0].user.username,
-                "Success": MESSAGE_ON_DELETE,
+            payload = {
+                "favorite_product_object_id": favorite_product[0].id,
+                "favorite_product_id": product.id,
+                "favorite_product_name": product.name,
+                "user_id": request.user.id,
+                "user_username": request.user.username,
+                "success": MESSAGE_ON_DELETE,
             }
-            instance.delete()
-            # TODO: make special serializer, pass serialized data instead of python dict
-            # TODO: add this new serializer to swagger_auto_schema
-            return response.Response(data=message, status=status.HTTP_200_OK)
-        if instance:
+            favorite_product.delete()
+            return response.Response(
+                FavoriteProductDeleteSerializer(payload).data, status=status.HTTP_200_OK
+            )
+        if favorite_product:
             payload = {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE}
             return response.Response(
                 CustomErrorSerializer(payload).data,
