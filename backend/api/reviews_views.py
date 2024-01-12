@@ -8,12 +8,13 @@ from drf_standardized_errors.openapi_serializers import (
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets
+from rest_framework import permissions, response, status, viewsets
+from rest_framework.decorators import action
 
 from .mixins import DestroyWithPayloadMixin
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
-from .reviews_serializers import ReviewSerializer
+from .reviews_serializers import ReviewSerializer, ReviewUserCheckSerializer
 from products.models import Product
 from reviews.models import Review
 
@@ -74,6 +75,13 @@ from reviews.models import Review
         },
     ),
 )
+@method_decorator(
+    name="review_user_check",
+    decorator=swagger_auto_schema(
+        operation_summary="Check user product review",
+        responses={200: ReviewUserCheckSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for reviews."""
 
@@ -81,6 +89,11 @@ class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     queryset = Review.objects.select_related("product", "author")
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorOrAdminOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "review_user_check":
+            return ReviewUserCheckSerializer
+        return ReviewSerializer
 
     def get_queryset(self):
         return Review.objects.filter(
@@ -94,3 +107,28 @@ class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(pub_date=timezone.now(), was_edited=True)
         return super().perform_update(serializer)
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_path="review-user-check",
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def review_user_check(self, request, product_id):
+        """Shows whether the request.user has reviewed this product."""
+        product = get_object_or_404(Product, id=int(product_id))
+        serializer = self.get_serializer_class()
+        payload = {
+            "product": product_id,
+            "user": self.request.user.pk,
+            "reviewed": Review.objects.filter(
+                author=self.request.user, product=product
+            ).exists(),
+        }
+        return response.Response(
+            serializer(
+                payload,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )

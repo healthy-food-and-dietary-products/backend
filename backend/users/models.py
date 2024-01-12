@@ -21,7 +21,7 @@ class User(AbstractUser):
 
     def user_directory_path(self, filename):
         """Constructs the path which the users photo will be saved."""
-        return f"images/{self.username}"
+        return f"images/users/{self.username}.jpg"
 
     username = models.CharField(
         "Username",

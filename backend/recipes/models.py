@@ -49,6 +49,10 @@ class Recipe(CreatedModel):
         "Cooking time",
         validators=[MinValueValidator(1)],
     )
+    short_description = models.TextField("Short description", blank=True, null=True)
+    servings_quantity = models.CharField(
+        "Servings Quantity", max_length=255, blank=True, null=True
+    )
 
     class Meta:
         verbose_name = "Recipe"

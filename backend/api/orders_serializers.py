@@ -1,9 +1,10 @@
 import json
 import re
 
+from django.db.models import Prefetch
 from rest_framework import serializers
 
-from .products_serializers import ProductPresentSerializer
+from .products_serializers import CouponLightSerializer, ProductPresentSerializer
 from .users_serializers import UserSerializer
 from orders.models import Order, OrderProduct
 from products.models import Product
@@ -28,8 +29,8 @@ class UserPresentSerializer(UserSerializer):
         model = User
 
 
-class OrderProductSerializer(serializers.ModelSerializer):
-    """Serializer for add/update/delete products into shopping_cart."""
+class ShoppingCartProductSerializer(serializers.ModelSerializer):
+    """Serializer to add/edit products in shopping cart."""
 
     id = serializers.IntegerField()
     quantity = serializers.IntegerField()
@@ -57,13 +58,36 @@ class OrderProductDisplaySerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/ shopping_cart."""
+    """Serializer to create/edit shopping cart."""
 
-    products = OrderProductSerializer(many=True)
+    products = ShoppingCartProductSerializer(many=True)
 
     class Meta:
         fields = ("products",)
         model = Product
+
+
+class ShoppingCartProductListSerializer(serializers.Serializer):
+    """Serializer for the list of products in the shopping cart."""
+
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    photo = serializers.CharField(read_only=True)
+    final_price = serializers.FloatField(read_only=True)
+    quantity = serializers.IntegerField(read_only=True)
+    total_price = serializers.FloatField(read_only=True)
+    category = serializers.SlugField(read_only=True)
+    amount = serializers.IntegerField(read_only=True)
+    measure_unit = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+
+class ShoppingCartListSerializer(serializers.Serializer):
+    """Serializer to display the shopping cart using the GET method."""
+
+    products = ShoppingCartProductListSerializer(many=True, read_only=True)
+    count_of_products = serializers.IntegerField(read_only=True)
+    total_price = serializers.FloatField(read_only=True)
 
 
 class OrderGetAuthSerializer(serializers.ModelSerializer):
@@ -71,6 +95,7 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
 
     products = OrderProductDisplaySerializer(source="orders", many=True)
     user = UserPresentSerializer(read_only=True)
+    coupon = CouponLightSerializer(source="coupon_applied", read_only=True)
 
     class Meta:
         fields = (
@@ -89,8 +114,21 @@ class OrderGetAuthSerializer(serializers.ModelSerializer):
             "is_paid",
             "status",
             "ordering_date",
+            "coupon",
         )
         model = Order
+
+    @classmethod
+    def setup_eager_loading(cls, queryset):
+        """Perform necessary eager loading of orders data."""
+        return queryset.select_related("user", "coupon_applied").prefetch_related(
+            Prefetch(
+                "orders",
+                queryset=OrderProduct.objects.select_related(
+                    "product__category",
+                ).prefetch_related("product__promotions"),
+            )
+        )
 
 
 class OrderGetAnonSerializer(serializers.ModelSerializer):
@@ -98,6 +136,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
 
     products = OrderProductDisplaySerializer(source="orders", many=True)
     user_data = serializers.SerializerMethodField()
+    coupon = CouponLightSerializer(source="coupon_applied", read_only=True)
 
     class Meta:
         fields = (
@@ -115,6 +154,7 @@ class OrderGetAnonSerializer(serializers.ModelSerializer):
             "is_paid",
             "status",
             "ordering_date",
+            "coupon",
         )
         model = Order
 
@@ -178,8 +218,6 @@ class OrderCreateAuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
         if attrs["delivery_method"] == Order.COURIER and Order.address is None:
             raise serializers.ValidationError(COURIER_DELIVERY_ERROR_MESSAGE)
-        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
-        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
 
 
@@ -244,6 +282,32 @@ class OrderCreateAnonSerializer(serializers.ModelSerializer):
             and attrs["delivery_method"] == Order.DELIVERY_POINT
         ):
             raise serializers.ValidationError(NO_MATCH_ERROR_MESSAGE)
-        # if attrs["delivery_method"] == Order.COURIER and "delivery_point" in attrs:
-        #     raise serializers.ValidationError(DELIVERY_ERROR_MESSAGE)
         return super().validate(attrs)
+
+
+class StripeCheckoutSessionCreateSerializer(serializers.ModelSerializer):
+    """Serializer to create Stripe Checkout Session to pay an order."""
+
+    class Meta:
+        model = Order
+        fields = tuple()
+
+
+class StripeSessionCreateSerializer(serializers.Serializer):
+    """Serializer to show Stripe Checkout Session URL."""
+
+    checkout_session_url = serializers.URLField()
+
+
+class StripePaySuccessPageSerializer(serializers.Serializer):
+    """Serializer to get the order number from Stripe Checkout Session after payment."""
+
+    stripe_session_id = serializers.CharField()
+    order_id = serializers.CharField(read_only=True)
+    order_number = serializers.CharField(read_only=True)
+
+
+class ShoppingCartRemoveAllSerializer(serializers.Serializer):
+    """Serializer for shopping cart remove all endpoint."""
+
+    message = serializers.CharField()

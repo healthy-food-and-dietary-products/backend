@@ -1,6 +1,7 @@
 import os
 from csv import DictReader
 
+from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand
 from django.core.management.color import no_style
 from django.db import connection
@@ -8,7 +9,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from good_food.settings import BASE_DIR
-from orders.models import Delivery
+from orders.models import Delivery, Order, OrderProduct
 from products.models import (
     Category,
     Component,
@@ -19,6 +20,7 @@ from products.models import (
     Subcategory,
     Tag,
 )
+from recipes.models import ProductsInRecipe, Recipe
 from reviews.models import Review
 from users.models import Address, User
 
@@ -53,7 +55,12 @@ def read_category():
     with open(os.path.join(DATA_DIR, "category.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
-            category = Category(id=row["id"], name=row["name"], slug=row["slug"])
+            category = Category(
+                id=row["id"],
+                name=row["name"],
+                slug=row["slug"],
+                image=row["image"],
+            )
             category.save()
 
 
@@ -66,6 +73,7 @@ def read_subcategory():
                 parent_category_id=row["parent_category_id"],
                 name=row["name"],
                 slug=row["slug"],
+                image=row["image"],
             )
             subcategory.save()
 
@@ -74,7 +82,9 @@ def read_tags():
     with open(os.path.join(DATA_DIR, "tags.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
         for row in reader:
-            tag = Tag(id=row["id"], name=row["name"], slug=row["slug"])
+            tag = Tag(
+                id=row["id"], name=row["name"], slug=row["slug"], image=row["image"]
+            )
             tag.save()
 
 
@@ -89,6 +99,7 @@ def read_producer():
                 producer_type=row["producer_type"],
                 description=row["description"],
                 address=row["address"],
+                image=row["image"],
             )
             producer.save()
 
@@ -109,8 +120,17 @@ def read_promotions():
                 id=row["id"],
                 promotion_type=row["promotion_type"],
                 name=row["name"],
+                slug=row["slug"],
                 discount=row["discount"],
+                conditions=row["conditions"],
+                is_active=row["is_active"],
+                is_constant=row["is_constant"],
+                image=row["image"],
             )
+            if row.get("start_time"):
+                promotion.start_time = row["start_time"]
+            if row.get("end_time"):
+                promotion.start_time = row["end_time"]
             promotion.save()
 
 
@@ -198,6 +218,43 @@ def read_delivery_points():
             delivery_point.save()
 
 
+def read_orders():
+    with open(os.path.join(DATA_DIR, "orders.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            order = Order(
+                id=row["id"],
+                order_number=row["order_number"],
+                ordering_date=row["ordering_date"],
+                status=row["status"],
+                payment_method=row["payment_method"],
+                is_paid=row["is_paid"],
+                comment=row["comment"],
+                delivery_method=row["delivery_method"],
+                package=row["package"],
+                address_id=row["address_id"],
+                delivery_point_id=row["delivery_point_id"],
+                user_id=row["user_id"],
+                add_address=row["add_address"],
+                total_price=row["total_price"],
+                user_data=row["user_data"],
+            )
+            order.save()
+
+
+def read_order_products():
+    with open(os.path.join(DATA_DIR, "order_products.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            order_product = OrderProduct(
+                id=row["id"],
+                quantity=row["quantity"],
+                order_id=row["order_id"],
+                product_id=row["product_id"],
+            )
+            order_product.save()
+
+
 def read_user_addresses():
     with open(os.path.join(DATA_DIR, "user_addresses.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
@@ -232,14 +289,64 @@ def read_reviews():
                 pub_date=row["pub_date"],
                 author_id=row["author_id"],
                 product_id=row["product_id"],
+                was_edited=row["was_edited"],
             )
             review.save()
+
+
+def read_sessions():
+    with open(os.path.join(DATA_DIR, "sessions.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            session = Session(
+                session_key=row["session_key"],
+                session_data=row["session_data"],
+                expire_date=row["expire_date"],
+            )
+            session.save()
+
+
+def read_recipes():
+    with open(os.path.join(DATA_DIR, "recipes.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            if row.get("pub_date"):
+                pub_date = row["pub_date"]
+            else:
+                pub_date = timezone.now()
+            recipe = Recipe(
+                id=row["id"],
+                pub_date=pub_date,
+                author_id=row["author_id"],
+                name=row["name"],
+                image=row["image"],
+                text=row["text"],
+                cooking_time=row["cooking_time"],
+            )
+            recipe.save()
+
+
+def read_products_in_recipes():
+    with open(
+        os.path.join(DATA_DIR, "products_in_recipe.csv"), "r", encoding="utf-8"
+    ) as f:
+        reader = DictReader(f)
+        for row in reader:
+            recipe = ProductsInRecipe(
+                id=row["id"],
+                recipe_id=row["recipe_id"],
+                ingredient_id=row["ingredient_id"],
+                amount=row["amount"],
+            )
+            recipe.save()
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         read_users()
         self.stdout.write("Данные из файла users.csv загружены")
+        read_user_addresses()
+        self.stdout.write("Данные из файла user_addresses.csv загружены")
         read_category()
         self.stdout.write("Данные из файла category.csv загружены")
         read_subcategory()
@@ -264,15 +371,25 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла favorites.csv загружены")
         read_delivery_points()
         self.stdout.write("Данные из файла delivery_points.csv загружены")
-        read_user_addresses()
-        self.stdout.write("Данные из файла user_addresses.csv загружены")
+        read_orders()
+        self.stdout.write("Данные из файла orders.csv загружены")
+        read_order_products()
+        self.stdout.write("Данные из файла order_products.csv загружены")
         read_tokens()
         self.stdout.write("Данные из файла tokens.csv загружены")
         read_reviews()
         self.stdout.write("Данные из файла reviews.csv загружены")
+        read_sessions()
+        self.stdout.write("Данные из файла sessions.csv загружены")
+        read_recipes()
+        self.stdout.write("Данные из файла recipes.csv загружены")
+        read_products_in_recipes()
+        self.stdout.write("Данные из файла products_in_recipe.csv загружены")
 
         model_list = [
             Delivery,
+            Order,
+            OrderProduct,
             Category,
             Component,
             FavoriteProduct,
@@ -285,6 +402,9 @@ class Command(BaseCommand):
             Address,
             User,
             Token,
+            Session,
+            Recipe,
+            ProductsInRecipe,
         ]
         sequence_sql = connection.ops.sequence_reset_sql(no_style(), model_list)
         with connection.cursor() as cursor:

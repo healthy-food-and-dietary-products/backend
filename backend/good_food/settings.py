@@ -27,8 +27,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", default="key")
 
+# Development or Production
+MODE = os.getenv("MODE", default="prod")
+
 # SECURITY WARNING: don't run with debug turned on in production!
-# if os.getenv("MODE") == "dev":
+# if MODE == "dev":
 #     DEBUG = True
 # else:
 #     DEBUG = False
@@ -40,19 +43,20 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="").split()
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="").split()
 
 # For django-debug-toolbar
-if os.getenv("MODE") == "dev":
+if MODE == "dev":
     INTERNAL_IPS = os.getenv("INTERNAL_IPS", default="").split()
 
 # Application definition
 
 INSTALLED_APPS = [
+    # Default Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+    # Local apps
     "products.apps.ProductsConfig",
     "users.apps.UsersConfig",
     "recipes.apps.RecipesConfig",
@@ -60,12 +64,14 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "orders.apps.OrdersConfig",
     "reviews.apps.ReviewsConfig",
+    "payments.apps.PaymentsConfig",
+    # Third parties apps
+    "rest_framework",
     "debug_toolbar",
     "djoser",
     "rest_framework.authtoken",
     "django_cleanup.apps.CleanupSelectedConfig",
     "corsheaders",
-    "drf_spectacular",
     "drf_standardized_errors",
     "django_filters",
     "drf_yasg",
@@ -84,6 +90,7 @@ MIDDLEWARE = [
 ]
 
 SHOPPING_CART_SESSION_ID = "shopping_cart_id"
+ORDER_SESSION_ID = "order_id"
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
@@ -92,7 +99,7 @@ ROOT_URLCONF = "good_food.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -189,30 +196,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Good Food API",
-    "DESCRIPTION": "API documentation for the GoodFood project",
-    "VERSION": "v1",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "COMPONENT_SPLIT_REQUEST": True,
-    "ENUM_NAME_OVERRIDES": {
-        "ValidationErrorEnum": "drf_standardized_errors.openapi_serializers.ValidationErrorEnum.values",
-        "ClientErrorEnum": "drf_standardized_errors.openapi_serializers.ClientErrorEnum.values",
-        "ServerErrorEnum": "drf_standardized_errors.openapi_serializers.ServerErrorEnum.values",
-        "ErrorCode401Enum": "drf_standardized_errors.openapi_serializers.ErrorCode401Enum.values",
-        "ErrorCode403Enum": "drf_standardized_errors.openapi_serializers.ErrorCode403Enum.values",
-        "ErrorCode404Enum": "drf_standardized_errors.openapi_serializers.ErrorCode404Enum.values",
-        "ErrorCode405Enum": "drf_standardized_errors.openapi_serializers.ErrorCode405Enum.values",
-        "ErrorCode406Enum": "drf_standardized_errors.openapi_serializers.ErrorCode406Enum.values",
-        "ErrorCode415Enum": "drf_standardized_errors.openapi_serializers.ErrorCode415Enum.values",
-        "ErrorCode429Enum": "drf_standardized_errors.openapi_serializers.ErrorCode429Enum.values",
-        "ErrorCode500Enum": "drf_standardized_errors.openapi_serializers.ErrorCode500Enum.values",
-    },
-    "POSTPROCESSING_HOOKS": [
-        "drf_standardized_errors.openapi_hooks.postprocess_schema_enums"
-    ],
-}
-
+# Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_PORT = 587
@@ -261,3 +245,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
+
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")

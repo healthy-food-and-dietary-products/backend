@@ -12,40 +12,38 @@ class RecipeIngredientInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     """Class to display recipes in admin panel."""
 
-    list_display = (
+    list_display = [
         "pk",
         "name",
         "author",
-        "text",
-        "pub_date",
-    )
-    fields = (
-        "name",
-        "author",
-        "image",
+        "short_description",
         "text",
         "cooking_time",
+        "servings_quantity",
+        "total_ingredients",
         "pub_date",
-    )
-    list_display_links = ("name",)
-    search_fields = (
-        "author__username",
-        "name",
-    )
-    list_filter = (
-        "author",
-        "name",
-        "pub_date",
-    )
-    readonly_fields = ("pub_date",)
+    ]
+    list_display_links = ["name"]
+    search_fields = ["author__username", "name", "short_description", "text"]
+    list_filter = ["pub_date", "cooking_time", "servings_quantity"]
+    readonly_fields = ["pub_date"]
     empty_value_display = "-empty-"
-    inlines = (RecipeIngredientInline,)
+    inlines = [RecipeIngredientInline]
+
+    @admin.display(description="Total ingredients")
+    def total_ingredients(self, obj):
+        """Shows the number of ingredients for this recipe."""
+        return obj.ingredients.count()
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("author").prefetch_related("ingredients")
 
 
 @admin.register(ProductsInRecipe)
 class ProductsInRecipeAdmin(admin.ModelAdmin):
-    list_display = ("pk", "recipe", "ingredient", "amount", "measure_unit")
-    list_display_links = ("recipe", "ingredient")
+    list_display = ["pk", "recipe", "ingredient", "amount", "measure_unit"]
+    list_display_links = ["recipe", "ingredient"]
     empty_value_display = "-empty-"
 
     @admin.display(description="Measure units")
@@ -55,4 +53,4 @@ class ProductsInRecipeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("recipe").prefetch_related("ingredient")
+        return queryset.select_related("recipe", "ingredient")

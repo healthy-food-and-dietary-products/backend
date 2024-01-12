@@ -3,32 +3,40 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_filters import rest_framework as rf_filters
 from drf_standardized_errors.openapi_serializers import (
+    ClientErrorEnum,
+    ErrorCode406Enum,
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
+    ErrorResponse406Serializer,
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import decorators, permissions, response, status, viewsets
+from rest_framework import filters, permissions, response, status, viewsets
+from rest_framework.decorators import action
 
 from .filters import ProductFilter
 from .mixins import MESSAGE_ON_DELETE, DestroyWithPayloadMixin
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrReadOnly
 from .products_serializers import (
+    CategoryBriefSerializer,
     CategoryCreateSerializer,
     CategorySerializer,
     ComponentSerializer,
     FavoriteProductCreateSerializer,
+    FavoriteProductDeleteSerializer,
     FavoriteProductSerializer,
     ProducerSerializer,
     ProductCreateSerializer,
     ProductSerializer,
     ProductUpdateSerializer,
+    ProductUserOrderCheckSerializer,
     PromotionSerializer,
     SubcategorySerializer,
     TagSerializer,
 )
+from orders.models import OrderProduct
 from products.models import (
     Category,
     Component,
@@ -105,18 +113,74 @@ STATUS_200_RESPONSE_ON_DELETE_IN_DOCS = (
         },
     ),
 )
+@method_decorator(
+    name="category_brief_list",
+    decorator=swagger_auto_schema(
+        operation_summary="List categories brief info",
+        responses={200: CategoryBriefSerializer},
+    ),
+)
+@method_decorator(
+    name="category_brief_detail",
+    decorator=swagger_auto_schema(
+        operation_summary="Show brief category info",
+        responses={200: CategoryBriefSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
 class CategoryViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for categories."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Category.objects.prefetch_related("subcategories")
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
         if self.action in ["create", "partial_update"]:
             return CategoryCreateSerializer
+        if self.action in ["category_brief_list", "category_brief_detail"]:
+            return CategoryBriefSerializer
         return CategorySerializer
+
+    def get_queryset(self):
+        return CategorySerializer.setup_eager_loading(
+            Category.objects.all(), self.request.user
+        )
+
+    # TODO: test this endpoint
+    @action(methods=["get"], detail=False, url_path="category-brief-list")
+    def category_brief_list(self, request):
+        """
+        Shows brief information about categories without indicating subcategories
+        and top products of these categories.
+        """
+        categories_list = Category.objects.all()
+        serializer = self.get_serializer_class()
+        return response.Response(
+            serializer(
+                categories_list,
+                many=True,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    # TODO: test this endpoint
+    @action(methods=["get"], detail=True, url_path="category-brief-detail")
+    def category_brief_detail(self, request, pk):
+        """
+        Shows brief information about a category without indicating subcategories
+        and top products of that category.
+        """
+        category = get_object_or_404(Category, id=pk)
+        serializer = self.get_serializer_class()
+        return response.Response(
+            serializer(
+                category,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @method_decorator(
@@ -313,6 +377,9 @@ class TagViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        return TagSerializer.setup_eager_loading(Tag.objects.all(), self.request.user)
+
 
 @method_decorator(
     name="list",
@@ -504,13 +571,12 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     """Viewset for products."""
 
     http_method_names = ["get", "post", "patch", "delete"]
-    queryset = Product.objects.select_related(
-        "category", "subcategory", "producer"
-    ).prefetch_related("components", "tags", "promotions", "reviews")
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [rf_filters.DjangoFilterBackend]
+    filter_backends = [rf_filters.DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = ProductFilter
+    ordering = ["pk"]
     pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
@@ -520,43 +586,14 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             return ProductUpdateSerializer
         if self.action == "favorite":
             return FavoriteProductCreateSerializer
+        if self.action == "order_user_check":
+            return ProductUserOrderCheckSerializer
         return ProductSerializer
 
     def get_queryset(self):
-        return Product.objects.select_related(
-            "category", "subcategory", "producer"
-        ).prefetch_related("components", "tags", "promotions", "reviews")
-
-    @transaction.atomic
-    def create_delete_or_scold(self, model, product, request):
-        instance = model.objects.filter(product=product, user=request.user)
-        if request.method == "DELETE" and not instance:
-            return response.Response(
-                {"errors": NO_FAVORITE_PRODUCT_ERROR_MESSAGE},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if request.method == "DELETE":
-            message = {
-                "favorite_product_object_id": instance[0].id,
-                "favorite_product_id": instance[0].product.id,
-                "favorite_product_name": instance[0].product.name,
-                "user_id": instance[0].user.id,
-                "user_username": instance[0].user.username,
-                "Success": MESSAGE_ON_DELETE,
-            }
-            instance.delete()
-            return response.Response(data=message, status=status.HTTP_200_OK)
-        if instance:
-            return response.Response(
-                {"errors": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        new_favorite_product = model.objects.create(user=request.user, product=product)
-        serializer = FavoriteProductSerializer(
-            new_favorite_product,
-            context={"request": request, "format": self.format_kwarg, "view": self},
+        return ProductSerializer.setup_eager_loading(
+            Product.objects.all(), self.request.user
         )
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -589,7 +626,7 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ),
         responses={
             201: FavoriteProductSerializer,
-            400: '{"errors": "' + DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
@@ -601,20 +638,108 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
             "Deletes a product from a user's favorites (authorized user only)"
         ),
         responses={
-            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
-            400: '{"errors": "' + NO_FAVORITE_PRODUCT_ERROR_MESSAGE + '"}',
+            200: FavoriteProductDeleteSerializer,
+            400: ErrorResponse406Serializer,
             401: ErrorResponse401Serializer,
             404: ErrorResponse404Serializer,
         },
     )
-    @decorators.action(
+    @transaction.atomic
+    @action(
         methods=["post", "delete"],
         detail=True,
         permission_classes=[permissions.IsAuthenticated],
     )
     def favorite(self, request, pk):
         product = get_object_or_404(Product, id=pk)
-        return self.create_delete_or_scold(FavoriteProduct, product, request)
+        favorite_product = FavoriteProduct.objects.filter(
+            product=product, user=request.user
+        )
+        if request.method == "DELETE" and not favorite_product:
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": NO_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
+            return response.Response(
+                ErrorResponse406Serializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if request.method == "DELETE":
+            payload = {
+                "favorite_product_object_id": favorite_product[0].id,
+                "favorite_product_id": product.id,
+                "favorite_product_name": product.name,
+                "user_id": request.user.id,
+                "user_username": request.user.username,
+                "success": MESSAGE_ON_DELETE,
+            }
+            favorite_product.delete()
+            return response.Response(
+                FavoriteProductDeleteSerializer(payload).data, status=status.HTTP_200_OK
+            )
+        if favorite_product:
+            payload = {
+                "type": ClientErrorEnum.CLIENT_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode406Enum.NOT_ACCEPTABLE,
+                        "detail": DOUBLE_FAVORITE_PRODUCT_ERROR_MESSAGE,
+                    }
+                ],
+            }
+            return response.Response(
+                ErrorResponse406Serializer(payload).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new_favorite_product = FavoriteProduct.objects.create(
+            user=request.user, product=product
+        )
+        serializer = FavoriteProductSerializer(
+            new_favorite_product,
+            context={"request": request, "format": self.format_kwarg, "view": self},
+        )
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # TODO: test this endpoint
+    @method_decorator(
+        name="retrieve",
+        decorator=swagger_auto_schema(
+            operation_summary="Check user product order",
+            responses={
+                200: ProductUserOrderCheckSerializer,
+                404: ErrorResponse404Serializer,
+            },
+        ),
+    )
+    @action(
+        methods=["get"],
+        detail=True,
+        url_path="order-user-check",
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def order_user_check(self, request, pk):
+        """Shows whether the request.user has ordered this product."""
+        product = get_object_or_404(Product, id=int(pk))
+        serializer = self.get_serializer_class()
+        payload = {
+            "product": pk,
+            "user": self.request.user.pk,
+            "ordered": OrderProduct.objects.filter(
+                product=product, order__user=self.request.user
+            ).exists(),
+        }
+        return response.Response(
+            serializer(
+                payload,
+                context={"request": request, "format": self.format_kwarg, "view": self},
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @method_decorator(

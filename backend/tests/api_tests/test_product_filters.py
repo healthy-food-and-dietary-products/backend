@@ -244,7 +244,7 @@ def test_product_tags_filter_fail_invalid_slug(client, tags):
 @pytest.mark.django_db
 def test_product_promotions_filter(client, products, promotions):
     products[1].promotions.set([promotions[0]])
-    filter = f"?promotions={promotions[0].pk}"
+    filter = f"?promotions={promotions[0].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -261,7 +261,7 @@ def test_product_promotions_filter(client, products, promotions):
 def test_product_promotions_filter_multiple(client, products, promotions):
     products[0].promotions.set([promotions[1]])
     products[1].promotions.set([promotions[0]])
-    filter = f"?promotions={promotions[0].pk}&promotions={promotions[1].pk}"
+    filter = f"?promotions={promotions[0].slug}&promotions={promotions[1].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200

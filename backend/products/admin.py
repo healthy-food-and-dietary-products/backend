@@ -4,6 +4,7 @@ from django.db.models import Avg
 from .models import (
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -50,7 +51,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug", "number_subcategories"]
     list_display_links = ("name",)
-    fields = ["name", "slug"]
+    fields = ["name", "slug", "image"]
     search_fields = ["name", "slug"]
     readonly_fields = ["number_subcategories"]
     ordering = ["pk"]
@@ -61,6 +62,10 @@ class CategoryAdmin(admin.ModelAdmin):
         """Shows the number of subcategories for this category."""
         return obj.subcategories.count()
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("subcategories")
+
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
@@ -68,7 +73,7 @@ class SubcategoryAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug", "parent_category"]
     list_display_links = ("name",)
-    fields = ["parent_category", "name", "slug"]
+    fields = ["parent_category", "name", "slug", "image"]
     search_fields = ["name", "slug"]
     list_filter = ["parent_category"]
     ordering = ["pk"]
@@ -91,7 +96,7 @@ class TagAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "name", "slug"]
     list_display_links = ("name",)
-    fields = ["name", "slug"]
+    fields = ["name", "slug", "image"]
     search_fields = ["name", "slug"]
     ordering = ["pk"]
 
@@ -102,7 +107,7 @@ class ProducerAdmin(admin.ModelAdmin):
 
     list_display = ["pk", "producer_type", "name", "slug", "address", "description"]
     list_display_links = ("name",)
-    fields = ["producer_type", "name", "slug", "address", "description"]
+    fields = ["producer_type", "name", "slug", "address", "description", "image"]
     search_fields = ["name", "slug", "address", "description"]
     ordering = ["pk"]
     list_filter = ["producer_type"]
@@ -116,6 +121,7 @@ class PromotionAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
         "name",
+        "slug",
         "promotion_type",
         "discount",
         "is_active",
@@ -126,6 +132,7 @@ class PromotionAdmin(admin.ModelAdmin):
     list_display_links = ("name",)
     fields = [
         "name",
+        "slug",
         "promotion_type",
         "discount",
         "is_active",
@@ -133,11 +140,51 @@ class PromotionAdmin(admin.ModelAdmin):
         "start_time",
         "end_time",
         "conditions",
+        "image",
     ]
     search_fields = ["name", "discount", "conditions", "start_time", "end_time"]
     ordering = ["pk"]
     list_filter = ["promotion_type", "is_active", "is_constant"]
     empty_value_display = "-empty-"
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    """Class to display coupons in admin panel."""
+
+    list_display = [
+        "pk",
+        "name",
+        "code",
+        "slug",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+    ]
+    list_display_links = ("code",)
+    fields = [
+        "name",
+        "code",
+        "slug",
+        "promotion_type",
+        "discount",
+        "is_active",
+        "is_constant",
+        "start_time",
+        "end_time",
+        "conditions",
+        "image",
+    ]
+    search_fields = ["name", "code", "discount", "conditions", "start_time", "end_time"]
+    ordering = ["pk"]
+    list_filter = ["promotion_type", "is_active", "is_constant"]
+    empty_value_display = "-empty-"
+
+    def get_changeform_initial_data(self, request):
+        return {"promotion_type": Promotion.COUPON}
 
 
 @admin.register(Product)
@@ -181,13 +228,13 @@ class ProductAdmin(admin.ModelAdmin):
         "orders_number",
         "photo",
     ]
-    search_fields = ["name", "description", "producer"]
+    search_fields = ["name", "description", "producer__name"]
     readonly_fields = ["creation_time", "promotion_quantity", "final_price", "rating"]
     ordering = ["pk"]
     list_filter = [
         "category",
-        "subcategory",
         "tags",
+        "subcategory",
         "discontinued",
         "producer",
         "measure_unit",
@@ -208,6 +255,14 @@ class ProductAdmin(admin.ModelAdmin):
             return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
         return "-empty-"
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return (
+            queryset.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .annotate(rating=Avg("reviews__score"))
+        )
+
 
 @admin.register(ProductPromotion)
 class ProductPromotionAdmin(admin.ModelAdmin):
@@ -225,5 +280,5 @@ class FavoriteProductAdmin(admin.ModelAdmin):
     list_display = ["pk", "product", "user"]
     list_display_links = ("product",)
     fields = ["user", "product"]
-    search_fields = ["user", "product"]
+    search_fields = ["user__username", "product__name"]
     list_filter = ["product"]

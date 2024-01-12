@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from api.users_serializers import UserLightSerializer
 from orders.models import OrderProduct
 from products.models import Product
 from reviews.models import Review
@@ -13,7 +14,7 @@ REVIEW_NO_ORDER_ERROR_MESSAGE = (
 class ReviewSerializer(serializers.ModelSerializer):
     """Serializer for reviews representation."""
 
-    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    author = UserLightSerializer(read_only=True)
     product = serializers.SlugRelatedField(slug_field="name", read_only=True)
     was_edited = serializers.BooleanField(read_only=True)
 
@@ -33,3 +34,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         if not OrderProduct.objects.filter(product=product, order__user=user).exists():
             raise serializers.ValidationError(REVIEW_NO_ORDER_ERROR_MESSAGE)
         return data
+
+
+class ReviewUserCheckSerializer(serializers.Serializer):
+    """Serializer to check if the user has reviewed a product."""
+
+    product = serializers.IntegerField(read_only=True)
+    user = serializers.IntegerField(read_only=True)
+    reviewed = serializers.BooleanField(read_only=True)

@@ -1,12 +1,13 @@
-from django.db.models import Avg
-from drf_spectacular.utils import extend_schema_field
+from django.db.models import Avg, Exists, OuterRef, Prefetch
 from rest_framework import serializers
 
 from .users_serializers import UserLightSerializer
+from orders.shopping_carts import ShopCart
 from products.models import (
     MAX_PROMOTIONS_NUMBER,
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -16,14 +17,14 @@ from products.models import (
     Tag,
 )
 
-NO_RATING_MESSAGE = "У данного продукта еще нет оценок."
+RATING_DECIMAL_PLACES = 1
 
 
 class SubcategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for subcategories representation in product serializer."""
 
     subcategory_name = serializers.CharField(source="name")
-    subcategory_slug = serializers.CharField(source="slug")
+    subcategory_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Subcategory
@@ -34,14 +35,14 @@ class SubcategorySerializer(SubcategoryLightSerializer):
     """Serializer for subcategories representation."""
 
     class Meta(SubcategoryLightSerializer.Meta):
-        fields = ("id", "parent_category", "name", "slug")
+        fields = ("id", "parent_category", "name", "slug", "image")
 
 
 class CategoryLightSerializer(serializers.ModelSerializer):
     """Serializer for categories representation in product serializer."""
 
     category_name = serializers.CharField(source="name")
-    category_slug = serializers.CharField(source="slug")
+    category_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Category
@@ -53,66 +54,25 @@ class CategoryCreateSerializer(CategoryLightSerializer):
 
     class Meta:
         model = Category
-        fields = ("id", "category_name", "slug")
-
-
-class CategorySerializer(CategoryLightSerializer):
-    """Serializer for displaying categories."""
-
-    subcategories = SubcategoryLightSerializer(many=True, required=False)
-    top_three_products = serializers.SerializerMethodField()
-
-    class Meta(CategoryLightSerializer.Meta):
-        fields = ("id", "name", "slug", "subcategories", "top_three_products")
-
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular category."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
-        )
-        return ProductSerializer(
-            top_three_products_queryset, many=True, context=self.context
-        ).data
+        fields = ("id", "category_name", "slug", "image")
 
 
 class TagLightSerializer(serializers.ModelSerializer):
     """Serializer for tags representation in product serializer."""
 
     tag_name = serializers.CharField(source="name")
-    tag_slug = serializers.CharField(source="slug")
+    tag_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Tag
         fields = ("tag_name", "tag_slug")
 
 
-class TagSerializer(TagLightSerializer):
-    """Serializer for tags representation."""
-
-    top_three_products = serializers.SerializerMethodField()
-
-    class Meta(TagLightSerializer.Meta):
-        fields = ("id", "name", "slug", "top_three_products")
-
-    def get_top_three_products(self, obj):
-        """Shows three most popular products of a particular tag."""
-        top_three_products_queryset = (
-            obj.products.select_related("category", "subcategory", "producer")
-            .prefetch_related("components", "tags", "promotions", "reviews")
-            .order_by("-orders_number")[:3]
-        )
-        return ProductSerializer(
-            top_three_products_queryset, context=self.context, many=True
-        ).data
-
-
 class ComponentLightSerializer(serializers.ModelSerializer):
     """Serializer for components representation in product serializer."""
 
     component_name = serializers.CharField(source="name")
-    component_slug = serializers.CharField(source="slug")
+    component_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Component
@@ -130,7 +90,7 @@ class ProducerLightSerializer(serializers.ModelSerializer):
     """Serializer for produsers representation in product serializer."""
 
     producer_name = serializers.CharField(source="name")
-    producer_slug = serializers.CharField(source="slug")
+    producer_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Producer
@@ -141,17 +101,26 @@ class ProducerSerializer(ProducerLightSerializer):
     """Serializer for produsers representation."""
 
     class Meta(ProducerLightSerializer.Meta):
-        fields = ("id", "name", "slug", "producer_type", "description", "address")
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "producer_type",
+            "description",
+            "address",
+            "image",
+        )
 
 
 class PromotionLightSerializer(serializers.ModelSerializer):
     """Serializer for promotions representation in product serializer."""
 
     promotion_name = serializers.CharField(source="name")
+    promotion_slug = serializers.SlugField(source="slug")
 
     class Meta:
         model = Promotion
-        fields = ("promotion_name", "discount")
+        fields = ("promotion_name", "promotion_slug", "discount")
 
 
 class PromotionSerializer(ProducerLightSerializer):
@@ -162,12 +131,14 @@ class PromotionSerializer(ProducerLightSerializer):
             "id",
             "promotion_type",
             "name",
+            "slug",
             "discount",
             "conditions",
             "is_active",
             "is_constant",
             "start_time",
             "end_time",
+            "image",
         )
 
     def validate_discount(self, value):
@@ -222,26 +193,45 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_favorited",
         )
 
-    @extend_schema_field(bool)
-    def get_is_favorited(self, obj):
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of products data."""
+        if user.is_anonymous:
+            return (
+                queryset.select_related("category", "subcategory", "producer")
+                .prefetch_related("components", "tags", "promotions", "reviews")
+                .annotate(rating=Avg("reviews__score"))
+            )
+        return (
+            queryset.select_related("category", "subcategory", "producer")
+            .prefetch_related("components", "tags", "promotions", "reviews")
+            .annotate(
+                rating=Avg("reviews__score"),
+                favorited=Exists(
+                    FavoriteProduct.objects.filter(user=user, product=OuterRef("id"))
+                ),
+            )
+        )
+
+    def get_is_favorited(self, obj) -> bool:
         request = self.context.get("request")
         if not request or request.user.is_anonymous:
             return False
-        return obj.is_favorited(request.user)
+        return obj.favorited
 
-    @extend_schema_field(int)
-    def get_promotion_quantity(self, obj):
+    def get_promotion_quantity(self, obj) -> int:
         return obj.promotions.count()
 
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
+    def get_final_price(self, obj) -> float:
         return obj.final_price
 
-    def get_rating(self, obj):
-        product_reviews = obj.reviews.all()
-        if product_reviews:
-            return round(product_reviews.aggregate(Avg("score"))["score__avg"], 1)
-        return NO_RATING_MESSAGE
+    def get_rating(self, obj) -> float:
+        """Rounds and returns the annotated rating value."""
+        return (
+            round(obj.rating, RATING_DECIMAL_PLACES)
+            if obj.rating is not None
+            else obj.rating
+        )
 
 
 class ProductCreateSerializer(ProductSerializer):
@@ -331,10 +321,11 @@ class ProductUpdateSerializer(ProductCreateSerializer):
 
 
 class ProductPresentSerializer(serializers.ModelSerializer):
-    """Serializer for short presentation products."""
+    """Serializer for short presentation products in order list."""
 
     photo = serializers.ImageField(required=False)
     final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
 
     class Meta:
         model = Product
@@ -345,11 +336,44 @@ class ProductPresentSerializer(serializers.ModelSerializer):
             "amount",
             "final_price",
             "photo",
+            "category",
         )
 
-    @extend_schema_field(float)
-    def get_final_price(self, obj):
+    def get_final_price(self, obj) -> float:
         return obj.final_price
+
+
+class ProductTopSerializer(serializers.ModelSerializer):
+    """
+    Serializer for products in top_products field in lists of categories or tags."""
+
+    photo = serializers.ImageField(required=False)
+    final_price = serializers.SerializerMethodField()
+    category = CategoryLightSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "measure_unit",
+            "amount",
+            "final_price",
+            "photo",
+            "category",
+            "is_favorited",
+            "orders_number",
+        )
+
+    def get_final_price(self, obj) -> float:
+        return obj.final_price
+
+    def get_is_favorited(self, obj) -> bool:
+        request = self.context.get("request")
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.favorited
 
 
 class ProductLightSerializer(ProductSerializer):
@@ -357,6 +381,14 @@ class ProductLightSerializer(ProductSerializer):
 
     class Meta(ProductSerializer.Meta):
         fields = ("name",)
+
+
+class ProductUserOrderCheckSerializer(serializers.Serializer):
+    """Serializer to check if the user has ordered a product."""
+
+    product = serializers.IntegerField(read_only=True)
+    user = serializers.IntegerField(read_only=True)
+    ordered = serializers.BooleanField(read_only=True)
 
 
 class FavoriteProductSerializer(serializers.ModelSerializer):
@@ -376,3 +408,156 @@ class FavoriteProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FavoriteProduct
         fields = ("id",)
+
+
+class FavoriteProductDeleteSerializer(serializers.Serializer):
+    """Serializer for response body after favorite products deletion."""
+
+    favorite_product_object_id = serializers.IntegerField()
+    favorite_product_id = serializers.IntegerField()
+    favorite_product_name = serializers.CharField()
+    user_id = serializers.IntegerField()
+    user_username = serializers.CharField()
+    success = serializers.CharField()
+
+
+class CategorySerializer(CategoryLightSerializer):
+    """Serializer for displaying categories and their top three products."""
+
+    subcategories = SubcategoryLightSerializer(many=True, required=False)
+    top_products = ProductTopSerializer(many=True, source="products")
+
+    class Meta(CategoryLightSerializer.Meta):
+        fields = ("id", "name", "slug", "image", "subcategories", "top_products")
+
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of categories data."""
+        if user.is_anonymous:
+            return queryset.prefetch_related(
+                "subcategories",
+                Prefetch(
+                    "products",
+                    queryset=Product.objects.prefetch_related("promotions").order_by(
+                        "-orders_number"
+                    ),
+                ),
+            )
+        return queryset.prefetch_related(
+            "subcategories",
+            Prefetch(
+                "products",
+                queryset=Product.objects.prefetch_related("promotions")
+                .annotate(
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    )
+                )
+                .order_by("-orders_number"),
+            ),
+        )
+
+
+class CategoryBriefSerializer(CategorySerializer):
+    """Serializer for displaying brief categories information."""
+
+    name = serializers.CharField(required=False)
+
+    class Meta(CategorySerializer.Meta):
+        fields = ("id", "name", "slug", "image")
+
+
+class TagSerializer(TagLightSerializer):
+    """Serializer for tags representation."""
+
+    top_products = ProductTopSerializer(many=True, source="products", required=False)
+
+    class Meta(TagLightSerializer.Meta):
+        fields = ("id", "name", "slug", "image", "top_products")
+
+    @classmethod
+    def setup_eager_loading(cls, queryset, user):
+        """Perform necessary eager loading of tags data."""
+        if user.is_anonymous:
+            return queryset.prefetch_related(
+                Prefetch(
+                    "products",
+                    queryset=Product.objects.select_related("category")
+                    .prefetch_related("promotions")
+                    .order_by("-orders_number"),
+                ),
+            )
+        return queryset.prefetch_related(
+            Prefetch(
+                "products",
+                queryset=Product.objects.select_related("category")
+                .prefetch_related("promotions")
+                .annotate(
+                    favorited=Exists(
+                        FavoriteProduct.objects.filter(
+                            user=user, product=OuterRef("id")
+                        )
+                    )
+                )
+                .order_by("-orders_number"),
+            ),
+        )
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    """Serializer to apply coupon promoaction to the order."""
+
+    name = serializers.ReadOnlyField()
+    slug = serializers.ReadOnlyField()
+    promotion_type = serializers.ReadOnlyField()
+    discount = serializers.ReadOnlyField()
+    is_active = serializers.ReadOnlyField()
+    is_constant = serializers.ReadOnlyField()
+    start_time = serializers.ReadOnlyField()
+    end_time = serializers.ReadOnlyField()
+    conditions = serializers.ReadOnlyField()
+    image = serializers.ImageField(read_only=True)
+    new_total_price = serializers.SerializerMethodField()
+    discount_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Coupon
+        fields = (
+            "id",
+            "code",
+            "name",
+            "slug",
+            "promotion_type",
+            "discount",
+            "is_active",
+            "is_constant",
+            "start_time",
+            "end_time",
+            "conditions",
+            "image",
+            "new_total_price",
+            "discount_amount",
+        )
+
+    def get_new_total_price(self, obj) -> float:
+        request = self.context.get("request")
+        shopping_cart = ShopCart(request)
+        return shopping_cart.get_total_price()
+
+    def get_discount_amount(self, obj) -> float:
+        request = self.context.get("request")
+        shopping_cart = ShopCart(request)
+        new_price = shopping_cart.get_total_price()
+        return obj.discount * new_price / (100 - obj.discount)
+
+
+class CouponLightSerializer(serializers.ModelSerializer):
+    """Serializer for coupon representation in order serializers."""
+
+    name = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Coupon
+        fields = ("name", "discount")

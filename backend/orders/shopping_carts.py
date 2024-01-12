@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
-
 from django.conf import settings
+from django.utils import timezone
 
-from products.models import Product
+from core.loggers import logger
+from products.models import Coupon, Product
+
+PRICE_DECIMAL_PLACES = 2
 
 
 class ShopCart(object):
@@ -10,6 +12,7 @@ class ShopCart(object):
         """Initialize the shopping_cart."""
         self.session = request.session
         self.shopping_cart = self.session.get(settings.SHOPPING_CART_SESSION_ID, {})
+        self.coupon_id = self.session.get("coupon_id")
 
     def save(self):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
@@ -27,7 +30,9 @@ class ShopCart(object):
                 "category": p.category.slug,
                 "quantity": quantity,
                 "final_price": p.final_price,
-                "created_at": int(datetime.now(timezone.utc).timestamp()),
+                "created_at": timezone.localtime().isoformat(),
+                "amount": p.amount,
+                "measure_unit": p.measure_unit,
             }
         else:
             self.shopping_cart[p_id]["quantity"] = int(quantity)
@@ -41,17 +46,20 @@ class ShopCart(object):
         self.save()
 
     def __iter__(self):
-        """
-        Iterate over the items in the cart and get the products
-        from the database.
-        """
-
+        """Iterate over the items in the cart and get the products from the database."""
         for item in self.shopping_cart.values():
             item["id"] = item["id"]
             item["name"] = item["name"]
+            item["photo"] = item["photo"]
+            item["final_price"] = item["final_price"]
             item["quantity"] = int(item["quantity"])
-            item["total_price"] = item["quantity"] * item["final_price"]
+            item["total_price"] = round(
+                item["quantity"] * item["final_price"], PRICE_DECIMAL_PLACES
+            )
             item["category"] = item.get("category", None)
+            item["amount"] = item.get("amount")
+            item["measure_unit"] = item.get("measure_unit")
+            item["created_at"] = item["created_at"]
 
             yield item
 
@@ -62,7 +70,11 @@ class ShopCart(object):
             product = {}
             product["id"] = item["id"]
             product["name"] = item["name"]
+            product["photo"] = item["photo"]
             product["quantity"] = item["quantity"]
+            product["category"] = item["category"]
+            product["amount"] = item["amount"]
+            product["measure_unit"] = item["measure_unit"]
             products.append(product)
         return products
 
@@ -71,10 +83,23 @@ class ShopCart(object):
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
     def get_total_price(self):
-        return sum(
+        price_without_coupon = sum(
             int(item["quantity"]) * item["final_price"]
             for item in self.shopping_cart.values()
         )
+        if self.coupon_id:
+            try:
+                coupon = Coupon.objects.get(id=self.coupon_id)
+                shopcart_discount = price_without_coupon * (coupon.discount / 100)
+                logger.info(
+                    f"Promocode was applied, the discount is {shopcart_discount}."
+                )
+                return round(
+                    price_without_coupon - shopcart_discount, PRICE_DECIMAL_PLACES
+                )
+            except Coupon.DoesNotExist:
+                self.coupon_id = None
+        return round(price_without_coupon, PRICE_DECIMAL_PLACES)
 
     def clear(self):
         """remove cart from session."""
