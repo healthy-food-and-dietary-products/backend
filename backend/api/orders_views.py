@@ -11,10 +11,13 @@ from drf_standardized_errors.openapi_serializers import (
     ErrorCode403Enum,
     ErrorCode404Enum,
     ErrorCode406Enum,
+    ErrorCode500Enum,
     ErrorResponse401Serializer,
     ErrorResponse403Serializer,
     ErrorResponse404Serializer,
     ErrorResponse406Serializer,
+    ErrorResponse500Serializer,
+    ServerErrorEnum,
     ValidationErrorResponseSerializer,
 )
 from drf_yasg.utils import swagger_auto_schema
@@ -35,7 +38,6 @@ from .orders_serializers import (
     ShoppingCartRemoveAllSerializer,
     ShoppingCartSerializer,
     StripeCheckoutSessionCreateSerializer,
-    StripeError500Serializer,
     StripePaySuccessPageSerializer,
     StripeSessionCreateSerializer,
 )
@@ -365,7 +367,7 @@ class ShoppingCartViewSet(
             201: StripeSessionCreateSerializer,
             403: ErrorResponse403Serializer,
             404: ErrorResponse404Serializer,
-            500: StripeError500Serializer,
+            500: ErrorResponse500Serializer,
         },
     ),
 )
@@ -375,7 +377,7 @@ class ShoppingCartViewSet(
         operation_summary="Get order number after stripe payment",
         responses={
             200: StripePaySuccessPageSerializer,
-            500: StripeError500Serializer,
+            500: ErrorResponse500Serializer,
         },
     ),
 )
@@ -694,9 +696,18 @@ class OrderViewSet(
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:
-            payload = {"message": STRIPE_SESSION_CREATE_ERROR_MESSAGE, "errors": str(e)}
+            payload = {
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_SESSION_CREATE_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
+            }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -718,18 +729,33 @@ class OrderViewSet(
             )
         except stripe._error.AuthenticationError as e:
             logger.error(f"{e}")
-            payload = {"message": STRIPE_API_KEY_ERROR_MESSAGE, "errors": str(e)}
+            payload = {
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_API_KEY_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
+            }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except stripe._error.InvalidRequestError as e:
             logger.error(f"{e}")
             payload = {
-                "message": STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE,
-                "errors": str(e),
+                "type": ServerErrorEnum.SERVER_ERROR,
+                "errors": [
+                    {
+                        "code": ErrorCode500Enum.ERROR,
+                        "detail": STRIPE_INVALID_SESSION_ID_ERROR_MESSAGE,
+                        "attr": str(e),
+                    }
+                ],
             }
             return Response(
-                StripeError500Serializer(payload).data,
+                ErrorResponse500Serializer(payload).data,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
