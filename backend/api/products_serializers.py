@@ -549,15 +549,15 @@ class CouponSerializer(serializers.ModelSerializer):
     def get_discount_amount(self, obj) -> float:
         request = self.context.get("request")
         shopping_cart = ShopCart(request)
-        new_price = shopping_cart.get_total_price()
-        return obj.discount * new_price / (100 - obj.discount)
+        return shopping_cart.get_coupon_shopping_cart_discount(obj)
 
 
 class CouponLightSerializer(serializers.ModelSerializer):
     """Serializer for coupon representation in order serializers."""
 
     name = serializers.ReadOnlyField()
+    code = serializers.ReadOnlyField()
 
     class Meta:
         model = Coupon
-        fields = ("name", "discount")
+        fields = ("name", "code", "discount")

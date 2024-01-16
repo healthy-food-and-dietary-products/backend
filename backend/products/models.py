@@ -237,6 +237,9 @@ class Coupon(Promotion):
             raise ValidationError(COUPON_PROMOTION_TYPE_ERROR_MESSAGE)
         return super().clean_fields(exclude)
 
+    def __str__(self):
+        return self.code
+
 
 class Product(models.Model):
     """Describes products."""

@@ -88,6 +88,8 @@ class ShoppingCartListSerializer(serializers.Serializer):
     products = ShoppingCartProductListSerializer(many=True, read_only=True)
     count_of_products = serializers.IntegerField(read_only=True)
     total_price = serializers.FloatField(read_only=True)
+    coupon_code = serializers.CharField(read_only=True)
+    discount_amount = serializers.FloatField(read_only=True)
 
 
 class OrderGetAuthSerializer(serializers.ModelSerializer):
