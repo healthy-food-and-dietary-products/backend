@@ -82,24 +82,34 @@ class ShopCart(object):
         """Count all items in the cart."""
         return sum(int(item["quantity"]) for item in self.shopping_cart.values())
 
-    def get_total_price(self):
-        price_without_coupon = sum(
+    def get_coupon(self):
+        if not self.coupon_id:
+            return None
+        try:
+            return Coupon.objects.get(id=self.coupon_id)
+        except Coupon.DoesNotExist:
+            self.coupon_id = None
+            return None
+
+    def get_total_price_without_coupon(self):
+        return sum(
             int(item["quantity"]) * item["final_price"]
             for item in self.shopping_cart.values()
         )
-        if self.coupon_id:
-            try:
-                coupon = Coupon.objects.get(id=self.coupon_id)
-                shopcart_discount = price_without_coupon * (coupon.discount / 100)
-                logger.info(
-                    f"Promocode was applied, the discount is {shopcart_discount}."
-                )
-                return round(
-                    price_without_coupon - shopcart_discount, PRICE_DECIMAL_PLACES
-                )
-            except Coupon.DoesNotExist:
-                self.coupon_id = None
-        return round(price_without_coupon, PRICE_DECIMAL_PLACES)
+
+    def get_coupon_shopping_cart_discount(self, coupon, total_price_without_coupon):
+        if coupon:
+            shopping_cart_discount = total_price_without_coupon * coupon.discount / 100
+            return round(shopping_cart_discount, PRICE_DECIMAL_PLACES)
+        return 0
+
+    def get_total_price(self, coupon):
+        total_price = self.get_total_price_without_coupon()
+        if coupon:
+            discount = self.get_coupon_shopping_cart_discount(coupon, total_price)
+            logger.info(f"Promocode was applied, the discount is {discount}.")
+            return round(total_price - discount, PRICE_DECIMAL_PLACES)
+        return round(total_price, PRICE_DECIMAL_PLACES)
 
     def clear(self):
         """remove cart from session."""
