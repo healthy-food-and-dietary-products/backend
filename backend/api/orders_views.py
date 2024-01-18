@@ -237,12 +237,15 @@ class ShoppingCartViewSet(
         shopping_cart = ShopCart(request)
         serializer = self.get_serializer_class()
         coupon = shopping_cart.get_coupon()
+        total_price_without_coupon = shopping_cart.get_total_price_without_coupon()
         payload = {
             "products": shopping_cart.__iter__(),
             "count_of_products": shopping_cart.__len__(),
-            "total_price": shopping_cart.get_total_price(),
+            "total_price": shopping_cart.get_total_price(coupon),
             "coupon_code": coupon,
-            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(coupon),
+            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(
+                coupon, total_price_without_coupon
+            ),
         }
         logger.info("The user's shopping cart list was successfully received.")
         return Response(serializer(payload).data, status=status.HTTP_200_OK)
@@ -261,12 +264,15 @@ class ShoppingCartViewSet(
         for product in products:
             shopping_cart.add(product=product, quantity=product["quantity"])
         coupon = shopping_cart.get_coupon()
+        total_price_without_coupon = shopping_cart.get_total_price_without_coupon()
         payload = {
             "products": shopping_cart.__iter__(),
             "count_of_products": shopping_cart.__len__(),
-            "total_price": shopping_cart.get_total_price(),
+            "total_price": shopping_cart.get_total_price(coupon),
             "coupon_code": coupon,
-            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(coupon),
+            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(
+                coupon, total_price_without_coupon
+            ),
         }
         logger.info("The shopping cart was successfully created.")
         return Response(
@@ -313,12 +319,15 @@ class ShoppingCartViewSet(
             )
         shopping_cart.remove(product_id)
         coupon = shopping_cart.get_coupon()
+        total_price_without_coupon = shopping_cart.get_total_price_without_coupon()
         payload = {
             "products": shopping_cart.__iter__(),
             "count_of_products": shopping_cart.__len__(),
-            "total_price": shopping_cart.get_total_price(),
+            "total_price": shopping_cart.get_total_price(coupon),
             "coupon_code": coupon,
-            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(coupon),
+            "discount_amount": shopping_cart.get_coupon_shopping_cart_discount(
+                coupon, total_price_without_coupon
+            ),
         }
         logger.info(MESSAGE_ON_DELETE)
         return Response(
@@ -515,10 +524,11 @@ class OrderViewSet(
                 ErrorResponse404Serializer(payload).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
+        coupon = shopping_cart.get_coupon()
         shopping_data = {
             "products": shopping_cart.get_shop_products(),
             "count_of_products": shopping_cart.__len__(),
-            "total_price": shopping_cart.get_total_price(),
+            "total_price": shopping_cart.get_total_price(coupon),
         }
         serializer = self.get_serializer(shopping_data, request.data)
         serializer.is_valid(raise_exception=True)
