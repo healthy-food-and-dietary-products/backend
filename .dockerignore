@@ -1,3 +1,6 @@
 __pycache__/
+.pytest_cache
 db.sqlite3
+dump.json
+*.log
 /backend/media/
