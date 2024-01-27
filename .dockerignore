@@ -3,4 +3,7 @@ __pycache__/
 db.sqlite3
 dump.json
 *.log
+*.csv
 /backend/media/
+/backend/static/
+.env
