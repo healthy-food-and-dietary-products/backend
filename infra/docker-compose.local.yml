@@ -24,6 +24,14 @@ services:
       - ./.env
 
   frontend:
+    # Settings for building image from a cloned frontend repository (mind the branch)
+    build:
+      context: ../../frontend/
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_BASE_URL=${VITE_BASE_URL}
+    # if we need a specific image name after building
+    # or want to pull a specific image from DockerHub (in this case comment lines 28-32)
     image: healthyfoodapi/good_food_frontend:v.01
     container_name: good_food_frontend
     command: cp -r /app/dist/. /frontend_static/
