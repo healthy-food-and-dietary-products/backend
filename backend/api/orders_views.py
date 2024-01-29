@@ -167,7 +167,7 @@ class ShoppingCartViewSet(
         if request.session.get("coupon_id"):
             del request.session["coupon_id"]
         shopping_cart.clear()
-        logger.info(SHOP_CART_CLEAR_MESSAGE)
+        logger.info("The shopping cart is empty, all the products inside are removed.")
         payload = {"message": SHOP_CART_CLEAR_MESSAGE}
         return Response(
             ShoppingCartRemoveAllSerializer(payload).data, status=status.HTTP_200_OK
@@ -247,7 +247,7 @@ class ShoppingCartViewSet(
                 coupon, total_price_without_coupon
             ),
         }
-        logger.info("The user's shopping cart list was successfully received.")
+        logger.info("The user's shopping cart was successfully received.")
         return Response(serializer(payload).data, status=status.HTTP_200_OK)
 
     def create(self, request, **kwargs):
@@ -274,7 +274,9 @@ class ShoppingCartViewSet(
                 coupon, total_price_without_coupon
             ),
         }
-        logger.info("The shopping cart was successfully created.")
+        logger.info(
+            "A product was added to the shopping cart or its quantity was changed."
+        )
         return Response(
             ShoppingCartListSerializer(payload).data,
             status=status.HTTP_201_CREATED,
@@ -329,7 +331,7 @@ class ShoppingCartViewSet(
                 coupon, total_price_without_coupon
             ),
         }
-        logger.info(MESSAGE_ON_DELETE)
+        logger.info("A product was successfully removed from the shopping cart.")
         return Response(
             ShoppingCartListSerializer(payload).data,
             status=status.HTTP_200_OK,
@@ -637,7 +639,7 @@ class OrderViewSet(
         serializer_data = response_serializer(order).data
         serializer_data["Success"] = MESSAGE_ON_DELETE
         order.delete()
-        logger.info(MESSAGE_ON_DELETE)
+        logger.info("The order was successfully deleted.")
         return Response(serializer_data, status=status.HTTP_200_OK)
 
     # TODO: test this endpoint

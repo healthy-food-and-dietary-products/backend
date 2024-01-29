@@ -109,6 +109,8 @@ jobs:
             echo STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} >> .env
             echo STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} >> .env
             echo STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} >> .env
+            echo VITE_API_URL=${{ secrets.VITE_API_URL }} >> .env
+            echo VITE_BASE_URL=${{ secrets.VITE_BASE_URL }} >> .env
             sudo docker compose up -d
             sudo docker image prune -f
             sudo docker compose exec -T web python manage.py collectstatic --no-input
