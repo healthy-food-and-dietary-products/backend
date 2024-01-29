@@ -25,9 +25,6 @@ services:
 
   frontend:
     image: healthyfoodapi/good_food_frontend:v.01
-    environment:
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_BASE_URL=${VITE_BASE_URL}
     container_name: good_food_frontend
     command: cp -r /app/dist/. /frontend_static/
     volumes:
