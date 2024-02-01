@@ -13,6 +13,7 @@ from orders.models import Delivery, Order, OrderProduct
 from products.models import (
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -134,6 +135,29 @@ def read_promotions():
             promotion.save()
 
 
+def read_coupons():
+    with open(os.path.join(DATA_DIR, "coupons.csv"), "r", encoding="utf-8") as f:
+        reader = DictReader(f)
+        for row in reader:
+            coupon = Coupon(
+                id=row["id"],
+                promotion_type=row["promotion_type"],
+                name=row["name"],
+                slug=row["slug"],
+                code=row["code"],
+                discount=row["discount"],
+                conditions=row["conditions"],
+                is_active=row["is_active"],
+                is_constant=row["is_constant"],
+                image=row["image"],
+            )
+            if row.get("start_time"):
+                coupon.start_time = row["start_time"]
+            if row.get("end_time"):
+                coupon.start_time = row["end_time"]
+            coupon.save()
+
+
 def read_products():
     with open(os.path.join(DATA_DIR, "products.csv"), "r", encoding="utf-8") as f:
         reader = DictReader(f)
@@ -238,6 +262,10 @@ def read_orders():
                 add_address=row["add_address"],
                 total_price=row["total_price"],
                 user_data=row["user_data"],
+                coupon_applied_id=row["coupon_applied_id"],
+                coupon_discount=None
+                if row["coupon_discount"] == ""
+                else row["coupon_discount"],
             )
             order.save()
 
@@ -361,6 +389,8 @@ class Command(BaseCommand):
         self.stdout.write("Данные из файла components.csv загружены")
         read_promotions()
         self.stdout.write("Данные из файла promotions.csv загружены")
+        read_coupons()
+        self.stdout.write("Данные из файла coupons.csv загружены")
         read_products()
         self.stdout.write("Данные из файла products.csv загружены")
         read_products_components()
@@ -398,6 +428,7 @@ class Command(BaseCommand):
             Producer,
             Product,
             Promotion,
+            Coupon,
             Subcategory,
             Tag,
             Review,

@@ -153,6 +153,19 @@ def export_promotions():
             writer.writerow(row)
 
 
+def export_coupons():
+    data = apps.get_model("products", "Coupon")
+    field_names = [f.name for f in data._meta.fields]
+    with open(
+        os.path.join(DATA_DIR, "coupons.csv"), "w", newline="", encoding="utf-8"
+    ) as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(field_names)
+        for obj in data.objects.all():
+            row = [getattr(obj, field) for field in field_names]
+            writer.writerow(row)
+
+
 def export_products_promotions():
     data = apps.get_model("products", "ProductPromotion")
     field_names = ["id", "product_id", "promotion_id"]
@@ -285,6 +298,8 @@ def export_orders():
         "add_address",
         "total_price",
         "user_data",
+        "coupon_applied_id",
+        "coupon_discount",
     ]
     with open(
         os.path.join(DATA_DIR, "orders.csv"),
@@ -427,6 +442,10 @@ class Command(BaseCommand):
         export_promotions()
         self.stdout.write(
             self.style.SUCCESS("Экспорт данных модели Promotion прошёл успешно.")
+        )
+        export_coupons()
+        self.stdout.write(
+            self.style.SUCCESS("Экспорт данных модели Coupon прошёл успешно.")
         )
         export_products_promotions()
         self.stdout.write(
