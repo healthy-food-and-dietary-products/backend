@@ -8,6 +8,7 @@ from .orders_views import OrderViewSet, ShoppingCartViewSet
 from .products_views import (
     CategoryViewSet,
     ComponentViewSet,
+    CouponViewSet,
     FavoriteProductViewSet,
     ProducerViewSet,
     ProductViewSet,
@@ -33,6 +34,7 @@ router.register("components", ComponentViewSet)
 router.register("tags", TagViewSet)
 router.register("producers", ProducerViewSet)
 router.register("promotions", PromotionViewSet)
+router.register("coupons", CouponViewSet)
 router.register("products", ProductViewSet)
 router.register(
     r"products/(?P<product_id>\d+)/reviews", ReviewViewSet, basename="reviews"

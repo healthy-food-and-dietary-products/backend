@@ -24,6 +24,7 @@ from .products_serializers import (
     CategoryCreateSerializer,
     CategorySerializer,
     ComponentSerializer,
+    CouponSerializer,
     FavoriteProductCreateSerializer,
     FavoriteProductDeleteSerializer,
     FavoriteProductSerializer,
@@ -40,6 +41,7 @@ from orders.models import OrderProduct
 from products.models import (
     Category,
     Component,
+    Coupon,
     FavoriteProduct,
     Producer,
     Product,
@@ -508,6 +510,71 @@ class PromotionViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     queryset = Promotion.objects.all()
     serializer_class = PromotionSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        operation_summary="List all coupons",
+        operation_description="Returns a list of all the coupons",
+        responses={200: CouponSerializer},
+    ),
+)
+@method_decorator(
+    name="retrieve",
+    decorator=swagger_auto_schema(
+        operation_summary="Get coupon by id",
+        operation_description="Retrieves a coupon by its id",
+        responses={200: CouponSerializer, 404: ErrorResponse404Serializer},
+    ),
+)
+@method_decorator(
+    name="create",
+    decorator=swagger_auto_schema(
+        operation_summary="Create coupon",
+        operation_description="Creates a coupon (admin only)",
+        responses={
+            201: CouponSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="partial_update",
+    decorator=swagger_auto_schema(
+        operation_summary="Edit coupon",
+        operation_description="Edits a coupon by its id (admin only)",
+        responses={
+            200: CouponSerializer,
+            400: ValidationErrorResponseSerializer,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+@method_decorator(
+    name="destroy",
+    decorator=swagger_auto_schema(
+        operation_summary="Delete coupon",
+        operation_description="Deletes a coupon by its id (admin only)",
+        responses={
+            200: STATUS_200_RESPONSE_ON_DELETE_IN_DOCS,
+            401: ErrorResponse401Serializer,
+            403: ErrorResponse403Serializer,
+            404: ErrorResponse404Serializer,
+        },
+    ),
+)
+class CouponViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
+    """Viewset for coupons."""
+
+    http_method_names = ["get", "post", "patch", "delete"]
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 

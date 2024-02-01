@@ -94,7 +94,7 @@ class Order(models.Model):
         related_name="orders",
         verbose_name="Покупатель",
     )
-    order_number = models.CharField("Number", max_length=50, default="1")
+    order_number = models.CharField("Number", max_length=50, unique=True)
     ordering_date = models.DateTimeField(auto_now_add=True, verbose_name="DateTime")
     products = models.ManyToManyField(
         Product,

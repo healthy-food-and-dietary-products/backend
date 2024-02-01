@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .users_serializers import UserLightSerializer
 from orders.shopping_carts import ShopCart
 from products.models import (
+    INCORRECT_COUPON_APPLY_ERROR,
     MAX_PROMOTIONS_NUMBER,
     Category,
     Component,
@@ -17,6 +18,9 @@ from products.models import (
     Tag,
 )
 
+COUPON_PROMOTION_TYPE_API_ERROR_MESSAGE = (
+    f"Указан неверный тип промоакции, нужно выбрать {Promotion.COUPON}."
+)
 RATING_DECIMAL_PLACES = 1
 
 
@@ -123,7 +127,7 @@ class PromotionLightSerializer(serializers.ModelSerializer):
         fields = ("promotion_name", "promotion_slug", "discount")
 
 
-class PromotionSerializer(ProducerLightSerializer):
+class PromotionSerializer(PromotionLightSerializer):
     """Serializer for promotions representation."""
 
     class Meta(PromotionLightSerializer.Meta):
@@ -287,7 +291,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
         many=True, queryset=Promotion.objects.all()
     )
 
-    class Meta(ProductSerializer.Meta):
+    class Meta(ProductCreateSerializer.Meta):
         fields = (
             "id",
             "name",
@@ -317,6 +321,9 @@ class ProductUpdateSerializer(ProductCreateSerializer):
             raise serializers.ValidationError(
                 ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
             )
+        for promotion in value:
+            if promotion.promotion_type == Promotion.COUPON:
+                raise serializers.ValidationError(INCORRECT_COUPON_APPLY_ERROR)
         return value
 
 
@@ -507,6 +514,33 @@ class TagSerializer(TagLightSerializer):
 
 
 class CouponSerializer(serializers.ModelSerializer):
+    """Serializer for coupons representation."""
+
+    class Meta:
+        model = Coupon
+        fields = (
+            "id",
+            "code",
+            "name",
+            "slug",
+            "promotion_type",
+            "discount",
+            "is_active",
+            "is_constant",
+            "start_time",
+            "end_time",
+            "conditions",
+            "image",
+        )
+
+    def validate_promotion_type(self, value):
+        """Checks that promotion_type is correct."""
+        if value != Promotion.COUPON:
+            raise serializers.ValidationError(COUPON_PROMOTION_TYPE_API_ERROR_MESSAGE)
+        return value
+
+
+class CouponApplySerializer(serializers.ModelSerializer):
     """Serializer to apply coupon promoaction to the order."""
 
     name = serializers.ReadOnlyField()
