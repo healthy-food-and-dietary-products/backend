@@ -9,7 +9,11 @@ from users.models import User
 
 MAX_PROMOTIONS_NUMBER = 1
 COUPON_PROMOTION_TYPE_ERROR_MESSAGE = (
-    'Указан неверный тип промоакции, нужно выбрать "Промокод"'
+    'Указан неверный тип промоакции, нужно выбрать "Промокод".'
+)
+INCORRECT_COUPON_APPLY_ERROR = (
+    "Промокод не может быть применен к отдельному товару, "
+    "он применяется к Корзине в целом."
 )
 
 

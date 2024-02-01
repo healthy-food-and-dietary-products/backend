@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .users_serializers import UserLightSerializer
 from orders.shopping_carts import ShopCart
 from products.models import (
+    INCORRECT_COUPON_APPLY_ERROR,
     MAX_PROMOTIONS_NUMBER,
     Category,
     Component,
@@ -123,7 +124,7 @@ class PromotionLightSerializer(serializers.ModelSerializer):
         fields = ("promotion_name", "promotion_slug", "discount")
 
 
-class PromotionSerializer(ProducerLightSerializer):
+class PromotionSerializer(PromotionLightSerializer):
     """Serializer for promotions representation."""
 
     class Meta(PromotionLightSerializer.Meta):
@@ -287,7 +288,7 @@ class ProductUpdateSerializer(ProductCreateSerializer):
         many=True, queryset=Promotion.objects.all()
     )
 
-    class Meta(ProductSerializer.Meta):
+    class Meta(ProductCreateSerializer.Meta):
         fields = (
             "id",
             "name",
@@ -317,6 +318,9 @@ class ProductUpdateSerializer(ProductCreateSerializer):
             raise serializers.ValidationError(
                 ProductPromotion.MAX_PROMOTIONS_ERROR_MESSAGE
             )
+        for promotion in value:
+            if promotion.promotion_type == Promotion.COUPON:
+                raise serializers.ValidationError(INCORRECT_COUPON_APPLY_ERROR)
         return value
 
 
@@ -506,7 +510,7 @@ class TagSerializer(TagLightSerializer):
         )
 
 
-class CouponSerializer(serializers.ModelSerializer):
+class CouponApplySerializer(serializers.ModelSerializer):
     """Serializer to apply coupon promoaction to the order."""
 
     name = serializers.ReadOnlyField()
