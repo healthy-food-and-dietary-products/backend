@@ -322,6 +322,8 @@ def read_recipes():
                 image=row["image"],
                 text=row["text"],
                 cooking_time=row["cooking_time"],
+                short_description=row["short_description"],
+                servings_quantity=row["servings_quantity"],
             )
             recipe.save()
 

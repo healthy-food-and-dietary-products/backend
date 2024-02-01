@@ -11,14 +11,16 @@ class Recipe(CreatedModel):
 
     It is described by the following fields:
 
-    author - The author of the recipe (user).
-    name - The name of the recipe.
-    image - Picture of the finished dish.
-    text - Text description of the recipe.
-    ingredients - Ingredients: products for cooking the dish according to the recipe.
-    Multiple field, selection from a list of products,
-    with the quantity.
-    cooking_time - Cooking time in minutes.
+    pub_date - date and time the recipe was created,
+    author - the author of the recipe (user),
+    name - recipe name,
+    image - picture of the finished dish,
+    text - cooking instructions,
+    ingredients - products for cooking the dish according to the recipe,
+    multiple field, selection from a list of products with their quantities,
+    cooking_time - cooking time in minutes,
+    short_description - short text that appears below the recipe image,
+    servings_quantity - number of servings of the dish.
     """
 
     def recipe_directory_path(self, filename):

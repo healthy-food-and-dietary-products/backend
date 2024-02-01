@@ -357,6 +357,8 @@ def export_recipes():
         "image",
         "text",
         "cooking_time",
+        "short_description",
+        "servings_quantity",
     ]
     with open(
         os.path.join(DATA_DIR, "recipes.csv"), "w", newline="", encoding="utf-8"
