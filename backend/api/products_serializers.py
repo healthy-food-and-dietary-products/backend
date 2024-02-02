@@ -18,9 +18,6 @@ from products.models import (
     Tag,
 )
 
-COUPON_PROMOTION_TYPE_API_ERROR_MESSAGE = (
-    f"Указан неверный тип промоакции, нужно выбрать {Promotion.COUPON}."
-)
 RATING_DECIMAL_PLACES = 1
 
 
@@ -516,6 +513,8 @@ class TagSerializer(TagLightSerializer):
 class CouponSerializer(serializers.ModelSerializer):
     """Serializer for coupons representation."""
 
+    promotion_type = serializers.ReadOnlyField()
+
     class Meta:
         model = Coupon
         fields = (
@@ -532,12 +531,6 @@ class CouponSerializer(serializers.ModelSerializer):
             "conditions",
             "image",
         )
-
-    def validate_promotion_type(self, value):
-        """Checks that promotion_type is correct."""
-        if value != Promotion.COUPON:
-            raise serializers.ValidationError(COUPON_PROMOTION_TYPE_API_ERROR_MESSAGE)
-        return value
 
 
 class CouponApplySerializer(serializers.ModelSerializer):

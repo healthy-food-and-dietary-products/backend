@@ -577,6 +577,12 @@ class CouponViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
     serializer_class = CouponSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    @transaction.atomic
+    def perform_create(self, serializer):
+        """Sets the correct promotion_type during coupon creation."""
+        serializer.save(promotion_type=Promotion.COUPON)
+        return super().perform_create(serializer)
+
 
 @method_decorator(
     name="list",
@@ -664,6 +670,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
+        """
+        Sets the correct category for the given subcategory during product creation.
+        """
         subcategory_id = serializer._kwargs["data"]["subcategory"]
         subcategory = Subcategory.objects.get(id=subcategory_id)
         serializer.save(category=subcategory.parent_category)
@@ -671,6 +680,9 @@ class ProductViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
+        """
+        Sets the correct category for the given subcategory during product editing.
+        """
         subcategory_id = serializer._kwargs["data"].get("subcategory")
         if subcategory_id:
             subcategory = Subcategory.objects.get(id=subcategory_id)

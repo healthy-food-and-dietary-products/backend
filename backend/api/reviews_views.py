@@ -101,10 +101,12 @@ class ReviewViewSet(DestroyWithPayloadMixin, viewsets.ModelViewSet):
         ).select_related("product", "author")
 
     def perform_create(self, serializer):
+        """Sets the correct author and product during review creation."""
         product = get_object_or_404(Product, pk=self.kwargs.get("product_id"))
         serializer.save(author=self.request.user, product=product)
 
     def perform_update(self, serializer):
+        """Updates pub_date and was_edited fields during review editing."""
         serializer.save(pub_date=timezone.now(), was_edited=True)
         return super().perform_update(serializer)
 
