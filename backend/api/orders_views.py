@@ -198,7 +198,7 @@ class ShoppingCartViewSet(
         code = request.data["code"]
         try:
             coupon = Coupon.objects.get(
-                Q(code__iexact=code),
+                Q(code__exact=code),
                 Q(is_active=True),
                 Q(start_time__lte=now) | Q(start_time__isnull=True),
                 Q(end_time__gte=now) | Q(end_time__isnull=True),
