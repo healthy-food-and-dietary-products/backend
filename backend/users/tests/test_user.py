@@ -3,6 +3,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from tests.api_tests.test_user import BIRTH_DATE_FORMAT_ERROR_MESSAGE
 from users.models import PHONE_NUMBER_ERROR, Address
 
 User = get_user_model()
@@ -85,8 +86,7 @@ class UsersTest(TestCase):
         self.assertEqual(response.data["type"], "validation_error")
         self.assertEqual(response.data["errors"][0]["code"], "invalid")
         self.assertEqual(
-            response.data["errors"][0]["detail"],
-            "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY.",
+            response.data["errors"][0]["detail"], BIRTH_DATE_FORMAT_ERROR_MESSAGE
         )
 
     def test_user_add_phone_number(self):

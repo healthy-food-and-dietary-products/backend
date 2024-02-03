@@ -1,5 +1,8 @@
 import pytest
+from dateutil.relativedelta import relativedelta
 from django.urls import reverse
+from django.utils import timezone
+from rest_framework.fields import DateField
 
 from api.mixins import MESSAGE_ON_DELETE
 from tests.fixtures import (
@@ -12,7 +15,17 @@ from tests.fixtures import (
     USER,
     USER_EMAIL,
 )
-from users.models import PHONE_NUMBER_ERROR
+from users.models import (
+    BIRTH_DATE_TOO_OLD_ERROR_MESSAGE,
+    BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE,
+    MAX_USER_AGE,
+    MIN_USER_AGE,
+    PHONE_NUMBER_ERROR,
+)
+
+BIRTH_DATE_FORMAT_ERROR_MESSAGE = DateField.default_error_messages["invalid"].format(
+    format="DD.MM.YYYY"
+)
 
 
 @pytest.mark.django_db
@@ -106,14 +119,50 @@ def test_patch_me_first_last_names(user, auth_client):
 @pytest.mark.django_db
 def test_patch_me_birth_date_post(user, auth_client):
     response_get = auth_client.get(reverse("api:user-me"))
-
     assert response_get.data["birth_date"] is None
 
     payload = {"birth_date": BIRTH_DATE}
     response_post = auth_client.patch(reverse("api:user-me"), payload)
-
     assert response_post.status_code == 200
     assert response_post.data["birth_date"] == BIRTH_DATE
+
+
+@pytest.mark.django_db
+def test_patch_me_too_young_birth_date(user, auth_client):
+    response_get = auth_client.get(reverse("api:user-me"))
+    assert response_get.data["birth_date"] is None
+
+    date = (
+        timezone.now().date()
+        - relativedelta(years=MIN_USER_AGE)
+        + relativedelta(days=1)
+    )
+    date = date.__format__("%d.%m.%Y")
+    payload = {"birth_date": date}
+    response = auth_client.patch(reverse("api:user-me"), payload)
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert response.data["errors"][0]["detail"] == BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE
+
+
+@pytest.mark.django_db
+def test_patch_me_too_old_birth_date(user, auth_client):
+    response_get = auth_client.get(reverse("api:user-me"))
+    assert response_get.data["birth_date"] is None
+
+    date = (
+        timezone.now().date()
+        - relativedelta(years=MAX_USER_AGE)
+        - relativedelta(days=1)
+    )
+    date = date.__format__("%d.%m.%Y")
+    payload = {"birth_date": date}
+    response = auth_client.patch(reverse("api:user-me"), payload)
+    assert response.status_code == 400
+    assert response.data["type"] == "validation_error"
+    assert response.data["errors"][0]["code"] == "invalid"
+    assert response.data["errors"][0]["detail"] == BIRTH_DATE_TOO_OLD_ERROR_MESSAGE
 
 
 @pytest.mark.django_db
@@ -124,16 +173,13 @@ def test_patch_me_birth_date_post_fail(user, auth_client):
     assert response.status_code == 400
     assert response.data["type"] == "validation_error"
     assert response.data["errors"][0]["code"] == "invalid"
-    assert response.data["errors"][0]["detail"] == (
-        "Неправильный формат date. Используйте один из этих форматов: DD.MM.YYYY."
-    )
+    assert response.data["errors"][0]["detail"] == BIRTH_DATE_FORMAT_ERROR_MESSAGE
 
 
 @pytest.mark.django_db
 def test_patch_me_birth_date_set_null(user, auth_client):
     payload = {"birth_date": BIRTH_DATE}
     response_post = auth_client.patch(reverse("api:user-me"), payload)
-
     assert response_post.status_code == 200
     assert response_post.data["birth_date"] == BIRTH_DATE
 
@@ -155,12 +201,10 @@ def test_patch_me_birth_date_set_null(user, auth_client):
 @pytest.mark.django_db
 def test_patch_me_phone_number(user, auth_client):
     response_get = auth_client.get(reverse("api:user-me"))
-
     assert response_get.data["phone_number"] == ""
 
     payload = {"phone_number": PHONE_NUMBER}
     response_post = auth_client.patch(reverse("api:user-me"), payload)
-
     assert response_post.status_code == 200
     assert response_post.data["phone_number"] == user.phone_number == PHONE_NUMBER
 
@@ -172,7 +216,6 @@ def test_patch_me_phone_number(user, auth_client):
     payload = {"phone_number": "4"}
     response = auth_client.patch(reverse("api:user-me"), payload)
     assert response.status_code == 400
-
     assert response.data["type"] == "validation_error"
     assert response.data["errors"][0]["code"] == "invalid"
     assert response.data["errors"][0]["detail"] == PHONE_NUMBER_ERROR
