@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from django.urls import reverse
 
@@ -131,7 +129,6 @@ def test_patch_me_birth_date_post_fail(user, auth_client):
     )
 
 
-@pytest.mark.skip(reason="Not passing now, need to fix")
 @pytest.mark.django_db
 def test_patch_me_birth_date_set_null(user, auth_client):
     payload = {"birth_date": BIRTH_DATE}
@@ -140,12 +137,18 @@ def test_patch_me_birth_date_set_null(user, auth_client):
     assert response_post.status_code == 200
     assert response_post.data["birth_date"] == BIRTH_DATE
 
-    payload2 = {"birth_date": None}
-
+    # pytest/unittest don't accept None (i.e. null) in payload and responds with
+    # the error "TypeError: Cannot encode None for key 'birth_date' as POST data.
+    # Did you mean to pass an empty string or omit the value?"
+    # However, if we pass an empty string as payload, pytest will count it as null.
+    # We also wanted to make a test for an empty string, to which our API responds
+    # with code 400 (incorrect date format error), but pytest/unittest equates it
+    # to None, so we cannot write such a test.
+    payload_to_delete_birth_date = {"birth_date": ""}
     response_delete = auth_client.patch(
-        reverse("api:user-me"), json.dumps(payload2), headers="application/json"
+        reverse("api:user-me"), payload_to_delete_birth_date
     )
-
+    assert response_delete.status_code == 200
     assert response_delete.data["birth_date"] is None
 
 

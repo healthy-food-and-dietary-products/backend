@@ -79,9 +79,9 @@ class UserSerializer(DjoserUserSerializer):
 
     def validate_birth_date(self, value):
         now = timezone.now()
-        if value + relativedelta(years=MIN_USER_AGE) > now.date():
+        if value and value + relativedelta(years=MIN_USER_AGE) > now.date():
             raise serializers.ValidationError(BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE)
-        if value + relativedelta(years=MAX_USER_AGE) < now.date():
+        if value and value + relativedelta(years=MAX_USER_AGE) < now.date():
             raise serializers.ValidationError(BIRTH_DATE_TOO_OLD_ERROR_MESSAGE)
         return value
 

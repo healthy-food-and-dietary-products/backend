@@ -39,8 +39,10 @@ jobs:
           python -m flake8
       - name: Test with pytest
         run: |
+          pwd
+          ls
           cd backend
-          pytest
+          pytest backend/tests/
       - name: send message
         if: ${{ github.ref != 'refs/heads/main' }}
         uses: appleboy/telegram-action@master
