@@ -24,6 +24,7 @@ pytest = "^7.4.3"
 pytest-django = "^4.7.0"
 django-phonenumber-field = {extras = ["phonenumberslite"], version = "^7.2.0"}
 stripe = "^7.8.2"
+python-dateutil = "^2.8.2"
 
 
 [tool.poetry.group.dev.dependencies]
