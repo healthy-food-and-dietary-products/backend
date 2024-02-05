@@ -33,7 +33,7 @@ def test_product_category_filter(client, products, categories):
 
 @pytest.mark.django_db
 def test_product_category_filter_multiple(client, products, categories):
-    filter = f"?category={categories[0].slug}&category={categories[1].slug}"
+    filter = f"?category={categories[0].slug},{categories[1].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -55,11 +55,8 @@ def test_product_category_filter_fail_invalid_slug(client, categories):
     filter = f"?category={categories[1].slug[:2]}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "category"
-
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 @pytest.mark.django_db
 def test_product_subcategory_filter(client, products, subcategories):
@@ -78,7 +75,7 @@ def test_product_subcategory_filter(client, products, subcategories):
 
 @pytest.mark.django_db
 def test_product_subcategory_filter_multiple(client, products, subcategories):
-    filter = f"?subcategory={subcategories[1].slug}&subcategory={subcategories[2].slug}"
+    filter = f"?subcategory={subcategories[1].slug},{subcategories[2].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -102,10 +99,8 @@ def test_product_subcategory_filter_fail_invalid_slug(client, subcategories):
     filter = f"?subcategory={subcategories[1].slug[:2]}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "subcategory"
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -122,7 +117,7 @@ def test_product_producer_filter(client, products, producers):
 
 @pytest.mark.django_db
 def test_product_producer_filter_multiple(client, products, producers):
-    filter = f"?producer={producers[0].slug}&producer={producers[1].slug}"
+    filter = f"?producer={producers[0].slug},{producers[1].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -143,10 +138,8 @@ def test_product_producer_filter_fail_invalid_slug(client, producers):
     filter = f"?producer={producers[1].slug[:2]}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "producer"
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -166,7 +159,7 @@ def test_product_components_filter(client, products, components):
 
 @pytest.mark.django_db
 def test_product_components_filter_multiple(client, products, components):
-    filter = f"?components={components[3].slug}&components={components[2].slug}"
+    filter = f"?components={components[3].slug},{components[2].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -194,10 +187,8 @@ def test_product_components_filter_fail_invalid_slug(client, components):
     filter = f"?components={components[1].slug[:2]}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "components"
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -217,7 +208,7 @@ def test_product_tags_filter(client, products, tags):
 def test_product_tags_filter_multiple(client, products, tags):
     products[1].tags.set([tags[1]])
     products[2].tags.set([tags[0]])
-    filter = f"?tags={tags[0].slug}&tags={tags[1].slug}"
+    filter = f"?tags={tags[0].slug},{tags[1].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -235,10 +226,8 @@ def test_product_tags_filter_fail_invalid_slug(client, tags):
     filter = f"?tags={tags[1].slug[:2]}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "tags"
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -261,7 +250,7 @@ def test_product_promotions_filter(client, products, promotions):
 def test_product_promotions_filter_multiple(client, products, promotions):
     products[0].promotions.set([promotions[1]])
     products[1].promotions.set([promotions[0]])
-    filter = f"?promotions={promotions[0].slug}&promotions={promotions[1].slug}"
+    filter = f"?promotions={promotions[0].slug},{promotions[1].slug}"
     response = client.get(reverse("api:product-list") + filter)
 
     assert response.status_code == 200
@@ -285,10 +274,8 @@ def test_product_promotions_filter_fail_invalid_slug(client):
     filter = f"?promotions={TEST_NUMBER}"
     response = client.get(reverse("api:product-list") + filter)
 
-    assert response.status_code == 400
-    assert response.data["type"] == "validation_error"
-    assert response.data["errors"][0]["code"] == "invalid_choice"
-    assert response.data["errors"][0]["attr"] == "promotions"
+    assert response.status_code == 200
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db

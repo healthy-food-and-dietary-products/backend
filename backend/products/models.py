@@ -15,6 +15,7 @@ INCORRECT_COUPON_APPLY_ERROR = (
     "он применяется к Корзине в целом."
 )
 MAX_PROMOTIONS_NUMBER = 1
+PRICE_DECIMAL_PLACES = 2
 
 
 class Category(CategoryModel):
@@ -368,7 +369,11 @@ class Product(models.Model):
         if not self.promotions.all():
             return self.price
         discount = self.promotions.all()[0].discount
-        return round(self.price * (1 - discount / 100), 2) if discount else self.price
+        return (
+            round(self.price * (1 - discount / 100), PRICE_DECIMAL_PLACES)
+            if discount
+            else self.price
+        )
 
     def is_favorited(self, user):
         """Checks whether the product is in the user's favorites."""
