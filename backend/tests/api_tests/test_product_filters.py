@@ -58,6 +58,7 @@ def test_product_category_filter_fail_invalid_slug(client, categories):
     assert response.status_code == 200
     assert response.data["count"] == 0
 
+
 @pytest.mark.django_db
 def test_product_subcategory_filter(client, products, subcategories):
     filter = f"?subcategory={subcategories[1].slug}"
