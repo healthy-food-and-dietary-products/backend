@@ -1,12 +1,20 @@
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import UserDeleteSerializer as DjoserUserDeleteSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from users.models import Address
+from users.models import (
+    BIRTH_DATE_TOO_OLD_ERROR_MESSAGE,
+    BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE,
+    MAX_USER_AGE,
+    MIN_USER_AGE,
+    Address,
+)
 from users.utils import city_choices
 
 User = get_user_model()
@@ -68,6 +76,14 @@ class UserSerializer(DjoserUserSerializer):
             "phone_number",
             "photo",
         )
+
+    def validate_birth_date(self, value):
+        now = timezone.now()
+        if value and value + relativedelta(years=MIN_USER_AGE) > now.date():
+            raise serializers.ValidationError(BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE)
+        if value and value + relativedelta(years=MAX_USER_AGE) < now.date():
+            raise serializers.ValidationError(BIRTH_DATE_TOO_OLD_ERROR_MESSAGE)
+        return value
 
     def get_address_quantity(self, obj) -> int:
         return obj.addresses.count()

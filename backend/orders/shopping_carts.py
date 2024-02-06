@@ -3,9 +3,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils import timezone
 
 from core.loggers import logger
-from products.models import Coupon, Product
-
-PRICE_DECIMAL_PLACES = 2
+from products.models import PRICE_DECIMAL_PLACES, Coupon, Product
 
 
 class ShopCart(object):
