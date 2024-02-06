@@ -41,7 +41,7 @@ from .orders_serializers import (
     StripePaySuccessPageSerializer,
     StripeSessionCreateSerializer,
 )
-from .products_serializers import CouponSerializer
+from .products_serializers import CouponApplySerializer
 from .products_views import STATUS_200_RESPONSE_ON_DELETE_IN_DOCS
 from core.loggers import logger
 from core.utils import generate_order_number
@@ -114,7 +114,7 @@ COUPON_ERROR_MESSAGE = "Промокод {code} недействителен."
     decorator=swagger_auto_schema(
         operation_summary="Apply promocode",
         responses={
-            201: CouponSerializer,
+            201: CouponApplySerializer,
             400: ErrorResponse406Serializer,
             403: ErrorResponse403Serializer,
         },
@@ -137,7 +137,7 @@ class ShoppingCartViewSet(
         if self.request.method in permissions.SAFE_METHODS:
             return ShoppingCartListSerializer
         if self.action == "coupon_apply":
-            return CouponSerializer
+            return CouponApplySerializer
         return ShoppingCartSerializer
 
     # TODO: test this endpoint
@@ -198,7 +198,7 @@ class ShoppingCartViewSet(
         code = request.data["code"]
         try:
             coupon = Coupon.objects.get(
-                Q(code__iexact=code),
+                Q(code__exact=code),
                 Q(is_active=True),
                 Q(start_time__lte=now) | Q(start_time__isnull=True),
                 Q(end_time__gte=now) | Q(end_time__isnull=True),

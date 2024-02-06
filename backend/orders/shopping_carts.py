@@ -1,10 +1,9 @@
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils import timezone
 
 from core.loggers import logger
-from products.models import Coupon, Product
-
-PRICE_DECIMAL_PLACES = 2
+from products.models import PRICE_DECIMAL_PLACES, Coupon, Product
 
 
 class ShopCart(object):
@@ -13,6 +12,7 @@ class ShopCart(object):
         self.session = request.session
         self.shopping_cart = self.session.get(settings.SHOPPING_CART_SESSION_ID, {})
         self.coupon_id = self.session.get("coupon_id")
+        self.request = request
 
     def save(self):
         self.session[settings.SHOPPING_CART_SESSION_ID] = self.shopping_cart
@@ -22,11 +22,16 @@ class ShopCart(object):
         """Add a product to the shopping_cart."""
         p_id = str(product["id"])
         p = Product.objects.get(id=product["id"])
+        current_site = get_current_site(self.request)
+        if settings.MODE == "dev" or current_site.domain == "localhost":
+            domain_media_url = f"http://{current_site}/media/"
+        else:
+            domain_media_url = f"https://{current_site}/media/"
         if p_id not in self.shopping_cart:
             self.shopping_cart[p_id] = {
                 "id": p.id,
                 "name": p.name,
-                "photo": str(p.photo),
+                "photo": domain_media_url + str(p.photo),
                 "category": p.category.slug,
                 "quantity": quantity,
                 "final_price": p.final_price,

@@ -105,6 +105,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "id",
             "author",
             "name",
+            "pub_date",
             "servings_quantity",
             "short_description",
             "text",

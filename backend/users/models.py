@@ -1,3 +1,4 @@
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
@@ -13,6 +14,16 @@ PHONE_NUMBER_ERROR = (
     "форматах '+7XXXXXXXXXX', '7XXXXXXXXXX' или '8XXXXXXXXXX'."
 )
 PHONE_NUMBER_REGEX = r"^(\+7|7|8)\d{10}$"
+MIN_USER_AGE = 6
+MAX_USER_AGE = 110
+BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE = (
+    "Указана неверная дата рождения, "
+    f"пользователю должно быть не менее {MIN_USER_AGE} лет."
+)
+BIRTH_DATE_TOO_OLD_ERROR_MESSAGE = (
+    "Указана неверная дата рождения, "
+    f"пользователю должно быть не более {MAX_USER_AGE} лет."
+)
 
 
 @cleanup.select
@@ -59,12 +70,16 @@ class User(AbstractUser):
         """Checks the user's birth date."""
         super().clean_fields(exclude=exclude)
         now = timezone.now()
-        if self.birth_date:
-            if (
-                self.birth_date.year > now.year
-                or (now.year - self.birth_date.year) > 120
-            ):
-                raise ValidationError("Указана неверная дата рождения.")
+        if (
+            self.birth_date
+            and self.birth_date + relativedelta(years=MIN_USER_AGE) > now.date()
+        ):
+            raise ValidationError(BIRTH_DATE_TOO_YOUNG_ERROR_MESSAGE)
+        if (
+            self.birth_date
+            and self.birth_date + relativedelta(years=MAX_USER_AGE) < now.date()
+        ):
+            raise ValidationError(BIRTH_DATE_TOO_OLD_ERROR_MESSAGE)
 
 
 class Address(models.Model):

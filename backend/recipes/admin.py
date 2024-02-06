@@ -28,6 +28,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ["pub_date", "cooking_time", "servings_quantity"]
     readonly_fields = ["pub_date"]
     empty_value_display = "-empty-"
+    ordering = ["pk"]
     inlines = [RecipeIngredientInline]
 
     @admin.display(description="Total ingredients")
